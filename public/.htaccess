@@ -1,0 +1,24 @@
+# Public directory routing with optional /lag-int prefix
+RewriteEngine On
+
+# If the request starts with /lag-int, strip the prefix so files resolve in public/
+RewriteRule ^lag-int/?$ index.php [L,QSA]
+RewriteRule ^lag-int/(.*)$ $1 [L,QSA]
+
+# Front controller fallback: send non-file/non-dir requests to index.php
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [L,QSA]
+
+# Basic protections
+<FilesMatch "\.(log|conf|sql|env)$">
+  Require all denied
+</FilesMatch>
+
+# Optional security headers
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options nosniff
+  Header always set X-Frame-Options DENY
+  Header always set X-XSS-Protection "1; mode=block"
+  Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>

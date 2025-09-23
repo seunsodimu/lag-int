@@ -1,0 +1,39 @@
+services:
+  app:
+    build: .
+    container_name: lag-int-app
+    ports:
+      - "8080:80"
+    environment:
+      # App environment variables (override in .env if needed)
+      APP_ENV: ${APP_ENV:-local}
+      APP_DEBUG: ${APP_DEBUG:-1}
+      APP_BASE_PATH: ${APP_BASE_PATH:-/lag-int}
+      # Database connection for PHP (matches config.php and .env)
+      DB_HOST: ${DB_HOST:-db}
+      DB_PORT: ${DB_PORT:-3306}
+      DB_NAME: ${DB_NAME:-integration_db}
+      DB_USER: ${DB_USER:-laguser}
+      DB_PASS: ${DB_PASS:-adminpass}
+    volumes:
+      - ./:/var/www/html
+    depends_on:
+      - db
+
+  db:
+    image: mysql:8.0
+    container_name: lag-int-db
+    command: ["--default-authentication-plugin=mysql_native_password"]
+    environment:
+      # Provision database and app user using same vars as app
+      MYSQL_DATABASE: ${DB_NAME:-integration_db}
+      MYSQL_USER: ${DB_USER:-laguser}
+      MYSQL_PASSWORD: ${DB_PASS:-adminpass}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpass}
+    ports:
+      - "3307:3306"
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data: {}
