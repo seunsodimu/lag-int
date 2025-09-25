@@ -105,7 +105,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="login-container">
         <div class="login-header">
             <i class="fas fa-sync-alt fa-2x mb-3"></i>
-            <h4 class="mb-0">3DCart NetSuite Integration</h4>
+            <h4 class="mb-0">Laguna Tools Integrations</h4>
             <p class="mb-0 opacity-75">Please sign in to continue</p>
         </div>
         

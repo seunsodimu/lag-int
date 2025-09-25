@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laguna Pulse</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 40px;
+            z-index: 1000;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            font-size: 28px;
+            font-weight: bold;
+            color: #ffffff;
+            width: 20%;
+        }
+
+       
+
+        .clock {
+            display: flex;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 300;
+            color: #ffffff;
+        }
+
+        
+
+        /* Right side container (clock + weather) */
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        /* Fullscreen button */
+        .fs-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 36px;
+            width: 36px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.08);
+            color: #ffffff;
+            cursor: pointer;
+            transition: background 0.2s ease, transform 0.1s ease;
+        }
+        .fs-btn:hover { background: rgba(255, 255, 255, 0.15); }
+        .fs-btn:active { transform: scale(0.98); }
+
+        /* Weather widget */
+        .weather {
+            display: flex;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 300;
+            color: #ffffff;
+            padding: 6px 10px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .weather .emoji {
+            margin-right: 8px;
+        }
+
+        /* Main Content Area */
+        .main-content {
+            flex: 1;
+            margin-top: 80px;
+            margin-bottom: 60px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .slide-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+
+        .slide {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .slide.active {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .slide.exiting {
+            transform: translateX(-100%);
+        }
+
+        /* Slide Content Types */
+        .slide iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+        }
+
+        .slide video {
+            max-width: 100%;
+            max-height: 100%;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .content-slide {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 60px;
+            text-align: center;
+            max-width: 100%;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .content-slide h1 {
+            font-size: 62px;
+            margin-bottom: 50px;
+            font-weight: 300;
+            color: #ffffff;
+        }
+
+        .content-slide h2 {
+            font-size: 46px;
+            margin-bottom: 25px;
+            color: #e0e7ff;
+        }
+
+        .content-slide p {
+            font-size: 42px;
+            line-height: 1.6;
+            color: #f1f5f9;
+            margin-bottom: 20px;
+        }
+
+        .content-slide ul {
+            text-align: center;
+            max-width: 1200px;
+            margin: 0 auto;
+            width: 1200px;
+        }
+
+        .content-slide li {
+            font-size: 50px;
+            margin-bottom: 15px;
+            color: #f1f5f9;
+            list-style: none;
+            position: relative;
+            padding-left: 30px;
+            text-align: center;
+        }
+
+
+        /* Footer */
+        .footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            border-top: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .footer-message {
+            font-size: 18px;
+            font-weight: 300;
+            color: #ffffff;
+            display: flex;
+            align-items: center;
+        }
+
+        .footer-message::before {
+            margin-right: 10px;
+            font-size: 20px;
+        }
+
+        /* Progress Indicator */
+        .progress-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.8);
+            transition: width linear;
+            border-radius: 2px;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .header {
+                padding: 0 20px;
+                height: 60px;
+            }
+            
+            .main-content {
+                margin-top: 60px;
+                margin-bottom: 50px;
+            }
+            
+            .logo, .clock {
+                font-size: 12px;
+            }
+            
+            .content-slide {
+                padding: 30px;
+            }
+            
+            .content-slide h1 {
+                font-size: 32px;
+            }
+            
+            .content-slide h2 {
+                font-size: 24px;
+            }
+            
+            .content-slide p, .content-slide li {
+                font-size: 18px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="logo"><img src="images/laguna-pulse.webp" width="100%" alt="Laguna Pulse Logo"></div>
+        <div class="header-right">
+            <button id="fullscreenBtn" class="fs-btn" title="Toggle fullscreen" aria-label="Toggle fullscreen">⛶</button>
+            <div class="clock" id="clock">12:00 PM</div>
+            <div class="weather" id="weather">
+                <span class="emoji" id="weatherEmoji">⛅</span>
+                <span id="weatherText">Loading...</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="main-content">
+        <div class="slide-container" id="slideContainer">
+            <!-- Slides will be dynamically generated here -->
+        </div>
+        <div class="progress-bar" id="progressBar"></div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-message" id="footerMessage">Welcome to Laguna Pulse!</div>
+    </footer>
+
+    <script>
+        // Configuration loaded from JSON files
+        let slideConfig = [];
+        let footerMessages = [];
+
+        async function loadConfig() {
+            try {
+                const [slidesRes, footerRes] = await Promise.all([
+                    fetch('slides.json', { cache: 'no-cache' }),
+                    fetch('footer-messages.json', { cache: 'no-cache' })
+                ]);
+                if (!slidesRes.ok) throw new Error('Failed to load slides.json');
+                if (!footerRes.ok) throw new Error('Failed to load footer-messages.json');
+                slideConfig = await slidesRes.json();
+                footerMessages = await footerRes.json();
+
+                // Handle empty arrays by providing placeholders
+                if (!Array.isArray(slideConfig) || slideConfig.length === 0) {
+                    slideConfig = [
+                        {
+                            type: "content",
+                            id: "welcome",
+                            duration: 10,
+                            content: {
+                                title: "Welcome to Laguna Pulse",
+                                subtitle: "",
+                                body: "No slides configured."
+                            }
+                        }
+                    ];
+                }
+                if (!Array.isArray(footerMessages) || footerMessages.length === 0) {
+                    footerMessages = ["Welcome to Laguna Pulse!"];
+                }
+            } catch (err) {
+                console.error('Configuration load error:', err);
+                // Fallback to minimal defaults so UI still works
+                slideConfig = slideConfig.length ? slideConfig : [
+                    {
+                        type: "content",
+                        id: "welcome",
+                        duration: 10,
+                        content: {
+                            title: "Welcome to Laguna Pulse",
+                            subtitle: "Stay Connected & Informed",
+                            body: "Configuration failed to load. Using defaults."
+                        }
+                    }
+                ];
+                footerMessages = footerMessages.length ? footerMessages : [
+                    "Welcome to Laguna Pulse!"
+                ];
+            }
+        }
+
+        class OfficeDashboard {
+            constructor() {
+                this.currentSlide = 0;
+                this.slideInterval = null;
+                this.progressInterval = null;
+                this.currentFooterMessage = 0;
+                this.locationOffsetSec = null;
+                this.locationTimeZone = null;
+                
+                this.initializeClock();
+                this.initializeWeather();
+                this.initializeSlides();
+                this.startSlideshow();
+                this.rotateFooterMessages();
+            }
+
+            initializeClock() {
+                const updateClock = () => {
+                    const now = new Date();
+
+                    // If we have a location offset (seconds), adjust the time display
+                    let displayDate = now;
+                    if (typeof this.locationOffsetSec === 'number') {
+                        const localOffsetMin = now.getTimezoneOffset(); // minutes, e.g. -420 for PDT
+                        const localOffsetMs = localOffsetMin * 60 * 1000;
+                        const targetOffsetMs = this.locationOffsetSec * 1000; // seconds to ms
+                        // Convert current UTC time + target offset
+                        const utcMs = now.getTime() + localOffsetMs; // now + local offset -> UTC
+                        displayDate = new Date(utcMs + targetOffsetMs);
+                    }
+
+                    const tz = this.locationTimeZone;
+                    const options = { hour: '2-digit', minute: '2-digit' };
+                    if (tz) options.timeZone = tz;
+                    const timeString = new Date().toLocaleTimeString([], options);
+                    document.getElementById('clock').textContent = timeString;
+                };
+                
+                updateClock();
+                setInterval(updateClock, 1000);
+            }
+
+            // Fetch weather using browser geolocation and Open-Meteo (no API key)
+            initializeWeather() {
+                const weatherText = document.getElementById('weatherText');
+                const weatherEmoji = document.getElementById('weatherEmoji');
+
+                const setWeather = (tempC, code) => {
+                    // Map weather code to a simple emoji
+                    const codeToEmoji = (c) => {
+                        if (c === 0) return '☀️'; // Clear
+                        if ([1,2,3].includes(c)) return '⛅'; // Mainly clear to overcast
+                        if ([45,48].includes(c)) return '🌫️'; // Fog
+                        if ([51,53,55,56,57].includes(c)) return '🌦️'; // Drizzle
+                        if ([61,63,65,66,67,80,81,82].includes(c)) return '🌧️'; // Rain
+                        if ([71,73,75,77,85,86].includes(c)) return '❄️'; // Snow
+                        if ([95,96,99].includes(c)) return '⛈️'; // Thunderstorm
+                        return '🌡️';
+                    };
+                    weatherEmoji.textContent = codeToEmoji(code);
+                    weatherText.textContent = `${Math.round(tempC)}°C`;
+                };
+
+                const onError = () => {
+                    weatherEmoji.textContent = '🌐';
+                    weatherText.textContent = 'Weather unavailable';
+                };
+
+                const fetchWeather = (lat, lon) => {
+                    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&timezone=auto`;
+                    fetch(url)
+                        .then(r => r.json())
+                        .then(data => {
+                            const current = data && data.current;
+                            const utcOffsetSeconds = data && data.utc_offset_seconds;
+                            if (typeof utcOffsetSeconds === 'number') {
+                                this.locationOffsetSec = utcOffsetSeconds;
+                            }
+                            // Capture IANA timezone if provided
+                            if (data && data.timezone) {
+                                this.locationTimeZone = data.timezone; // e.g., America/Los_Angeles
+                            }
+                            if (current && typeof current.temperature_2m === 'number') {
+                                // Convert C to F
+                                const tempF = (current.temperature_2m * 9/5) + 32;
+                                setWeather(tempF, current.weather_code);
+                            } else {
+                                onError();
+                            }
+                        })
+                        .catch(onError);
+                };
+
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (pos) => fetchWeather(pos.coords.latitude, pos.coords.longitude),
+                        onError,
+                        { timeout: 5000 }
+                    );
+                } else {
+                    onError();
+                }
+            }
+
+            initializeSlides() {
+                const container = document.getElementById('slideContainer');
+                
+                slideConfig.forEach((slide, index) => {
+                    const slideElement = document.createElement('div');
+                    slideElement.className = 'slide';
+                    slideElement.id = `slide-${index}`;
+                    
+                    if (slide.type === 'iframe') {
+                        slideElement.innerHTML = `
+                            <iframe src="${slide.url}" 
+                                    sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
+                                    allow="autoplay; fullscreen; picture-in-picture"
+                                    loading="lazy" style="padding: 10px">
+                            </iframe>
+                        `;
+                    } else if (slide.type === 'video') {
+                        // Local video slide: supports autoplay on activation and optional looping via slide.loop
+                        const loopAttr = slide.loop ? 'loop' : '';
+                        slideElement.innerHTML = `
+                            <video ${loopAttr} muted preload="metadata" playsinline>
+                                <source src="${slide.url}" type="video/mp4">
+                                Your browser does not support the video tag.
+                            </video>
+                        `;
+                    } else if (slide.type === 'content') {
+                        const content = slide.content;
+                        let bodyContent = '';
+                        
+                        if (content.body) {
+                            bodyContent += `<p>${content.body}</p>`;
+                        }
+                        
+                        if (content.list) {
+                            bodyContent += '<ul>';
+                            content.list.forEach(item => {
+                                bodyContent += `<li>${item}</li>`;
+                            });
+                            bodyContent += '</ul>';
+                        }
+                        
+                        slideElement.innerHTML = `
+                            <div class="content-slide">
+                                ${content.title ? `<h1>${content.title}</h1>` : ''}
+                                ${content.subtitle ? `<h2>${content.subtitle}</h2>` : ''}
+                                ${bodyContent}
+                            </div>
+                        `;
+                    } else if (slide.type === 'image') {
+                        slideElement.innerHTML = `
+                            <img src="${slide.url}" alt="${slide.alt}">
+                        `;
+                    }
+                    
+                    container.appendChild(slideElement);
+                });
+            }
+
+            startSlideshow() {
+                this.showSlide(0);
+            }
+
+            showSlide(index) {
+                const slides = document.querySelectorAll('.slide');
+                
+                // Remove active class from all slides and pause any playing videos
+                slides.forEach(slide => {
+                    slide.classList.remove('active', 'exiting');
+                    const vid = slide.querySelector('video');
+                    if (vid) {
+                        try { vid.pause(); } catch {}
+                        vid.currentTime = 0; // rewind to start for consistent timing
+                    }
+                });
+                
+                // Add exiting class to current slide
+                if (slides[this.currentSlide]) {
+                    slides[this.currentSlide].classList.add('exiting');
+                }
+                
+                // Show new slide
+                setTimeout(() => {
+                    this.currentSlide = index;
+                    const active = slides[this.currentSlide];
+                    active.classList.add('active');
+
+                    // If slide contains a video, autoplay when becoming active
+                    const vid = active.querySelector('video');
+                    if (vid) {
+                        const playAttempt = vid.play();
+                        if (playAttempt && typeof playAttempt.catch === 'function') {
+                            playAttempt.catch(() => {/* ignore autoplay restrictions since video is muted */});
+                        }
+                    }
+
+                    // Start progress and schedule next from the moment slide becomes active
+                    this.startProgressBar();
+                    this.scheduleNextSlide();
+                }, 400);
+            }
+
+            scheduleNextSlide() {
+                // Clear any existing timer to avoid overlaps/drift
+                if (this.slideInterval) {
+                    clearTimeout(this.slideInterval);
+                }
+
+                const currentConfig = slideConfig[this.currentSlide] || {};
+                const durSec = Number(currentConfig.duration);
+                const duration = (Number.isFinite(durSec) && durSec > 0 ? durSec : 10) * 1000;
+                
+                this.slideInterval = setTimeout(() => {
+                    const nextSlide = (this.currentSlide + 1) % slideConfig.length;
+                    this.showSlide(nextSlide);
+                }, duration);
+            }
+
+            startProgressBar() {
+                const progressBar = document.getElementById('progressBar');
+                const duration = slideConfig[this.currentSlide].duration * 1000;
+                
+                progressBar.style.width = '0%';
+                progressBar.style.transition = 'none';
+                
+                setTimeout(() => {
+                    progressBar.style.transition = `width ${duration}ms linear`;
+                    progressBar.style.width = '100%';
+                }, 50);
+            }
+
+            rotateFooterMessages() {
+                const updateFooterMessage = () => {
+                    document.getElementById('footerMessage').textContent = 
+                        footerMessages[this.currentFooterMessage];
+                    this.currentFooterMessage = 
+                        (this.currentFooterMessage + 1) % footerMessages.length;
+                };
+                
+                updateFooterMessage();
+                setInterval(updateFooterMessage, 30000); // Change every 30 seconds
+            }
+        }
+
+        // Initialize the dashboard when the page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadConfig();
+            new OfficeDashboard();
+
+            // Fullscreen toggle handler
+            const fsBtn = document.getElementById('fullscreenBtn');
+            if (fsBtn) {
+                const isFS = () => document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+                const enterFS = () => {
+                    const el = document.documentElement;
+                    if (el.requestFullscreen) return el.requestFullscreen();
+                    if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
+                    if (el.msRequestFullscreen) return el.msRequestFullscreen();
+                };
+                const exitFS = () => {
+                    if (document.exitFullscreen) return document.exitFullscreen();
+                    if (document.webkitExitFullscreen) return document.webkitExitFullscreen();
+                    if (document.msExitFullscreen) return document.msExitFullscreen();
+                };
+                const updateBtn = () => {
+                    const active = !!isFS();
+                    fsBtn.title = active ? 'Exit fullscreen' : 'Enter fullscreen';
+                    fsBtn.setAttribute('aria-label', fsBtn.title);
+                    fsBtn.textContent = active ? '⤢' : '⛶';
+                };
+                fsBtn.addEventListener('click', async () => {
+                    try {
+                        if (isFS()) {
+                            await exitFS();
+                        } else {
+                            await enterFS();
+                        }
+                    } catch (e) {
+                        console.warn('Fullscreen toggle failed:', e);
+                    }
+                });
+                document.addEventListener('fullscreenchange', updateBtn);
+                document.addEventListener('webkitfullscreenchange', updateBtn);
+                document.addEventListener('msfullscreenchange', updateBtn);
+                updateBtn();
+            }
+        });
+
+        // Handle visibility change to pause/resume when tab is not visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                // Pause any videos when tab is hidden
+                document.querySelectorAll('video').forEach(video => {
+                    video.pause();
+                });
+            } else {
+                // Resume videos when tab becomes visible
+                document.querySelectorAll('video').forEach(video => {
+                    if (video.closest('.slide.active')) {
+                        video.play();
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>
