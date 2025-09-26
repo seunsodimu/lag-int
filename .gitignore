@@ -187,6 +187,7 @@ phpstan.neon
 # Apache
 .htaccess.local
 .htpasswd
+.htaccess
 
 # Nginx
 nginx.conf.local
@@ -223,6 +224,8 @@ deployment/
 # Docker (if used)
 docker-compose.override.yml
 .dockerignore
+docker-compose.yml
+Dockerfile
 
 # =============================================================================
 # CUSTOM PROJECT FILES
