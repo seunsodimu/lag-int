@@ -399,4 +399,164 @@ class ThreeDCartService {
             return [];
         }
     }
+    
+    /**
+     * Update order with status and tracking information
+     */
+    public function updateOrderStatusAndTracking($orderId, $statusId, $trackingNumber = '', $comments = '', $shipDate = '') {
+        try {
+            $updateData = [
+                'OrderStatusID' => $statusId
+            ];
+            
+            if (!empty($trackingNumber) || !empty($shipDate)) {
+                $shipmentData = [];
+                
+                if (!empty($trackingNumber)) {
+                    $shipmentData['ShipmentTrackingCode'] = $trackingNumber;
+                }
+                
+                if (!empty($shipDate)) {
+                    // Convert ship date to 3DCart format if needed
+                    $shipmentData['ShipmentShippedDate'] = $this->formatDateFor3DCart($shipDate);
+                }
+                
+                $updateData['ShipmentList'] = [$shipmentData];
+            }
+            
+            if (!empty($comments)) {
+                $updateData['InternalComments'] = $comments;
+            }
+            
+            $startTime = microtime(true);
+            $response = $this->client->put("Orders/{$orderId}", [
+                'json' => $updateData
+            ]);
+            $duration = (microtime(true) - $startTime) * 1000;
+            
+            $this->logger->logApiCall('3DCart', "/Orders/{$orderId}", 'PUT', $response->getStatusCode(), $duration);
+            
+            $this->logger->info('Updated order status and tracking in 3DCart', [
+                'order_id' => $orderId,
+                'status_id' => $statusId,
+                'tracking_number' => $trackingNumber,
+                'comments' => $comments
+            ]);
+            
+            return json_decode($response->getBody()->getContents(), true);
+        } catch (RequestException $e) {
+            $this->logger->error('Failed to update order status and tracking in 3DCart', [
+                'order_id' => $orderId,
+                'status_id' => $statusId,
+                'tracking_number' => $trackingNumber,
+                'error' => $e->getMessage()
+            ]);
+            throw new \Exception("Failed to update order: " . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Get orders by status
+     */
+    public function getOrdersByStatus($statusId, $limit = 100, $offset = 0) {
+        try {
+            $queryParams = [
+                'orderstatus' => $statusId,
+                'limit' => $limit,
+                'offset' => $offset
+            ];
+            
+            $startTime = microtime(true);
+            $response = $this->client->get('Orders', [
+                'query' => $queryParams
+            ]);
+            $duration = (microtime(true) - $startTime) * 1000;
+            
+            $this->logger->logApiCall('3DCart', '/Orders', 'GET', $response->getStatusCode(), $duration);
+            
+            $ordersData = json_decode($response->getBody()->getContents(), true);
+            
+            // Handle both array and single object responses
+            if (!is_array($ordersData)) {
+                $ordersData = [];
+            } elseif (isset($ordersData['OrderID'])) {
+                // Single order returned as object
+                $ordersData = [$ordersData];
+            }
+            
+            $this->logger->info('Retrieved orders by status from 3DCart', [
+                'status_id' => $statusId,
+                'count' => count($ordersData),
+                'limit' => $limit,
+                'offset' => $offset
+            ]);
+            
+            return $ordersData;
+        } catch (RequestException $e) {
+            $this->logger->error('Failed to retrieve orders by status from 3DCart', [
+                'status_id' => $statusId,
+                'error' => $e->getMessage()
+            ]);
+            throw new \Exception("Failed to retrieve orders by status: " . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Update order fields (for manual editing before sync)
+     */
+    public function updateOrderFields($orderId, $updateData) {
+        try {
+            $startTime = microtime(true);
+            $response = $this->client->put("Orders/{$orderId}", [
+                'json' => $updateData
+            ]);
+            $duration = (microtime(true) - $startTime) * 1000;
+            
+            $this->logger->logApiCall('3DCart', "/Orders/{$orderId}", 'PUT', $response->getStatusCode(), $duration);
+            
+            $this->logger->info('Updated order fields in 3DCart', [
+                'order_id' => $orderId,
+                'updated_fields' => array_keys($updateData)
+            ]);
+            
+            return json_decode($response->getBody()->getContents(), true);
+        } catch (RequestException $e) {
+            $this->logger->error('Failed to update order fields in 3DCart', [
+                'order_id' => $orderId,
+                'update_data' => $updateData,
+                'error' => $e->getMessage()
+            ]);
+            throw new \Exception("Failed to update order fields: " . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Format date for 3DCart API
+     * Converts various date formats to 3DCart expected format
+     */
+    private function formatDateFor3DCart($date) {
+        if (empty($date)) {
+            return '';
+        }
+        
+        try {
+            // Handle different date formats from NetSuite
+            if (is_string($date)) {
+                $dateTime = new \DateTime($date);
+            } elseif ($date instanceof \DateTime) {
+                $dateTime = $date;
+            } else {
+                return '';
+            }
+            
+            // 3DCart expects MM/dd/yyyy HH:mm:ss format
+            return $dateTime->format('m/d/Y H:i:s');
+        } catch (\Exception $e) {
+            $this->logger->warning('Failed to format date for 3DCart', [
+                'original_date' => $date,
+                'error' => $e->getMessage()
+            ]);
+            return '';
+        }
+    }
 }

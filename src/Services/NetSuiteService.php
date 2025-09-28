@@ -2485,6 +2485,52 @@ class NetSuiteService {
     }
     
     /**
+     * Search for sales order by 3DCart order ID
+     */
+    public function findSalesOrderBy3DCartId($threeDCartOrderId) {
+        try {
+            $this->logger->info('Searching for sales order by 3DCart order ID', [
+                'threedcart_order_id' => $threeDCartOrderId
+            ]);
+            
+            // Search by external ID (3DCART_OrderID format) using the same query structure as checkOrdersSyncStatus
+            $externalId = '3DCART_' . $threeDCartOrderId;
+            $query = "SELECT id, tranid, externalid, status, trandate, entity FROM transaction WHERE recordtype = 'salesorder' AND externalid = '{$externalId}'";
+            
+            $result = $this->executeSuiteQLQuery($query);
+            
+            if (isset($result['items']) && count($result['items']) > 0) {
+                $salesOrder = $result['items'][0];
+                $this->logger->info('Found sales order by 3DCart order ID', [
+                    'threedcart_order_id' => $threeDCartOrderId,
+                    'netsuite_sales_order_id' => $salesOrder['id'],
+                    'tranid' => $salesOrder['tranid'] ?? 'N/A',
+                    'status' => $salesOrder['status'] ?? 'N/A',
+                    'external_id' => $salesOrder['externalid'] ?? 'N/A'
+                ]);
+                
+                return $salesOrder;
+            }
+            
+            $this->logger->info('No sales order found for 3DCart order ID', [
+                'threedcart_order_id' => $threeDCartOrderId,
+                'external_id_searched' => $externalId
+            ]);
+            
+            return null;
+        } catch (\Exception $e) {
+            $this->logger->error('Error searching for sales order by 3DCart order ID', [
+                'threedcart_order_id' => $threeDCartOrderId,
+                'external_id_searched' => '3DCART_' . $threeDCartOrderId,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+    
+
+    
+    /**
      * Search for campaign by campaign ID
      */
     public function searchCampaign($campaignId) {
