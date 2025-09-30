@@ -39,9 +39,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Get current order status
             $orderData = $threeDCartService->getOrder($orderId);
             echo "<div class='alert alert-secondary'>";
-            echo "<strong>Current Order Status:</strong> {$orderData['OrderStatusID']}<br>";
-            echo "<strong>Order Total:</strong> \${$orderData['OrderTotal']}<br>";
-            echo "<strong>Customer:</strong> {$orderData['BillingFirstName']} {$orderData['BillingLastName']}";
+            echo "<strong>Current Order Status:</strong> " . ($orderData['OrderStatusID'] ?? 'Unknown') . "<br>";
+            
+            // Handle different possible field names for order total
+            $orderTotal = $orderData['OrderTotal'] ?? $orderData['Total'] ?? $orderData['OrderAmount'] ?? 'N/A';
+            echo "<strong>Order Total:</strong> \$" . $orderTotal . "<br>";
+            
+            // Handle customer name fields safely
+            $firstName = $orderData['BillingFirstName'] ?? $orderData['CustomerFirstName'] ?? 'Unknown';
+            $lastName = $orderData['BillingLastName'] ?? $orderData['CustomerLastName'] ?? 'Customer';
+            echo "<strong>Customer:</strong> {$firstName} {$lastName}<br>";
+            
+            // Show order date if available
+            if (isset($orderData['OrderDate'])) {
+                echo "<strong>Order Date:</strong> {$orderData['OrderDate']}<br>";
+            }
+            
+            // Debug: Show all available fields (remove this after testing)
+            echo "<details><summary>Debug: All Order Fields</summary>";
+            echo "<pre>" . json_encode($orderData, JSON_PRETTY_PRINT) . "</pre>";
+            echo "</details>";
             echo "</div>";
             
             // Test status update
@@ -52,17 +69,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             $result = $threeDCartService->updateOrderStatus($orderId, $statusId, $comments);
             
-            echo "<div class='alert alert-success'>";
-            echo "<strong>Status Update Successful!</strong><br>";
-            echo "<pre>" . json_encode($result, JSON_PRETTY_PRINT) . "</pre>";
-            echo "</div>";
-            
-            // Verify the update
-            $updatedOrderData = $threeDCartService->getOrder($orderId);
-            echo "<div class='alert alert-info'>";
-            echo "<strong>Updated Order Status:</strong> {$updatedOrderData['OrderStatusID']}<br>";
-            echo "<strong>Status Changed:</strong> " . ($updatedOrderData['OrderStatusID'] == $statusId ? 'YES' : 'NO');
-            echo "</div>";
+            if ($result) {
+                echo "<div class='alert alert-success'>";
+                echo "<strong>Status Update Successful!</strong><br>";
+                echo "<pre>" . json_encode($result, JSON_PRETTY_PRINT) . "</pre>";
+                echo "</div>";
+                
+                // Verify the update
+                sleep(1); // Give the API a moment to process
+                $updatedOrderData = $threeDCartService->getOrder($orderId);
+                echo "<div class='alert alert-info'>";
+                echo "<strong>Updated Order Status:</strong> " . ($updatedOrderData['OrderStatusID'] ?? 'Unknown') . "<br>";
+                echo "<strong>Status Changed:</strong> " . (($updatedOrderData['OrderStatusID'] ?? 0) == $statusId ? 'YES ✅' : 'NO ❌');
+                echo "</div>";
+            } else {
+                echo "<div class='alert alert-danger'>";
+                echo "<strong>Status Update Failed!</strong><br>";
+                echo "The updateOrderStatus method returned false. Check the logs for more details.";
+                echo "</div>";
+            }
             
         } catch (\Exception $e) {
             echo "<div class='alert alert-danger'>";

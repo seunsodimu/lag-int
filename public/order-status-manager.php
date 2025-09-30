@@ -133,8 +133,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Get the updated 3DCart order
                 $threeDCartOrder = $threeDCartService->getOrder($orderId);
                 
-                // Process the order through the webhook controller
-                $result = $webhookController->processOrder($threeDCartOrder);
+                // Process the order through the webhook controller (pass order ID, not the order object)
+                $result = $webhookController->processOrder($orderId);
                 
                 // Clear any buffered output and send clean JSON
                 ob_clean();
@@ -528,7 +528,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             const editableFieldsList = [
                 'BillingEmail',
-                'BillingPhoneNumber'
+                'BillingPhoneNumber',
+                'BillingCompany'
             ];
             
             let html = `
@@ -580,6 +581,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="field-row">
                         <span class="field-label">Billing Phone:</span>
                         <span class="field-value">${order.BillingPhoneNumber || 'N/A'}</span>
+                    </div>
+                `;
+            }
+            
+            // Billing Company (editable if not synced)
+            if (canEdit && editableFieldsList.includes('BillingCompany')) {
+                html += `
+                    <div class="field-row">
+                        <span class="field-label">Billing Company:</span>
+                        <input type="text" class="editable-field" data-field="BillingCompany" value="${order.BillingCompany || ''}" onchange="updateEditableField('BillingCompany', this.value)">
+                    </div>
+                `;
+            } else {
+                html += `
+                    <div class="field-row">
+                        <span class="field-label">Billing Company:</span>
+                        <span class="field-value">${order.BillingCompany || 'N/A'}</span>
                     </div>
                 `;
             }
