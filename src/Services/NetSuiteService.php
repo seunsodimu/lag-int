@@ -673,9 +673,22 @@ class NetSuiteService {
             }
         }
 
-        // Customer not found or invalid email - create new customer
+        // Customer not found or invalid email - search by company name if parent exists
         $parentCustomer = $this->findParentCompanyCustomer($orderData);
         $parentCustomerId = $parentCustomer ? $parentCustomer['id'] : null;
+
+        // If parent customer found, search for existing customer by company name
+        if ($parentCustomerId) {
+            $existingCustomerByCompany = $this->findCustomerByCompanyNameAndParent($orderData, $parentCustomerId);
+            if ($existingCustomerByCompany) {
+                $this->logger->info('Found existing customer by company name and parent', [
+                    'customer_id' => $existingCustomerByCompany['id'],
+                    'company_name' => $existingCustomerByCompany['companyName'] ?? 'N/A',
+                    'parent_id' => $parentCustomerId
+                ]);
+                return $existingCustomerByCompany['id'];
+            }
+        }
 
         $customerData = $this->buildRegularCustomerData($orderData, $customerEmail, $isValidEmail, $parentCustomerId);
         $newCustomer = $this->createCustomer($customerData, $parentCustomerId);
@@ -768,6 +781,61 @@ class NetSuiteService {
         } catch (\Exception $e) {
             $this->logger->error('Error searching for store customer', [
                 'email' => $email,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Find customer by company name and parent ID
+     * SELECT * FROM customer WHERE LOWER(companyName) = LOWER('{ShipmentFirstName} {ShipmentLastName}') AND parent={parentId}
+     */
+    private function findCustomerByCompanyNameAndParent($orderData, $parentCustomerId) {
+        try {
+            $shipment = isset($orderData['ShipmentList'][0]) ? $orderData['ShipmentList'][0] : [];
+            
+            // Build company name from shipment info (same logic as buildRegularCustomerData)
+            $companyName = $orderData['BillingCompany'] ?? '';
+            if (empty($companyName)) {
+                $companyName = trim(($shipment['ShipmentFirstName'] ?? '') . ' ' . ($shipment['ShipmentLastName'] ?? ''));
+            }
+            
+            if (empty($companyName)) {
+                $this->logger->info('Skipping company name search - no company name available');
+                return null;
+            }
+
+            $this->logger->info('Searching for customer by company name and parent', [
+                'company_name' => $companyName,
+                'parent_id' => $parentCustomerId
+            ]);
+
+            // Escape single quotes in company name for SQL safety (case-insensitive)
+            $escapedCompanyName = str_replace("'", "''", $companyName);
+            $query = "SELECT id, firstName, lastName, email, companyName, phone, isperson FROM customer WHERE LOWER(companyName) = LOWER('" . $escapedCompanyName . "') AND parent = " . intval($parentCustomerId);
+            $result = $this->executeSuiteQLQuery($query);
+
+            if (isset($result['items']) && count($result['items']) > 0) {
+                $customer = $result['items'][0];
+                $this->logger->info('Found customer by company name and parent', [
+                    'customer_id' => $customer['id'],
+                    'company_name' => $customer['companyName'] ?? 'N/A',
+                    'parent_id' => $parentCustomerId
+                ]);
+                return $customer;
+            }
+
+            $this->logger->info('No customer found by company name and parent', [
+                'company_name' => $companyName,
+                'parent_id' => $parentCustomerId
+            ]);
+            return null;
+
+        } catch (\Exception $e) {
+            $this->logger->error('Error searching for customer by company name and parent', [
+                'company_name' => $companyName ?? 'N/A',
+                'parent_id' => $parentCustomerId,
                 'error' => $e->getMessage()
             ]);
             return null;
