@@ -156,7 +156,14 @@ class WebhookController {
             ]);
             
             // Update 3DCart order status to indicate successful processing
-            $this->update3DCartOrderStatus($orderId, 'success', $netSuiteOrder['id']);
+            $statusUpdateResult = $this->update3DCartOrderStatus($orderId, 'success', $netSuiteOrder['id']);
+            
+            // Log the status update result for debugging
+            $this->logger->info('3DCart status update attempt completed', [
+                'order_id' => $orderId,
+                'netsuite_order_id' => $netSuiteOrder['id'],
+                'status_update_successful' => $statusUpdateResult
+            ]);
             
             // Send success notification
             $this->emailService->sendOrderNotification($orderId, 'Successfully Processed', [
@@ -563,7 +570,7 @@ class WebhookController {
                     'order_id' => $orderId,
                     'type' => $type
                 ]);
-                return;
+                return false;
             }
             
             // Check if status updates are enabled
@@ -572,7 +579,7 @@ class WebhookController {
                     'order_id' => $orderId,
                     'type' => $type
                 ]);
-                return;
+                return false;
             }
             
             // Set status to Processing (2) for successful orders
@@ -584,7 +591,8 @@ class WebhookController {
             $this->logger->info('Updating 3DCart order status to Processing', [
                 'order_id' => $orderId,
                 'status_id' => $statusId,
-                'netsuite_order_id' => $netSuiteOrderId
+                'netsuite_order_id' => $netSuiteOrderId,
+                'comments' => $comments
             ]);
             
             // Update the order status in 3DCart
@@ -594,15 +602,18 @@ class WebhookController {
                 'order_id' => $orderId,
                 'status_id' => $statusId,
                 'netsuite_order_id' => $netSuiteOrderId,
-                'result' => $result
+                'api_result' => $result
             ]);
+            
+            return true;
             
         } catch (\Exception $e) {
             // Log error but don't fail the entire process
             $this->logger->error('Failed to update 3DCart order status to Processing', [
                 'order_id' => $orderId,
                 'error' => $e->getMessage(),
-                'netsuite_order_id' => $netSuiteOrderId
+                'netsuite_order_id' => $netSuiteOrderId,
+                'trace' => $e->getTraceAsString()
             ]);
             
             // Optionally send notification about status update failure
@@ -610,9 +621,12 @@ class WebhookController {
                 "Failed to update 3DCart order status to Processing for Order #{$orderId}: " . $e->getMessage(),
                 [
                     'order_id' => $orderId,
-                    'netsuite_order_id' => $netSuiteOrderId
+                    'netsuite_order_id' => $netSuiteOrderId,
+                    'error_details' => $e->getMessage()
                 ]
             );
+            
+            return false;
         }
     }
 }

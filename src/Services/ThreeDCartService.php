@@ -229,12 +229,18 @@ class ThreeDCartService {
             
             return json_decode($response->getBody()->getContents(), true);
         } catch (RequestException $e) {
+            $statusCode = $e->hasResponse() ? $e->getResponse()->getStatusCode() : 'unknown';
+            $responseBody = $e->hasResponse() ? $e->getResponse()->getBody()->getContents() : 'no response';
+            
             $this->logger->error('Failed to update order status in 3DCart', [
                 'order_id' => $orderId,
                 'status_id' => $statusId,
-                'error' => $e->getMessage()
+                'error' => $e->getMessage(),
+                'status_code' => $statusCode,
+                'response_body' => $responseBody,
+                'request_url' => "Orders/{$orderId}"
             ]);
-            throw new \Exception("Failed to update order status: " . $e->getMessage());
+            throw new \Exception("Failed to update order status (HTTP {$statusCode}): " . $e->getMessage());
         }
     }
     
