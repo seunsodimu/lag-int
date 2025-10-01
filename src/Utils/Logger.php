@@ -6,6 +6,7 @@ use Monolog\Logger as MonologLogger;
 use Monolog\Handler\StreamHandler;
 use Monolog\Handler\RotatingFileHandler;
 use Monolog\Formatter\LineFormatter;
+use Exception;
 
 /**
  * Logger Utility Class
@@ -23,27 +24,28 @@ class Logger {
         $this->logger = new MonologLogger('3dcart-netsuite');
         
         if ($logConfig['enabled']) {
-            // Create logs directory if it doesn't exist
-            $logDir = dirname($logConfig['file']);
-            if (!is_dir($logDir)) {
-                mkdir($logDir, 0755, true);
+            $logFile = $this->getWritableLogFile($logConfig['file']);
+            
+            if ($logFile) {
+                // Use rotating file handler to manage log file sizes
+                $handler = new RotatingFileHandler(
+                    $logFile,
+                    $logConfig['max_files'] ?? 30,
+                    $this->getLogLevel($logConfig['level'])
+                );
+                
+                // Custom formatter for better readability
+                $formatter = new LineFormatter(
+                    "[%datetime%] %channel%.%level_name%: %message% %context%\n",
+                    'Y-m-d H:i:s'
+                );
+                $handler->setFormatter($formatter);
+                
+                $this->logger->pushHandler($handler);
+            } else {
+                // If we can't write to any log file, add a null handler to prevent errors
+                $this->logger->pushHandler(new \Monolog\Handler\NullHandler());
             }
-            
-            // Use rotating file handler to manage log file sizes
-            $handler = new RotatingFileHandler(
-                $logConfig['file'],
-                $logConfig['max_files'] ?? 30,
-                $this->getLogLevel($logConfig['level'])
-            );
-            
-            // Custom formatter for better readability
-            $formatter = new LineFormatter(
-                "[%datetime%] %channel%.%level_name%: %message% %context%\n",
-                'Y-m-d H:i:s'
-            );
-            $handler->setFormatter($formatter);
-            
-            $this->logger->pushHandler($handler);
         }
     }
     
@@ -54,6 +56,69 @@ class Logger {
         return self::$instance;
     }
     
+    /**
+     * Get a writable log file path, with fallback options
+     */
+    private function getWritableLogFile($preferredPath) {
+        // Try the preferred path first
+        if ($this->ensureLogDirectoryWritable($preferredPath)) {
+            return $preferredPath;
+        }
+        
+        // Fallback options
+        $fallbackPaths = [
+            // Try system temp directory
+            sys_get_temp_dir() . '/lag-int-' . date('Y-m-d') . '.log',
+            // Try current directory
+            __DIR__ . '/../../app-' . date('Y-m-d') . '.log',
+            // Try /tmp if on Unix-like system
+            '/tmp/lag-int-' . date('Y-m-d') . '.log'
+        ];
+        
+        foreach ($fallbackPaths as $path) {
+            if ($this->ensureLogDirectoryWritable($path)) {
+                return $path;
+            }
+        }
+        
+        // If all else fails, return null (will use NullHandler)
+        return null;
+    }
+    
+    /**
+     * Ensure the log directory exists and is writable
+     */
+    private function ensureLogDirectoryWritable($logPath) {
+        try {
+            $logDir = dirname($logPath);
+            
+            // Create directory if it doesn't exist
+            if (!is_dir($logDir)) {
+                if (!mkdir($logDir, 0755, true)) {
+                    return false;
+                }
+            }
+            
+            // Check if directory is writable
+            if (!is_writable($logDir)) {
+                return false;
+            }
+            
+            // Test write access by creating a temporary file
+            $testFile = $logDir . '/test_write_' . uniqid() . '.tmp';
+            if (file_put_contents($testFile, 'test') === false) {
+                return false;
+            }
+            
+            // Clean up test file
+            unlink($testFile);
+            
+            return true;
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
     private function getLogLevel($level) {
         switch (strtolower($level)) {
             case 'debug':

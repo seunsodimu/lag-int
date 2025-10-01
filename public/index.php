@@ -243,6 +243,19 @@ if (!$currentUser) {
                         <a href="<?php echo UrlHelper::url('email-provider-config.php'); ?>" class="btn">⚙️ Config</a>
                     </div>
                 </div>
+                
+                <?php if ($currentUser['role'] === 'admin'): ?>
+                <!-- Pulse Display System -->
+                <div class="feature-card" style="border-left: 4px solid #9c27b0;">
+                    <div class="feature-icon">📺</div>
+                    <h3>Pulse Display System</h3>
+                    <p>Manage the office bulletin board display system. Add, edit, and organize slides and footer messages for the digital signage.</p>
+                    <div style="margin-top: 15px;">
+                        <a href="<?php echo UrlHelper::url('pulse-admin.php'); ?>" class="btn">⚙️ Admin Panel</a>
+                        <a href="<?php echo UrlHelper::url('pulse/index.html'); ?>" class="btn" target="_blank">👁️ View Display</a>
+                    </div>
+                </div>
+                <?php endif; ?>
             </div>
             
             <div class="info-box">

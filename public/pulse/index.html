@@ -314,8 +314,8 @@
         async function loadConfig() {
             try {
                 const [slidesRes, footerRes] = await Promise.all([
-                    fetch('slides.json', { cache: 'no-cache' }),
-                    fetch('footer-messages.json', { cache: 'no-cache' })
+                    fetch('json/slides.json', { cache: 'no-cache' }),
+                    fetch('json/footer-messages.json', { cache: 'no-cache' })
                 ]);
                 if (!slidesRes.ok) throw new Error('Failed to load slides.json');
                 if (!footerRes.ok) throw new Error('Failed to load footer-messages.json');
