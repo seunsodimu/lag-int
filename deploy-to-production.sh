@@ -6,11 +6,12 @@
 set -e
 
 # Configuration - UPDATE THESE VALUES
-SERVER_IP="YOUR_SERVER_IP"
-KEY_PATH="/path/to/your-key.pem"
-SERVER_USER="ec2-user"  # or ubuntu
+SERVER_IP="13.58.71.133"
+KEY_PATH="/var/www/lag-int/integrations-lagunatools.pem"
+SERVER_USER="ubuntu"  # Change to appropriate user for your setup
 APP_PATH="/var/www/html"
-WEB_USER="apache"  # or www-data for Ubuntu
+WEB_USER="www-data"  # Change to appropriate user for your setup
+
 
 # Colors for output
 RED='\033[0;31m'
