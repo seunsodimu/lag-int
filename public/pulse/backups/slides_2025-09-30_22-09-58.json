@@ -1,0 +1,85 @@
+[
+    {
+        "type": "content",
+        "id": "welcome",
+        "duration": 5,
+        "content": {
+            "title": "Welcome to Laguna Pulse",
+            "subtitle": "Stay Connected & Informed",
+            "body": "This bulletin board keeps you updated with the latest company news, metrics, and announcements throughout the day. Stay tuned!"
+        }
+    },
+    {
+        "type": "content",
+        "id": "birthday",
+        "duration": 20,
+        "content": {
+            "title": "Birthdays",
+            "subtitle": "",
+            "body": "",
+            "list": [
+                "\ud83c\udf82 Duran, Oscar - September 16th",
+                "\ud83c\udf82 Dao, Sunny - September 22nd"
+            ]
+        }
+    },
+    {
+        "type": "content",
+        "id": "aniversary",
+        "duration": 20,
+        "content": {
+            "title": "Anniversaries",
+            "subtitle": "",
+            "body": "",
+            "list": [
+                "\ud83c\udf89 Greene, Shantel J - September 19th",
+                "\ud83c\udf89 Essebaggers, Sean Ln - September 21st",
+                "\ud83c\udf89 Gao, Xiuying - September 23rd",
+                "\ud83c\udf89 Flores, Joanna - September 28th"
+            ]
+        }
+    },
+    {
+        "id": "ringcentral_metrics",
+        "type": "image",
+        "url": "images\/ringcentral_report.png",
+        "duration": 45,
+        "title": "RingCentral  Metrics",
+        "alt": "RingCentral Metrics"
+    },
+    {
+        "id": "tech_support_assigned_cases",
+        "type": "iframe",
+        "url": "https:\/\/11134099.extforms.netsuite.com\/app\/site\/hosting\/scriptlet.nl?script=2669&deploy=1&compid=11134099&ns-at=AAEJ7tMQe6wilLMHPGcT2lXInPEYFPZpp0khSnqS36s2E9tZUyM",
+        "duration": 15,
+        "title": "Customer Service Case Closure Timeline"
+    },
+    {
+        "type": "iframe",
+        "url": "https:\/\/11134099.extforms.netsuite.com\/app\/site\/hosting\/scriptlet.nl?script=2670&deploy=1&compid=11134099&ns-at=AAEJ7tMQcPFDNG1hUhA8dKYN13RSnNhY5JvsJCwoQb0vjHD_MrU",
+        "duration": 15,
+        "title": "Customer Service Cases Closed in 7 Days",
+        "id": "techsupport_closedcases"
+    },
+    {
+        "type": "iframe",
+        "url": "https:\/\/11134099.extforms.netsuite.com\/app\/site\/hosting\/scriptlet.nl?script=2671&deploy=1&compid=11134099&ns-at=AAEJ7tMQROJPZcTP2UQpR_5dBxuEWQbQMEDDXcT8wVn6QHovGHU",
+        "duration": 15,
+        "title": "Customer Service Cases Assigned in 7 Days",
+        "id": "techsupport_closure_rate"
+    },
+    {
+        "type": "iframe",
+        "url": "https:\/\/11134099.extforms.netsuite.com\/app\/site\/hosting\/scriptlet.nl?script=1408&deploy=1&compid=11134099&ns-at=AAEJ7tMQZrWfDgRkFhBdAaT6eC5y2i_6zQvPj8XmI9ITEqao9u4",
+        "duration": 15,
+        "title": "Tech Support Open Cases",
+        "id": "techsupport_opencases"
+    },
+    {
+        "type": "video",
+        "url": "videos\/14CXLaunchVideo.mp4",
+        "duration": 76,
+        "title": "",
+        "id": "14cx_launch_video"
+    }
+]

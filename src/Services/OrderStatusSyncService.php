@@ -28,12 +28,18 @@ class OrderStatusSyncService {
     /**
      * Process daily status updates for orders with processing status
      */
-    public function processDailyStatusUpdates() {
+    public function processDailyStatusUpdates($afterDate = null) {
         try {
-            $this->logger->info('Starting daily order status update process');
+            $this->logger->info('Starting daily order status update process', [
+                'after_date' => $afterDate
+            ]);
             
             // Get 3DCart orders with processing status (status ID = 2)
-            $processingOrders = $this->threeDCartService->getOrdersByStatus(2, 100, 0);
+            if ($afterDate) {
+                $processingOrders = $this->threeDCartService->getOrdersByStatusAfterDate(2, $afterDate, 100, 0);
+            } else {
+                $processingOrders = $this->threeDCartService->getOrdersByStatus(2, 100, 0);
+            }
             
             $updatedCount = 0;
             $errorCount = 0;
@@ -63,6 +69,7 @@ class OrderStatusSyncService {
             }
             
             $this->logger->info('Completed daily order status update process', [
+                'after_date' => $afterDate,
                 'total_orders' => count($processingOrders),
                 'updated_count' => $updatedCount,
                 'error_count' => $errorCount
@@ -73,11 +80,13 @@ class OrderStatusSyncService {
                 'total_orders' => count($processingOrders),
                 'updated_count' => $updatedCount,
                 'error_count' => $errorCount,
-                'results' => $results
+                'results' => $results,
+                'after_date' => $afterDate
             ];
             
         } catch (\Exception $e) {
             $this->logger->error('Failed to process daily status updates', [
+                'after_date' => $afterDate,
                 'error' => $e->getMessage()
             ]);
             

@@ -506,6 +506,73 @@ class ThreeDCartService {
             throw new \Exception("Failed to retrieve orders by status: " . $e->getMessage());
         }
     }
+
+    /**
+     * Get orders by status with date filter (orders created after specified date)
+     */
+    public function getOrdersByStatusAfterDate($statusId, $afterDate, $limit = 100, $offset = 0) {
+        try {
+            // Convert date format from YYYY-MM-DD to MM/dd/yyyy HH:mm:ss
+            $afterDateTime = \DateTime::createFromFormat('Y-m-d', $afterDate);
+            
+            if (!$afterDateTime) {
+                throw new \Exception('Invalid date format. Expected YYYY-MM-DD');
+            }
+            
+            // Format date as required by 3DCart API: MM/dd/yyyy HH:mm:ss
+            $formattedAfterDate = $afterDateTime->format('m/d/Y') . ' 00:00:00';
+            
+            $queryParams = [
+                'orderstatus' => $statusId,
+                'datestart' => $formattedAfterDate,
+                'limit' => $limit,
+                'offset' => $offset
+            ];
+            
+            $this->logger->info('Fetching orders by status after date', [
+                'status_id' => $statusId,
+                'after_date' => $afterDate,
+                'formatted_after_date' => $formattedAfterDate,
+                'limit' => $limit,
+                'offset' => $offset
+            ]);
+            
+            $startTime = microtime(true);
+            $response = $this->client->get('Orders', [
+                'query' => $queryParams
+            ]);
+            $duration = (microtime(true) - $startTime) * 1000;
+            
+            $this->logger->logApiCall('3DCart', '/Orders', 'GET', $response->getStatusCode(), $duration);
+            
+            $ordersData = json_decode($response->getBody()->getContents(), true);
+            
+            // Handle both array and single object responses
+            if (!is_array($ordersData)) {
+                $ordersData = [];
+            } elseif (isset($ordersData['OrderID'])) {
+                // Single order returned as object
+                $ordersData = [$ordersData];
+            }
+            
+            $this->logger->info('Retrieved orders by status after date from 3DCart', [
+                'status_id' => $statusId,
+                'after_date' => $afterDate,
+                'count' => count($ordersData),
+                'limit' => $limit,
+                'offset' => $offset
+            ]);
+            
+            return $ordersData;
+        } catch (RequestException $e) {
+            $this->logger->error('Failed to retrieve orders by status after date from 3DCart', [
+                'status_id' => $statusId,
+                'after_date' => $afterDate,
+                'error' => $e->getMessage()
+            ]);
+            throw new \Exception("Failed to retrieve orders by status after date: " . $e->getMessage());
+        }
+    }
     
     /**
      * Update order fields (for manual editing before sync)
