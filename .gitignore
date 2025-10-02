@@ -259,6 +259,7 @@ profiling/
 *.csr
 *.p12
 *.pfx
+*.ppk
 
 # SSH keys
 id_rsa
@@ -301,6 +302,15 @@ tmp*/
 # =============================================================================
 public/pulse/json/
 public/pulse/videos/
+
+# =============================================================================
+# DATABASE SCHEMA FILES - ALLOW THESE FOR DEPLOYMENT
+# =============================================================================
+# Note: Schema files should be committed for deployment
+# Only ignore actual database files and sensitive data
+!database/*.sql
+!database/notification_settings_schema.sql
+!database/user_auth_schema.sql
 
 # User-specific ignore patterns (add your own below)
 # =============================================================================

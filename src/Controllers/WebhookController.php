@@ -4,7 +4,7 @@ namespace Laguna\Integration\Controllers;
 
 use Laguna\Integration\Services\ThreeDCartService;
 use Laguna\Integration\Services\NetSuiteService;
-use Laguna\Integration\Services\UnifiedEmailService;
+use Laguna\Integration\Services\EnhancedEmailService;
 use Laguna\Integration\Models\Order;
 use Laguna\Integration\Models\Customer;
 use Laguna\Integration\Utils\Logger;
@@ -24,7 +24,7 @@ class WebhookController {
     public function __construct() {
         $this->threeDCartService = new ThreeDCartService();
         $this->netSuiteService = new NetSuiteService();
-        $this->emailService = new UnifiedEmailService();
+        $this->emailService = new EnhancedEmailService(true); // true = webhook context
         $this->logger = Logger::getInstance();
         $this->config = require __DIR__ . '/../../config/config.php';
     }
@@ -165,13 +165,19 @@ class WebhookController {
                 'status_update_successful' => $statusUpdateResult
             ]);
             
-            // Send success notification
-            $this->emailService->sendOrderNotification($orderId, 'Successfully Processed', [
-                'NetSuite Order ID' => $netSuiteOrder['id'],
-                'Customer ID' => $netSuiteCustomerId,
-                'Order Total' => '$' . number_format($order->getTotal(), 2),
-                'Items Count' => count($order->getItems())
-            ]);
+            // Send success notification using new notification system
+            $this->emailService->sendNotification(
+                '3dcart_success_webhook',
+                '3DCart Order Successfully Processed (Webhook)',
+                [
+                    'Order ID' => $orderId,
+                    'NetSuite Order ID' => $netSuiteOrder['id'],
+                    'Customer ID' => $netSuiteCustomerId,
+                    'Order Total' => '$' . number_format($order->getTotal(), 2),
+                    'Items Count' => count($order->getItems()),
+                    'Processing Type' => 'Webhook'
+                ]
+            );
             
             return [
                 'success' => true,
@@ -198,12 +204,43 @@ class WebhookController {
                 return $this->processOrder($orderId, $retryCount + 1);
             }
             
-            // Send error notification
-            $this->emailService->sendOrderNotification($orderId, 'Processing Failed', [
-                'Error' => $e->getMessage(),
-                'Retry Count' => $retryCount,
-                'Max Retries' => $maxRetries
-            ]);
+            // Prepare sales order payload for debugging (capture what would have been sent to NetSuite)
+            $salesOrderPayload = 'N/A';
+            try {
+                // Try to generate the sales order payload that would have been sent
+                if (isset($netSuiteCustomerId) && isset($orderData)) {
+                    // Create a minimal payload structure for debugging
+                    $debugPayload = [
+                        'entity' => ['id' => (int)$netSuiteCustomerId],
+                        'subsidiary' => ['id' => $this->config['netsuite']['default_subsidiary_id'] ?? 1],
+                        'externalId' => '3DCART_' . $orderId,
+                        'custbodycustbody5' => $orderId,
+                        'order_total' => $order->getTotal() ?? 'N/A',
+                        'items_count' => count($order->getItems() ?? []),
+                        'customer_email' => $orderData['BillingEmailAddress'] ?? 'N/A'
+                    ];
+                    $salesOrderPayload = json_encode($debugPayload, JSON_PRETTY_PRINT);
+                }
+            } catch (\Exception $payloadException) {
+                $salesOrderPayload = 'Error generating payload: ' . $payloadException->getMessage();
+            }
+            
+            // Send error notification using new notification system with sales order payload
+            $this->emailService->sendNotification(
+                '3dcart_failed_webhook',
+                '3DCart Order Processing Failed (Webhook)',
+                [
+                    'Order ID' => $orderId,
+                    'Error Message' => $e->getMessage(),
+                    'Retry Count' => $retryCount,
+                    'Max Retries' => $maxRetries,
+                    'Customer ID' => $netSuiteCustomerId ?? 'N/A',
+                    'Order Total' => isset($order) ? '$' . number_format($order->getTotal(), 2) : 'N/A',
+                    'Customer Email' => $orderData['BillingEmailAddress'] ?? 'N/A',
+                    'Processing Type' => 'Webhook',
+                    'Sales Order Payload' => $salesOrderPayload
+                ]
+            );
             
             return [
                 'success' => false,

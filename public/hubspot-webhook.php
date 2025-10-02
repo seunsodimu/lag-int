@@ -16,7 +16,7 @@ date_default_timezone_set('America/New_York');
 
 // Initialize services
 $logger = Logger::getInstance();
-$hubspotService = new HubSpotService();
+$hubspotService = new HubSpotService(true); // true = webhook context
 $config = require __DIR__ . '/../config/config.php';
 
 // Log incoming request

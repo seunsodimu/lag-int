@@ -4,7 +4,7 @@ namespace Laguna\Integration\Controllers;
 
 use Laguna\Integration\Services\ThreeDCartService;
 use Laguna\Integration\Services\NetSuiteService;
-use Laguna\Integration\Services\UnifiedEmailService;
+use Laguna\Integration\Services\EnhancedEmailService;
 use Laguna\Integration\Models\Order;
 use Laguna\Integration\Models\Customer;
 use Laguna\Integration\Utils\Logger;
@@ -26,7 +26,7 @@ class OrderController {
     public function __construct() {
         $this->threeDCartService = new ThreeDCartService();
         $this->netSuiteService = new NetSuiteService();
-        $this->emailService = new UnifiedEmailService();
+        $this->emailService = new EnhancedEmailService(false); // false = manual context
         $this->logger = Logger::getInstance();
         $this->config = require __DIR__ . '/../../config/config.php';
     }
@@ -432,6 +432,19 @@ class OrderController {
                 // Update 3DCart order status to indicate successful processing
                 $this->update3DCartOrderStatus($orderId, 'success', $netSuiteOrder['id']);
                 
+                // Send success notification
+                $this->emailService->sendNotification(
+                    '3dcart_success_manual',
+                    '3DCart Order Successfully Processed (Manual)',
+                    [
+                        'Order ID' => $orderId,
+                        'NetSuite Order ID' => $netSuiteOrder['id'],
+                        'Customer ID' => $netSuiteCustomerId,
+                        'Row Number' => $rowNumber,
+                        'Processing Type' => 'Manual Upload'
+                    ]
+                );
+                
                 $this->logger->info('Manual order processed successfully', [
                     'order_id' => $orderId,
                     'netsuite_order_id' => $netSuiteOrder['id'],
@@ -440,17 +453,54 @@ class OrderController {
                 
             } catch (\Exception $e) {
                 $orderId = $orderData['OrderID'] ?? 'unknown';
+                $rowNumber = $orderData['_row_number'] ?? 'unknown';
                 
                 $results['failed']++;
                 $results['errors'][] = [
                     'order_id' => $orderId,
-                    'row_number' => $orderData['_row_number'] ?? 'unknown',
+                    'row_number' => $rowNumber,
                     'error' => $e->getMessage()
                 ];
                 
+                // Prepare sales order payload for debugging
+                $salesOrderPayload = 'N/A';
+                try {
+                    if (isset($netSuiteCustomerId) && isset($orderData)) {
+                        // Create a minimal payload structure for debugging
+                        $debugPayload = [
+                            'entity' => ['id' => (int)$netSuiteCustomerId],
+                            'subsidiary' => ['id' => $this->config['netsuite']['default_subsidiary_id'] ?? 1],
+                            'externalId' => '3DCART_' . $orderId,
+                            'custbodycustbody5' => $orderId,
+                            'order_total' => $orderData['OrderTotal'] ?? 'N/A',
+                            'customer_email' => $orderData['BillingEmailAddress'] ?? 'N/A',
+                            'row_number' => $rowNumber
+                        ];
+                        $salesOrderPayload = json_encode($debugPayload, JSON_PRETTY_PRINT);
+                    }
+                } catch (\Exception $payloadException) {
+                    $salesOrderPayload = 'Error generating payload: ' . $payloadException->getMessage();
+                }
+                
+                // Send failure notification with sales order payload
+                $this->emailService->sendNotification(
+                    '3dcart_failed_manual',
+                    '3DCart Order Processing Failed (Manual)',
+                    [
+                        'Order ID' => $orderId,
+                        'Row Number' => $rowNumber,
+                        'Error Message' => $e->getMessage(),
+                        'Customer ID' => $netSuiteCustomerId ?? 'N/A',
+                        'Order Total' => $orderData['OrderTotal'] ?? 'N/A',
+                        'Customer Email' => $orderData['BillingEmailAddress'] ?? 'N/A',
+                        'Processing Type' => 'Manual Upload',
+                        'Sales Order Payload' => $salesOrderPayload
+                    ]
+                );
+                
                 $this->logger->error('Manual order processing failed', [
                     'order_id' => $orderId,
-                    'row_number' => $orderData['_row_number'] ?? 'unknown',
+                    'row_number' => $rowNumber,
                     'error' => $e->getMessage()
                 ]);
             }
@@ -497,20 +547,31 @@ class OrderController {
      * Send upload summary notification
      */
     private function sendUploadSummaryNotification($results, $fileName) {
-        $subject = 'Manual Upload Processing Complete';
+        $notificationType = $results['failed'] > 0 ? '3dcart_failed_manual' : '3dcart_success_manual';
+        $subject = $results['failed'] > 0 ? 
+            'Manual Upload Processing Completed with Errors' : 
+            'Manual Upload Processing Completed Successfully';
+            
         $details = [
             'File Name' => $fileName,
             'Total Orders' => $results['total'],
             'Successful' => $results['successful'],
             'Failed' => $results['failed'],
-            'Success Rate' => $results['total'] > 0 ? round(($results['successful'] / $results['total']) * 100, 2) . '%' : '0%'
+            'Success Rate' => $results['total'] > 0 ? round(($results['successful'] / $results['total']) * 100, 2) . '%' : '0%',
+            'Processing Type' => 'Manual Upload Summary'
         ];
         
         if (!empty($results['errors'])) {
             $details['First 5 Errors'] = implode('; ', array_slice(array_column($results['errors'], 'error'), 0, 5));
         }
         
-        $this->emailService->sendOrderNotification('Manual Upload', $subject, $details);
+        if (!empty($results['processed_orders'])) {
+            $details['Sample Successful Orders'] = implode('; ', array_slice(array_map(function($order) {
+                return "Order {$order['order_id']} -> NetSuite {$order['netsuite_order_id']}";
+            }, $results['processed_orders']), 0, 3));
+        }
+        
+        $this->emailService->sendNotification($notificationType, $subject, $details);
     }
     
     /**

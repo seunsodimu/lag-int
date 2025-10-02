@@ -21,7 +21,7 @@ if (!$currentUser) {
     exit; // Middleware handles redirect
 }
 
-$hubspotService = new HubSpotService();
+$hubspotService = new HubSpotService(false); // false = manual context
 $testResults = [];
 
 // Handle form submissions

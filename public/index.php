@@ -218,6 +218,7 @@ if (!$currentUser) {
                     <p>Lead synchronization from HubSpot to NetSuite. Automatically creates leads in NetSuite when contact properties change in HubSpot.</p>
                     <div style="margin-top: 15px;">
                         <a href="<?php echo UrlHelper::url('hubspot-status.php'); ?>" class="btn">📊 Status</a>
+                        <a href="<?php echo UrlHelper::url('test-hubspot.php'); ?>" class="btn">🧪 Test</a>
                         <a href="<?php echo UrlHelper::url('hubspot-webhook.php'); ?>" class="btn">🔗 Webhook</a>
                     </div>
                 </div>
@@ -237,8 +238,9 @@ if (!$currentUser) {
                 <div class="feature-card" style="border-left: 4px solid #ff9800;">
                     <div class="feature-icon">📧</div>
                     <h3>Email Notifications</h3>
-                    <p>Automated email notifications for integration events, errors, and status updates. Supports multiple email providers.</p>
+                    <p>Automated email notifications for integration events, errors, and status updates. Configure recipients by notification type.</p>
                     <div style="margin-top: 15px;">
+                        <a href="<?php echo UrlHelper::url('notification-settings.php'); ?>" class="btn">⚙️ Recipients</a>
                         <a href="<?php echo UrlHelper::url('test-email.php'); ?>" class="btn">📧 Test Email</a>
                         <a href="<?php echo UrlHelper::url('email-provider-config.php'); ?>" class="btn">⚙️ Config</a>
                     </div>

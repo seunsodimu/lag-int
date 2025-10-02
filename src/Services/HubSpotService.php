@@ -6,6 +6,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Laguna\Integration\Utils\Logger;
 use Laguna\Integration\Services\EmailService;
+use Laguna\Integration\Services\EnhancedEmailService;
 
 /**
  * HubSpot Service
@@ -18,12 +19,14 @@ class HubSpotService {
     private $credentials;
     private $logger;
     private $emailService;
+    private $enhancedEmailService;
     
-    public function __construct() {
+    public function __construct($isWebhookContext = false) {
         $this->config = require __DIR__ . '/../../config/config.php';
         $this->credentials = require __DIR__ . '/../../config/credentials.php';
         $this->logger = Logger::getInstance();
         $this->emailService = new EmailService();
+        $this->enhancedEmailService = new EnhancedEmailService($isWebhookContext);
         
         $this->client = new Client([
             'base_uri' => $this->credentials['hubspot']['base_url'],
@@ -312,6 +315,16 @@ class HubSpotService {
                     'email' => $contact['properties']['email']
                 ]);
                 
+                // Send success notification
+                $this->enhancedEmailService->sendHubSpotSyncNotification($contact['id'], 'Successfully Synced', [
+                    'NetSuite Lead ID' => $leadResult['lead_id'] ?? 'N/A',
+                    'Email' => $contact['properties']['email'] ?? 'N/A',
+                    'First Name' => $contact['properties']['firstname'] ?? 'N/A',
+                    'Last Name' => $contact['properties']['lastname'] ?? 'N/A',
+                    'Company' => $contact['properties']['company'] ?? 'N/A',
+                    'Lifecycle Stage' => $contact['properties']['lifecyclestage'] ?? 'N/A'
+                ], true);
+                
                 // Update HubSpot contact with NetSuite customer ID
                 if (!empty($leadResult['lead_id'])) {
                     $updateResult = $this->updateContactNetSuiteId($contact['id'], $leadResult['lead_id']);
@@ -337,6 +350,16 @@ class HubSpotService {
                         $leadResult['hubspot_update_error'] = $updateResult['error'] ?? 'Unknown error';
                     }
                 }
+            } else {
+                // Send failure notification
+                $this->enhancedEmailService->sendHubSpotSyncNotification($contact['id'], 'Sync Failed', [
+                    'Error' => $leadResult['error'] ?? 'Unknown error',
+                    'Email' => $contact['properties']['email'] ?? 'N/A',
+                    'First Name' => $contact['properties']['firstname'] ?? 'N/A',
+                    'Last Name' => $contact['properties']['lastname'] ?? 'N/A',
+                    'Company' => $contact['properties']['company'] ?? 'N/A',
+                    'Lifecycle Stage' => $contact['properties']['lifecyclestage'] ?? 'N/A'
+                ], false);
             }
             
             return $leadResult;
@@ -347,6 +370,16 @@ class HubSpotService {
                 'contact_id' => $contact['id'] ?? 'N/A',
                 'email' => $contact['properties']['email'] ?? 'N/A'
             ]);
+            
+            // Send failure notification
+            $this->enhancedEmailService->sendHubSpotSyncNotification($contact['id'] ?? 'Unknown', 'Sync Failed', [
+                'Error' => $e->getMessage(),
+                'Email' => $contact['properties']['email'] ?? 'N/A',
+                'First Name' => $contact['properties']['firstname'] ?? 'N/A',
+                'Last Name' => $contact['properties']['lastname'] ?? 'N/A',
+                'Company' => $contact['properties']['company'] ?? 'N/A',
+                'Lifecycle Stage' => $contact['properties']['lifecyclestage'] ?? 'N/A'
+            ], false);
             
             return [
                 'success' => false,

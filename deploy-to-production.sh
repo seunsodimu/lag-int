@@ -66,6 +66,10 @@ main() {
     print_status "Updating Composer dependencies..."
     remote_exec "cd $APP_PATH && sudo composer install --no-dev --optimize-autoloader"
     
+    # Run database migrations
+    print_status "Running database migrations..."
+    remote_exec "cd $APP_PATH && mysql -u \$DB_USER -p\$DB_PASS \$DB_NAME < database/notification_settings_schema.sql"
+    
     # Set proper permissions
     print_status "Setting proper file permissions..."
     remote_exec "cd $APP_PATH && sudo chown -R $WEB_USER:$WEB_USER ."
