@@ -26,6 +26,60 @@ class OrderStatusSyncService {
     }
     
     /**
+     * Get all orders by status using pagination
+     * 
+     * @param string|null $afterDate Optional date filter (YYYY-MM-DD format)
+     * @return array All orders matching the criteria
+     */
+    private function getAllOrdersByStatus($afterDate = null) {
+        $allOrders = [];
+        $limit = 100;
+        $offset = 0;
+        $hasMoreOrders = true;
+        
+        $this->logger->info('Fetching all orders with pagination', [
+            'after_date' => $afterDate,
+            'limit_per_page' => $limit
+        ]);
+        
+        while ($hasMoreOrders) {
+            // Fetch orders for current page
+            if ($afterDate) {
+                $orders = $this->threeDCartService->getOrdersByStatusAfterDate(2, $afterDate, $limit, $offset);
+            } else {
+                $orders = $this->threeDCartService->getOrdersByStatus(2, $limit, $offset);
+            }
+            
+            $orderCount = count($orders);
+            
+            $this->logger->info('Fetched page of orders', [
+                'offset' => $offset,
+                'count' => $orderCount
+            ]);
+            
+            // Add orders to the collection
+            if ($orderCount > 0) {
+                $allOrders = array_merge($allOrders, $orders);
+                $offset += $limit;
+                
+                // If we got fewer orders than the limit, we've reached the end
+                if ($orderCount < $limit) {
+                    $hasMoreOrders = false;
+                }
+            } else {
+                // No more orders to fetch
+                $hasMoreOrders = false;
+            }
+        }
+        
+        $this->logger->info('Completed fetching all orders', [
+            'total_orders' => count($allOrders)
+        ]);
+        
+        return $allOrders;
+    }
+    
+    /**
      * Process daily status updates for orders with processing status
      */
     public function processDailyStatusUpdates($afterDate = null) {
@@ -34,12 +88,8 @@ class OrderStatusSyncService {
                 'after_date' => $afterDate
             ]);
             
-            // Get 3DCart orders with processing status (status ID = 2)
-            if ($afterDate) {
-                $processingOrders = $this->threeDCartService->getOrdersByStatusAfterDate(2, $afterDate, 100, 0);
-            } else {
-                $processingOrders = $this->threeDCartService->getOrdersByStatus(2, 100, 0);
-            }
+            // Get all 3DCart orders with processing status (status ID = 2) using pagination
+            $processingOrders = $this->getAllOrdersByStatus($afterDate);
             
             $updatedCount = 0;
             $errorCount = 0;
