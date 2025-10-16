@@ -1,0 +1,122 @@
+[
+  {
+    "type": "content",
+    "id": "nre",
+    "duration": 5,
+    "content": {
+      "title": "Welcome to Laguna Pulse",
+      "subtitle": "Stay Connected & Informed",
+      "body": "This bulletin board keeps you updated with the latest company news, metrics, and announcements throughout the day. Stay tuned!"
+    }
+  },
+  {
+    "type": "content",
+    "id": "halloween",
+    "duration": 20,
+    "content": {
+      "title": "",
+      "subtitle": "",
+      "body": "<img src='images/halloween.png' width='650px'>",
+      "list": []
+    }
+  },
+  {
+    "type": "content",
+    "id": "new_hires",
+    "duration": 20,
+    "content": {
+      "title": "Welcome New Team Members For September & October",
+      "subtitle": "",
+      "body": "",
+      "list": [
+        "Matt Thackray – CCO – Chief Commercial Officer",
+        "Mayra Alonso – Shipping Clerk",
+        "Baylee Smith – Forklift Operator",
+        "Jennifer Salazar – VP of Finance",
+        "Andrew Bernardino – Field Tech – CA",
+        "Dorcas Adediran – Accounts Payable",
+        "Melissa Falcon – Account Specialist",
+        "Gregory Griffis – Forklift Operator",
+        "Chartra McNair – Accounts Receivable",
+        "Patricia Trevino – Shipping Clerk",
+        "Jessica Muehlfeld – Marketing Department - California Office"
+      ]
+    }
+  },
+  {
+    "type": "content",
+    "id": "birthday",
+    "duration": 20,
+    "content": {
+      "title": "Birthdays",
+      "subtitle": "",
+      "body": "",
+      "list": [
+        "\ud83c\udf82 Koss, Joseph Jared - October 5th",
+        "\ud83c\udf82 Holley, Deborah A - October 11th",
+        "\ud83c\udf82 Pridgen, Bennett S - October 15th",
+        "\ud83c\udf82 Lory, Timothy - October 16th",
+        "\ud83c\udf82 Helshoj, Benjamin - October 23th",
+        "\ud83c\udf82 O'Shinski, Edward - October 24th",
+        "\ud83c\udf82 Lee, Ray-Hsiang - October 25th",
+        "\ud83c\udf82 Blanding, Lavar T - October 29th"
+      ]
+    }
+  },
+  {
+    "type": "content",
+    "id": "aniversary",
+    "duration": 20,
+    "content": {
+      "title": "Anniversaries",
+      "subtitle": "",
+      "body": "",
+      "list": [
+        "\ud83c\udf89 Weber, Warren October - 1st",
+        "\ud83c\udf89 McAnalley, Rhett C - October 5th",
+        "\ud83c\udf89 Alvarez, Steven - October 6th",
+        "\ud83c\udf89 Lott, Ekaterina - October 7th",
+        "\ud83c\udf89 Duran, Oscar - October 9th",
+        "\ud83c\udf89 Brindle, Michael J - October 16th",
+        "\ud83c\udf89 O'Shinski, Edward - October 16th",
+        "\ud83c\udf89 Dixon, Lauren N - October 19th"
+      ]
+    }
+  },
+  {
+    "id": "ringcentral_metrics",
+    "type": "image",
+    "url": "images/ringcentral_report.png",
+    "duration": 45,
+    "title": "RingCentral  Metrics",
+    "alt": "RingCentral Metrics"
+  },
+  {
+    "id": "tech_support_assigned_cases",
+    "type": "iframe",
+    "url": "https://11134099.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=2669&deploy=1&compid=11134099&ns-at=AAEJ7tMQe6wilLMHPGcT2lXInPEYFPZpp0khSnqS36s2E9tZUyM",
+    "duration": 15,
+    "title": "Customer Service Case Closure Timeline"
+  },
+  {
+    "type": "iframe",
+    "url": "https://11134099.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=2670&deploy=1&compid=11134099&ns-at=AAEJ7tMQcPFDNG1hUhA8dKYN13RSnNhY5JvsJCwoQb0vjHD_MrU",
+    "duration": 15,
+    "title": "Customer Service Cases Closed in 7 Days",
+    "id": "techsupport_closedcases"
+  },
+  {
+    "type": "iframe",
+    "url": "https://11134099.extforms.netsuite.com/app/site/hosting/scriptlet.nl?script=2671&deploy=1&compid=11134099&ns-at=AAEJ7tMQROJPZcTP2UQpR_5dBxuEWQbQMEDDXcT8wVn6QHovGHU",
+    "duration": 15,
+    "title": "Customer Service Cases Assigned in 7 Days",
+    "id": "techsupport_closure_rate"
+  },
+  {
+    "type": "video",
+    "url": "videos/14CXLaunchVideo.mp4",
+    "duration": 76,
+    "title": "",
+    "id": "14cx_launch_video"
+  }
+]

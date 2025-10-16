@@ -2,83 +2,51 @@
 require_once __DIR__ . '/vendor/autoload.php';
 
 use Laguna\Integration\Services\NetSuiteService;
-use Laguna\Integration\Utils\Logger;
-
-echo "Testing Customer Search in NetSuite\n";
-echo "===================================\n\n";
+use Laguna\Integration\Services\ConfigService;
+use Laguna\Integration\Services\LoggerService;
 
 try {
-    $netSuiteService = new NetSuiteService();
-    $logger = Logger::getInstance();
+    // Initialize services
+    $configService = new ConfigService();
+    $config = $configService->getConfig();
     
-    // Search for customers with the company name that's causing the conflict
-    $companyName = "1144809: OakTree Supply";
-    echo "Searching for customers with company name: '$companyName'\n\n";
+    $loggerService = new LoggerService($config);
+    $logger = $loggerService->getLogger();
     
-    // Use SuiteQL to search for customers by company name
-    $query = "SELECT id, firstName, lastName, email, companyName, phone, isperson FROM customer WHERE companyName = '" . addslashes($companyName) . "'";
+    $netSuiteService = new NetSuiteService($config, $logger);
     
-    echo "Executing query: $query\n\n";
+    // Test the customer search for the problematic email
+    $email = 'rogerb@ahturf.com';
     
-    $results = $netSuiteService->executeSuiteQLQuery($query);
+    echo "Testing customer search for: $email\n\n";
     
-    if (!empty($results)) {
-        echo "✅ Found " . count($results) . " customer(s) with this company name:\n";
-        foreach ($results as $customer) {
-            echo "  - ID: " . $customer['id'] . "\n";
-            echo "    Name: " . $customer['firstName'] . " " . $customer['lastName'] . "\n";
-            echo "    Email: " . $customer['email'] . "\n";
-            echo "    Company: " . $customer['companyName'] . "\n";
-            echo "    Phone: " . $customer['phone'] . "\n";
-            echo "    Is Person: " . ($customer['isperson'] ? 'Yes' : 'No') . "\n\n";
-        }
+    // Test 1: Store customer search (original restrictive search)
+    echo "1. Store customer search (isperson = 'F'):\n";
+    $reflection = new ReflectionClass($netSuiteService);
+    $findStoreCustomerMethod = $reflection->getMethod('findStoreCustomer');
+    $findStoreCustomerMethod->setAccessible(true);
+    $storeCustomer = $findStoreCustomerMethod->invoke($netSuiteService, $email);
+    
+    if ($storeCustomer) {
+        echo "   Found store customer: ID = {$storeCustomer['id']}, isPerson = {$storeCustomer['isperson']}\n";
     } else {
-        echo "❌ No customers found with company name '$companyName'\n\n";
+        echo "   No store customer found\n";
     }
     
-    // Also search for customers with email david@williams.com
-    echo "Searching for customers with email: 'david@williams.com'\n\n";
+    // Test 2: Broader email search (new search)
+    echo "\n2. Broader email search (any customer):\n";
+    $anyCustomer = $netSuiteService->findCustomerByEmail($email);
     
-    $emailQuery = "SELECT id, firstName, lastName, email, companyName, phone, isperson FROM customer WHERE email = 'david@williams.com'";
-    $emailResults = $netSuiteService->executeSuiteQLQuery($emailQuery);
-    
-    if (!empty($emailResults)) {
-        echo "✅ Found " . count($emailResults) . " customer(s) with this email:\n";
-        foreach ($emailResults as $customer) {
-            echo "  - ID: " . $customer['id'] . "\n";
-            echo "    Name: " . $customer['firstName'] . " " . $customer['lastName'] . "\n";
-            echo "    Email: " . $customer['email'] . "\n";
-            echo "    Company: " . $customer['companyName'] . "\n";
-            echo "    Phone: " . $customer['phone'] . "\n";
-            echo "    Is Person: " . ($customer['isperson'] ? 'Yes' : 'No') . "\n\n";
-        }
+    if ($anyCustomer) {
+        echo "   Found customer: ID = {$anyCustomer['id']}, isPerson = {$anyCustomer['isperson']}, Company = " . ($anyCustomer['companyName'] ?? 'N/A') . "\n";
+        echo "   This explains why customer creation failed - customer already exists!\n";
     } else {
-        echo "❌ No customers found with email 'david@williams.com'\n\n";
+        echo "   No customer found with this email\n";
     }
     
-    // Search for any customers with "OakTree Supply" in company name
-    echo "Searching for customers with 'OakTree Supply' in company name:\n\n";
-    
-    $companyQuery = "SELECT id, firstName, lastName, email, companyName, phone, isperson FROM customer WHERE UPPER(companyName) LIKE '%OAKTREE SUPPLY%'";
-    $companyResults = $netSuiteService->executeSuiteQLQuery($companyQuery);
-    
-    if (!empty($companyResults)) {
-        echo "✅ Found " . count($companyResults) . " customer(s) with 'OakTree Supply' in company name:\n";
-        foreach ($companyResults as $customer) {
-            echo "  - ID: " . $customer['id'] . "\n";
-            echo "    Name: " . $customer['firstName'] . " " . $customer['lastName'] . "\n";
-            echo "    Email: " . $customer['email'] . "\n";
-            echo "    Company: " . $customer['companyName'] . "\n";
-            echo "    Phone: " . $customer['phone'] . "\n";
-            echo "    Is Person: " . ($customer['isperson'] ? 'Yes' : 'No') . "\n\n";
-        }
-    } else {
-        echo "❌ No customers found with 'OakTree Supply' in company name\n\n";
-    }
+    echo "\nTest completed successfully!\n";
     
 } catch (Exception $e) {
-    echo "❌ Error occurred:\n";
     echo "Error: " . $e->getMessage() . "\n";
-    echo "File: " . $e->getFile() . ":" . $e->getLine() . "\n";
+    echo "Stack trace:\n" . $e->getTraceAsString() . "\n";
 }
-?>

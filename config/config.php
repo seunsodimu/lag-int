@@ -21,6 +21,7 @@ return [
         'version' => '2.0.0',
         'timezone' => 'America/New_York',
         'debug' => filter_var($_ENV['APP_DEBUG'] ?? false, FILTER_VALIDATE_BOOLEAN),
+        'base_url' => $_ENV['APP_BASE_URL'] ?? 'http://localhost/lag-int',
     ],
 
     // Integration Modules Configuration

@@ -186,6 +186,42 @@ class WebhookController {
                 'customer_id' => $netSuiteCustomerId
             ];
             
+        } catch (\LagunaIntegrations\Exceptions\StoreCustomerNotFoundException $e) {
+            // Special handling for Store Shipment orders where store customer is not found
+            // Do NOT retry - send email notification with link to order manager
+            $this->logger->error('Store customer not found for Store Shipment order', [
+                'order_id' => $orderId,
+                'customer_email' => $e->getCustomerEmail(),
+                'error' => $e->getMessage()
+            ]);
+            
+            // Build link to order in Order Status Manager
+            $baseUrl = rtrim($this->config['app']['base_url'], '/');
+            $orderLink = $baseUrl . '/public/order-status-manager.php?order_id=' . $orderId;
+            
+            // Send error notification with link to order
+            $this->emailService->sendNotification(
+                'store_customer_not_found',
+                'Store Customer Not Found - Action Required',
+                [
+                    'Order ID' => $orderId,
+                    'Payment Method' => 'Store Shipment',
+                    'Customer Email' => $e->getCustomerEmail(),
+                    'Error Message' => $e->getMessage(),
+                    'Action Required' => 'Create the store customer in NetSuite first, then retry processing this order',
+                    'Order Link' => $orderLink,
+                    'Processing Type' => 'Webhook'
+                ]
+            );
+            
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'retry_count' => $retryCount,
+                'requires_manual_action' => true,
+                'order_link' => $orderLink
+            ];
+            
         } catch (\Exception $e) {
             $this->logger->error('Order processing failed', [
                 'order_id' => $orderId,
@@ -193,7 +229,7 @@ class WebhookController {
                 'error' => $e->getMessage()
             ]);
             
-            // Retry logic
+            // Retry logic (not for StoreCustomerNotFoundException)
             if ($retryCount < $maxRetries) {
                 $this->logger->info('Retrying order processing', [
                     'order_id' => $orderId,
@@ -239,6 +275,125 @@ class WebhookController {
                     'Customer Email' => $orderData['BillingEmailAddress'] ?? 'N/A',
                     'Processing Type' => 'Webhook',
                     'Sales Order Payload' => $salesOrderPayload
+                ]
+            );
+            
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'retry_count' => $retryCount
+            ];
+        }
+    }
+    
+    /**
+     * Process a single order with a specific customer ID
+     */
+    public function processOrderWithCustomer($orderId, $customerId, $retryCount = 0) {
+        $maxRetries = $this->config['order_processing']['retry_attempts'];
+        
+        try {
+            $this->logger->logOrderEvent($orderId, 'processing_started_with_custom_customer', [
+                'retry_count' => $retryCount,
+                'customer_id' => $customerId
+            ]);
+            
+            // Get order data from 3DCart
+            $orderData = $this->threeDCartService->getOrder($orderId);
+            $order = new Order($orderData);
+            
+            // Validate order data
+            $validationErrors = $order->validate();
+            if (!empty($validationErrors)) {
+                throw new \Exception('Order validation failed: ' . implode(', ', $validationErrors));
+            }
+            
+            // Check if order already exists in NetSuite
+            $existingOrder = $this->netSuiteService->getSalesOrderByExternalId('3DCART_' . $orderId);
+            if ($existingOrder) {
+                $this->logger->info('Order already exists in NetSuite', [
+                    'order_id' => $orderId,
+                    'netsuite_order_id' => $existingOrder['id']
+                ]);
+                
+                return [
+                    'success' => true,
+                    'message' => 'Order already exists',
+                    'netsuite_order_id' => $existingOrder['id']
+                ];
+            }
+            
+            // Create sales order in NetSuite with the specified customer ID
+            $netSuiteOrder = $this->netSuiteService->createSalesOrder($orderData, $customerId);
+            
+            $this->logger->logOrderEvent($orderId, 'processing_completed', [
+                'netsuite_order_id' => $netSuiteOrder['id'],
+                'customer_id' => $customerId
+            ]);
+            
+            // Update 3DCart order status to indicate successful processing
+            $statusUpdateResult = $this->update3DCartOrderStatus($orderId, 'success', $netSuiteOrder['id']);
+            
+            // Log the status update result for debugging
+            $this->logger->info('3DCart status update attempt completed', [
+                'order_id' => $orderId,
+                'netsuite_order_id' => $netSuiteOrder['id'],
+                'status_update_successful' => $statusUpdateResult
+            ]);
+            
+            // Send success notification using new notification system
+            $this->emailService->sendNotification(
+                '3dcart_success_manual',
+                '3DCart Order Successfully Processed (Manual with Custom Customer)',
+                [
+                    'Order ID' => $orderId,
+                    'NetSuite Order ID' => $netSuiteOrder['id'],
+                    'Customer ID' => $customerId,
+                    'Order Total' => '$' . number_format($order->getTotal(), 2),
+                    'Items Count' => count($order->getItems()),
+                    'Processing Type' => 'Manual with Custom Customer ID'
+                ]
+            );
+            
+            return [
+                'success' => true,
+                'message' => 'Order processed successfully',
+                'netsuite_order_id' => $netSuiteOrder['id'],
+                'customer_id' => $customerId
+            ];
+            
+        } catch (\Exception $e) {
+            $this->logger->error('Order processing with custom customer failed', [
+                'order_id' => $orderId,
+                'customer_id' => $customerId,
+                'retry_count' => $retryCount,
+                'error' => $e->getMessage()
+            ]);
+            
+            // Retry logic
+            if ($retryCount < $maxRetries) {
+                $this->logger->info('Retrying order processing with custom customer', [
+                    'order_id' => $orderId,
+                    'customer_id' => $customerId,
+                    'retry_count' => $retryCount + 1
+                ]);
+                
+                sleep($this->config['order_processing']['retry_delay']);
+                return $this->processOrderWithCustomer($orderId, $customerId, $retryCount + 1);
+            }
+            
+            // Send error notification
+            $this->emailService->sendNotification(
+                '3dcart_failed_manual',
+                '3DCart Order Processing Failed (Manual with Custom Customer)',
+                [
+                    'Order ID' => $orderId,
+                    'Customer ID' => $customerId,
+                    'Error Message' => $e->getMessage(),
+                    'Retry Count' => $retryCount,
+                    'Max Retries' => $maxRetries,
+                    'Order Total' => isset($order) ? '$' . number_format($order->getTotal(), 2) : 'N/A',
+                    'Processing Type' => 'Manual with Custom Customer ID'
                 ]
             );
             
@@ -516,6 +671,35 @@ class WebhookController {
                 'message' => 'Order processed successfully from webhook data',
                 'netsuite_order_id' => $netSuiteOrderId,
                 'customer_id' => $netSuiteCustomerId
+            ];
+            
+        } catch (StoreCustomerNotFoundException $e) {
+            // Store Shipment order with customer not found - requires manual action
+            $this->logger->error('Store customer not found for Store Shipment order (webhook)', [
+                'order_id' => $orderId,
+                'customer_email' => $e->getCustomerEmail(),
+                'error' => $e->getMessage()
+            ]);
+            
+            // Build direct link to order in Order Status Manager
+            $baseUrl = $this->config['app']['base_url'] ?? 'http://localhost/lag-int';
+            $orderLink = $baseUrl . '/public/order-status-manager.php?order_id=' . urlencode($orderId);
+            
+            // Send notification with link to order
+            $this->emailService->sendFailedOrderNotification('store_customer_not_found', [
+                'order_id' => $orderId,
+                'payment_method' => $orderData['BillingPaymentMethod'] ?? 'Store Shipment',
+                'customer_email' => $e->getCustomerEmail(),
+                'error_message' => $e->getMessage(),
+                'action_required' => 'Create the store customer in NetSuite first, then retry this order',
+                'order_link' => $orderLink
+            ]);
+            
+            return [
+                'success' => false,
+                'error' => $e->getMessage(),
+                'requires_manual_action' => true,
+                'customer_email' => $e->getCustomerEmail()
             ];
             
         } catch (\Exception $e) {

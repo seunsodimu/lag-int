@@ -125,6 +125,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
             case 'sync_to_netsuite':
                 $orderId = $_POST['order_id'] ?? '';
+                $customerId = $_POST['customer_id'] ?? '';
+                $addShippingAddress = filter_var($_POST['add_shipping_address'] ?? false, FILTER_VALIDATE_BOOLEAN);
+                $addBillingAddress = filter_var($_POST['add_billing_address'] ?? false, FILTER_VALIDATE_BOOLEAN);
                 
                 if (empty($orderId)) {
                     throw new Exception('Order ID is required');
@@ -133,8 +136,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Get the updated 3DCart order
                 $threeDCartOrder = $threeDCartService->getOrder($orderId);
                 
-                // Process the order through the webhook controller (pass order ID, not the order object)
-                $result = $webhookController->processOrder($orderId);
+                // If custom customer ID is provided, validate it exists
+                if (!empty($customerId)) {
+                    // Validate customer exists in NetSuite
+                    $customerExists = $netSuiteService->validateCustomerExists($customerId);
+                    if (!$customerExists) {
+                        throw new Exception('Customer ID ' . $customerId . ' does not exist in NetSuite. Please create the customer first before adding the order.');
+                    }
+                    
+                    // Add addresses to customer profile if requested
+                    if ($addShippingAddress || $addBillingAddress) {
+                        $addressResult = $netSuiteService->addAddressesToCustomer(
+                            $customerId, 
+                            $threeDCartOrder, 
+                            $addShippingAddress, 
+                            $addBillingAddress
+                        );
+                        
+                        $logger->info('Added addresses to customer', [
+                            'customer_id' => $customerId,
+                            'order_id' => $orderId,
+                            'shipping_added' => $addShippingAddress,
+                            'billing_added' => $addBillingAddress,
+                            'result' => $addressResult
+                        ]);
+                    }
+                    
+                    // Process the order with the specified customer ID
+                    $result = $webhookController->processOrderWithCustomer($orderId, $customerId);
+                } else {
+                    // Process the order through the webhook controller (pass order ID, not the order object)
+                    $result = $webhookController->processOrder($orderId);
+                }
                 
                 // Clear any buffered output and send clean JSON
                 ob_clean();
@@ -661,6 +694,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 `;
             }
             
+            // NetSuite Customer ID and Address Options (only show if not synced)
+            if (canEdit) {
+                html += `
+                    <hr style="margin: 20px 0; border: none; border-top: 1px solid #e0e0e0;">
+                    <div style="background: #f0f8ff; padding: 15px; border-radius: 4px; margin-top: 15px;">
+                        <h4 style="margin-top: 0; color: #667eea;">NetSuite Customer Options</h4>
+                        <div class="field-row" style="border: none; flex-direction: column; align-items: flex-start;">
+                            <label class="field-label" style="margin-bottom: 5px;">Customer NetSuite ID (Optional):</label>
+                            <input type="number" id="netsuite-customer-id" class="editable-field" 
+                                   placeholder="Leave empty to auto-create/find customer" 
+                                   style="width: 100%; background: white;">
+                            <small style="color: #666; margin-top: 5px; display: block;">
+                                If provided, the sales order will be associated with this customer ID. 
+                                The customer must exist in NetSuite.
+                            </small>
+                        </div>
+                        <div class="field-row" style="border: none; flex-direction: column; align-items: flex-start; margin-top: 15px;">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="add-shipping-address" style="margin-right: 8px; width: auto;">
+                                <span>Add shipping address to customer profile</span>
+                            </label>
+                        </div>
+                        <div class="field-row" style="border: none; flex-direction: column; align-items: flex-start;">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" id="add-billing-address" style="margin-right: 8px; width: auto;">
+                                <span>Add billing address to customer profile</span>
+                            </label>
+                        </div>
+                    </div>
+                `;
+            }
+            
             container.innerHTML = html;
         }
         
@@ -809,18 +874,47 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         function syncToNetSuite() {
             const orderId = currentOrderData.threedcart_order.OrderID;
             
-            if (!confirm('Are you sure you want to sync this order to NetSuite?')) {
+            // Get custom customer ID and address options
+            const customerIdInput = document.getElementById('netsuite-customer-id');
+            const customerId = customerIdInput ? customerIdInput.value.trim() : '';
+            
+            const addShippingAddressCheckbox = document.getElementById('add-shipping-address');
+            const addShippingAddress = addShippingAddressCheckbox ? addShippingAddressCheckbox.checked : false;
+            
+            const addBillingAddressCheckbox = document.getElementById('add-billing-address');
+            const addBillingAddress = addBillingAddressCheckbox ? addBillingAddressCheckbox.checked : false;
+            
+            // Build confirmation message
+            let confirmMessage = 'Are you sure you want to sync this order to NetSuite?';
+            if (customerId) {
+                confirmMessage += '\n\nCustomer ID: ' + customerId;
+                if (addShippingAddress || addBillingAddress) {
+                    confirmMessage += '\n';
+                    if (addShippingAddress) confirmMessage += '\n- Shipping address will be added to customer profile';
+                    if (addBillingAddress) confirmMessage += '\n- Billing address will be added to customer profile';
+                }
+            }
+            
+            if (!confirm(confirmMessage)) {
                 return;
             }
             
             showLoading(true);
+            
+            // Build request body
+            let requestBody = `action=sync_to_netsuite&order_id=${encodeURIComponent(orderId)}`;
+            if (customerId) {
+                requestBody += `&customer_id=${encodeURIComponent(customerId)}`;
+                requestBody += `&add_shipping_address=${addShippingAddress ? '1' : '0'}`;
+                requestBody += `&add_billing_address=${addBillingAddress ? '1' : '0'}`;
+            }
             
             fetch('order-status-manager.php', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
-                body: `action=sync_to_netsuite&order_id=${encodeURIComponent(orderId)}`
+                body: requestBody
             })
             .then(response => response.json())
             .then(data => {

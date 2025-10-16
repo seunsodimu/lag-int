@@ -100,6 +100,19 @@
             margin-right: 8px;
         }
 
+        /* City display */
+        .city {
+            display: flex;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 300;
+            color: #ffffff;
+            padding: 6px 10px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
         /* Main Content Area */
         .main-content {
             flex: 1;
@@ -285,6 +298,7 @@
         <div class="logo"><img src="images/laguna-pulse.webp" width="100%" alt="Laguna Pulse Logo"></div>
         <div class="header-right">
             <button id="fullscreenBtn" class="fs-btn" title="Toggle fullscreen" aria-label="Toggle fullscreen">⛶</button>
+            <div class="city" id="city">Loading...</div>
             <div class="clock" id="clock">12:00 PM</div>
             <div class="weather" id="weather">
                 <span class="emoji" id="weatherEmoji">⛅</span>
@@ -310,17 +324,22 @@
         // Configuration loaded from JSON files
         let slideConfig = [];
         let footerMessages = [];
+        let locationConfig = {};
 
         async function loadConfig() {
             try {
-                const [slidesRes, footerRes] = await Promise.all([
+                const [slidesRes, footerRes, locationRes] = await Promise.all([
                     fetch('json/slides.json', { cache: 'no-cache' }),
-                    fetch('json/footer-messages.json', { cache: 'no-cache' })
+                    fetch('json/footer-messages.json', { cache: 'no-cache' }),
+                    fetch('json/location.json', { cache: 'no-cache' })
                 ]);
                 if (!slidesRes.ok) throw new Error('Failed to load slides.json');
                 if (!footerRes.ok) throw new Error('Failed to load footer-messages.json');
+                if (!locationRes.ok) throw new Error('Failed to load location.json');
+                
                 slideConfig = await slidesRes.json();
                 footerMessages = await footerRes.json();
+                locationConfig = await locationRes.json();
 
                 // Handle empty arrays by providing placeholders
                 if (!Array.isArray(slideConfig) || slideConfig.length === 0) {
@@ -340,6 +359,16 @@
                 if (!Array.isArray(footerMessages) || footerMessages.length === 0) {
                     footerMessages = ["Welcome to Laguna Pulse!"];
                 }
+                if (!locationConfig || Object.keys(locationConfig).length === 0) {
+                    locationConfig = {
+                        city: "Los Angeles",
+                        state: "CA",
+                        country: "USA",
+                        latitude: 34.0522,
+                        longitude: -118.2437,
+                        timezone: "America/Los_Angeles"
+                    };
+                }
             } catch (err) {
                 console.error('Configuration load error:', err);
                 // Fallback to minimal defaults so UI still works
@@ -358,6 +387,14 @@
                 footerMessages = footerMessages.length ? footerMessages : [
                     "Welcome to Laguna Pulse!"
                 ];
+                locationConfig = {
+                    city: "Los Angeles",
+                    state: "CA",
+                    country: "USA",
+                    latitude: 34.0522,
+                    longitude: -118.2437,
+                    timezone: "America/Los_Angeles"
+                };
             }
         }
 
@@ -370,6 +407,7 @@
                 this.locationOffsetSec = null;
                 this.locationTimeZone = null;
                 
+                this.initializeCity();
                 this.initializeClock();
                 this.initializeWeather();
                 this.initializeSlides();
@@ -377,25 +415,25 @@
                 this.rotateFooterMessages();
             }
 
+            initializeCity() {
+                const cityElement = document.getElementById('city');
+                const city = locationConfig?.city || 'Los Angeles';
+                const state = locationConfig?.state ? `, ${locationConfig.state}` : '';
+                cityElement.textContent = `${city}${state}`;
+            }
+
             initializeClock() {
                 const updateClock = () => {
                     const now = new Date();
-
-                    // If we have a location offset (seconds), adjust the time display
-                    let displayDate = now;
-                    if (typeof this.locationOffsetSec === 'number') {
-                        const localOffsetMin = now.getTimezoneOffset(); // minutes, e.g. -420 for PDT
-                        const localOffsetMs = localOffsetMin * 60 * 1000;
-                        const targetOffsetMs = this.locationOffsetSec * 1000; // seconds to ms
-                        // Convert current UTC time + target offset
-                        const utcMs = now.getTime() + localOffsetMs; // now + local offset -> UTC
-                        displayDate = new Date(utcMs + targetOffsetMs);
-                    }
-
-                    const tz = this.locationTimeZone;
-                    const options = { hour: '2-digit', minute: '2-digit' };
-                    if (tz) options.timeZone = tz;
-                    const timeString = new Date().toLocaleTimeString([], options);
+                    
+                    // Use location's timezone from config
+                    const tz = locationConfig?.timezone || 'America/Los_Angeles';
+                    const options = { 
+                        hour: '2-digit', 
+                        minute: '2-digit',
+                        timeZone: tz
+                    };
+                    const timeString = now.toLocaleTimeString('en-US', options);
                     document.getElementById('clock').textContent = timeString;
                 };
                 
@@ -403,7 +441,7 @@
                 setInterval(updateClock, 1000);
             }
 
-            // Fetch weather using browser geolocation and Open-Meteo (no API key)
+            // Fetch weather using provided location coordinates and Open-Meteo API (no API key required)
             initializeWeather() {
                 const weatherText = document.getElementById('weatherText');
                 const weatherEmoji = document.getElementById('weatherEmoji');
@@ -435,14 +473,6 @@
                         .then(r => r.json())
                         .then(data => {
                             const current = data && data.current;
-                            const utcOffsetSeconds = data && data.utc_offset_seconds;
-                            if (typeof utcOffsetSeconds === 'number') {
-                                this.locationOffsetSec = utcOffsetSeconds;
-                            }
-                            // Capture IANA timezone if provided
-                            if (data && data.timezone) {
-                                this.locationTimeZone = data.timezone; // e.g., America/Los_Angeles
-                            }
                             if (current && typeof current.temperature_2m === 'number') {
                                 // Convert C to F
                                 const tempF = (current.temperature_2m * 9/5) + 32;
@@ -454,12 +484,9 @@
                         .catch(onError);
                 };
 
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(
-                        (pos) => fetchWeather(pos.coords.latitude, pos.coords.longitude),
-                        onError,
-                        { timeout: 5000 }
-                    );
+                // Use coordinates from location configuration
+                if (locationConfig && locationConfig.latitude && locationConfig.longitude) {
+                    fetchWeather(locationConfig.latitude, locationConfig.longitude);
                 } else {
                     onError();
                 }

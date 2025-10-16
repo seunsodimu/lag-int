@@ -576,6 +576,8 @@ class NetSuiteService {
 
             if ($billingPaymentMethod === 'Dropship to Customer') {
                 return $this->handleDropshipCustomer($orderData, $customerEmail, $isValidEmail);
+            } elseif ($billingPaymentMethod === 'Store Shipment') {
+                return $this->handleStoreShipmentCustomer($orderData, $customerEmail, $isValidEmail);
             } else {
                 return $this->handleRegularCustomer($orderData, $customerEmail, $isValidEmail);
             }
@@ -649,6 +651,60 @@ class NetSuiteService {
         // Create new dropship customer
         $newCustomer = $this->createCustomer($customerData, $parentCustomerId);
         return $newCustomer['id'];
+    }
+
+    /**
+     * Handle Store Shipment customer logic
+     * For Store Shipment orders, the store customer MUST exist in NetSuite
+     * If not found, throw StoreCustomerNotFoundException to stop processing
+     */
+    private function handleStoreShipmentCustomer($orderData, $customerEmail, $isValidEmail) {
+        $orderId = $orderData['OrderID'] ?? 'N/A';
+        
+        $this->logger->info('Processing Store Shipment customer', [
+            'order_id' => $orderId,
+            'customer_email' => $customerEmail,
+            'is_valid_email' => $isValidEmail,
+            'note' => 'Store customer must exist in NetSuite'
+        ]);
+
+        // For Store Shipment, we require a valid email
+        if (!$isValidEmail) {
+            $this->logger->error('Store Shipment order missing valid customer email', [
+                'order_id' => $orderId,
+                'customer_email' => $customerEmail
+            ]);
+            throw new \LagunaIntegrations\Exceptions\StoreCustomerNotFoundException(
+                $orderId,
+                $customerEmail,
+                "Store Shipment order requires a valid customer email in QuestionList (QuestionID=1). Email provided: " . ($customerEmail ?: 'NONE')
+            );
+        }
+
+        // Search for existing store customer
+        $existingCustomer = $this->findStoreCustomer($customerEmail);
+        
+        if ($existingCustomer) {
+            $this->logger->info('Found existing store customer for Store Shipment', [
+                'customer_id' => $existingCustomer['id'],
+                'customer_email' => $customerEmail,
+                'company_name' => $existingCustomer['companyName'] ?? 'N/A'
+            ]);
+            return $existingCustomer['id'];
+        }
+
+        // Store customer not found - throw exception to stop processing
+        $this->logger->error('Store customer not found for Store Shipment order', [
+            'order_id' => $orderId,
+            'customer_email' => $customerEmail,
+            'note' => 'Store Shipment orders require the store customer to exist in NetSuite'
+        ]);
+        
+        throw new \LagunaIntegrations\Exceptions\StoreCustomerNotFoundException(
+            $orderId,
+            $customerEmail,
+            "Store customer with email '{$customerEmail}' not found in NetSuite. Please create the store customer first before processing this Store Shipment order."
+        );
     }
 
     /**
@@ -1329,6 +1385,216 @@ class NetSuiteService {
                 $errorMessage .= " | Response: " . $responseBody;
             }
             throw new \Exception($errorMessage);
+        }
+    }
+    
+    /**
+     * Validate if a customer exists in NetSuite by customer ID
+     * 
+     * @param int $customerId The NetSuite customer ID to validate
+     * @return bool True if customer exists, false otherwise
+     * @throws \Exception If the validation query fails
+     */
+    public function validateCustomerExists($customerId) {
+        try {
+            $this->logger->info('Validating customer existence in NetSuite', [
+                'customer_id' => $customerId
+            ]);
+            
+            // Use SuiteQL to check if customer exists
+            $query = "SELECT id, firstName, lastName, email, companyName, isperson FROM customer WHERE id = " . (int)$customerId;
+            
+            $startTime = microtime(true);
+            $result = $this->executeSuiteQLQuery($query);
+            $duration = (microtime(true) - $startTime) * 1000;
+            
+            $this->logger->logApiCall('NetSuite', 'SuiteQL Query (validate customer)', 'POST', 200, $duration);
+            
+            if (!empty($result['items']) && count($result['items']) > 0) {
+                $customer = $result['items'][0];
+                $this->logger->info('Customer exists in NetSuite', [
+                    'customer_id' => $customerId,
+                    'customer_name' => trim(($customer['firstName'] ?? '') . ' ' . ($customer['lastName'] ?? '')),
+                    'company_name' => $customer['companyName'] ?? 'N/A',
+                    'email' => $customer['email'] ?? 'N/A',
+                    'is_person' => $customer['isperson'] ?? 'N/A'
+                ]);
+                return true;
+            }
+            
+            $this->logger->warning('Customer does not exist in NetSuite', [
+                'customer_id' => $customerId
+            ]);
+            return false;
+            
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to validate customer existence in NetSuite', [
+                'customer_id' => $customerId,
+                'error' => $e->getMessage()
+            ]);
+            throw new \Exception("Failed to validate customer existence: " . $e->getMessage());
+        }
+    }
+    
+    /**
+     * Add shipping and/or billing addresses to an existing NetSuite customer
+     * 
+     * @param int $customerId The NetSuite customer ID
+     * @param array $orderData The 3DCart order data containing address information
+     * @param bool $addShipping Whether to add the shipping address
+     * @param bool $addBilling Whether to add the billing address
+     * @return bool True if addresses were added successfully
+     * @throws \Exception If the address addition fails
+     */
+    public function addAddressesToCustomer($customerId, $orderData, $addShipping = false, $addBilling = false) {
+        try {
+            if (!$addShipping && !$addBilling) {
+                $this->logger->info('No addresses to add - both flags are false', [
+                    'customer_id' => $customerId
+                ]);
+                return true;
+            }
+            
+            $this->logger->info('Adding addresses to NetSuite customer', [
+                'customer_id' => $customerId,
+                'add_shipping' => $addShipping,
+                'add_billing' => $addBilling,
+                'order_id' => $orderData['OrderID'] ?? 'N/A'
+            ]);
+            
+            // First, get the current customer data to preserve existing addresses
+            $customerQuery = "SELECT id FROM customer WHERE id = " . (int)$customerId;
+            $customerResult = $this->executeSuiteQLQuery($customerQuery);
+            
+            if (empty($customerResult['items'])) {
+                throw new \Exception("Customer with ID {$customerId} not found in NetSuite");
+            }
+            
+            // Prepare the addressbook items to add
+            $addressbookItems = [];
+            
+            // Add shipping address if requested
+            if ($addShipping && isset($orderData['ShipmentList']) && is_array($orderData['ShipmentList'])) {
+                foreach ($orderData['ShipmentList'] as $shipment) {
+                    $shippingAddress = [
+                        'defaultShipping' => false,
+                        'defaultBilling' => false,
+                        'isResidential' => false,
+                        'label' => 'Shipping Address (3DCart Order #' . ($orderData['OrderID'] ?? 'N/A') . ')',
+                        'addressee' => $this->validateAndTruncateField(
+                            trim(($shipment['ShipmentFirstName'] ?? '') . ' ' . ($shipment['ShipmentLastName'] ?? '')),
+                            83,
+                            'addressee'
+                        ),
+                        'addr1' => $this->validateAndTruncateField($shipment['ShipmentAddress'] ?? '', 150, 'addr1'),
+                        'addr2' => $this->validateAndTruncateField($shipment['ShipmentAddress2'] ?? null, 150, 'addr2'),
+                        'city' => $this->validateAndTruncateField($shipment['ShipmentCity'] ?? '', 50, 'city'),
+                        'state' => $this->validateAndTruncateField($shipment['ShipmentState'] ?? '', 50, 'state'),
+                        'zip' => $this->validateAndTruncateField($shipment['ShipmentZipCode'] ?? '', 20, 'zip'),
+                        'country' => $this->mapCountryCode($shipment['ShipmentCountry'] ?? 'US'),
+                        'phone' => $this->validateAndTruncateField($shipment['ShipmentPhone'] ?? null, 22, 'phone')
+                    ];
+                    
+                    $addressbookItems[] = $shippingAddress;
+                    
+                    $this->logger->info('Prepared shipping address for addition', [
+                        'customer_id' => $customerId,
+                        'address_label' => $shippingAddress['label'],
+                        'city' => $shippingAddress['city'],
+                        'state' => $shippingAddress['state']
+                    ]);
+                    
+                    // Only process the first shipment
+                    break;
+                }
+            }
+            
+            // Add billing address if requested
+            if ($addBilling) {
+                $billingAddress = [
+                    'defaultShipping' => false,
+                    'defaultBilling' => false,
+                    'isResidential' => false,
+                    'label' => 'Billing Address (3DCart Order #' . ($orderData['OrderID'] ?? 'N/A') . ')',
+                    'addressee' => $this->validateAndTruncateField(
+                        trim(($orderData['BillingFirstName'] ?? '') . ' ' . ($orderData['BillingLastName'] ?? '')),
+                        83,
+                        'addressee'
+                    ),
+                    'addr1' => $this->validateAndTruncateField($orderData['BillingAddress'] ?? '', 150, 'addr1'),
+                    'addr2' => $this->validateAndTruncateField($orderData['BillingAddress2'] ?? null, 150, 'addr2'),
+                    'city' => $this->validateAndTruncateField($orderData['BillingCity'] ?? '', 50, 'city'),
+                    'state' => $this->validateAndTruncateField($orderData['BillingState'] ?? '', 50, 'state'),
+                    'zip' => $this->validateAndTruncateField($orderData['BillingZipCode'] ?? '', 20, 'zip'),
+                    'country' => $this->mapCountryCode($orderData['BillingCountry'] ?? 'US'),
+                    'phone' => $this->validateAndTruncateField($orderData['BillingPhoneNumber'] ?? null, 22, 'phone')
+                ];
+                
+                $addressbookItems[] = $billingAddress;
+                
+                $this->logger->info('Prepared billing address for addition', [
+                    'customer_id' => $customerId,
+                    'address_label' => $billingAddress['label'],
+                    'city' => $billingAddress['city'],
+                    'state' => $billingAddress['state']
+                ]);
+            }
+            
+            if (empty($addressbookItems)) {
+                $this->logger->warning('No valid addresses found to add to customer', [
+                    'customer_id' => $customerId,
+                    'add_shipping' => $addShipping,
+                    'add_billing' => $addBilling
+                ]);
+                return true;
+            }
+            
+            // Update the customer with new addresses
+            $updatePayload = [
+                'addressbook' => [
+                    'items' => $addressbookItems
+                ]
+            ];
+            
+            $this->logger->info('Updating customer with new addresses', [
+                'customer_id' => $customerId,
+                'address_count' => count($addressbookItems),
+                'payload' => $updatePayload
+            ]);
+            
+            $startTime = microtime(true);
+            $response = $this->makeRequest('PATCH', '/customer/' . $customerId, $updatePayload);
+            $duration = (microtime(true) - $startTime) * 1000;
+            
+            $this->logger->logApiCall('NetSuite', '/customer/' . $customerId, 'PATCH', $response->getStatusCode(), $duration);
+            
+            $statusCode = $response->getStatusCode();
+            
+            if ($statusCode === 204 || $statusCode === 200) {
+                $this->logger->info('Successfully added addresses to customer', [
+                    'customer_id' => $customerId,
+                    'shipping_added' => $addShipping,
+                    'billing_added' => $addBilling,
+                    'total_addresses' => count($addressbookItems)
+                ]);
+                return true;
+            } else {
+                $this->logger->warning('Unexpected response code when adding addresses', [
+                    'customer_id' => $customerId,
+                    'status_code' => $statusCode,
+                    'response_body' => $response->getBody()->getContents()
+                ]);
+                return false;
+            }
+            
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to add addresses to customer in NetSuite', [
+                'customer_id' => $customerId,
+                'add_shipping' => $addShipping,
+                'add_billing' => $addBilling,
+                'error' => $e->getMessage()
+            ]);
+            throw new \Exception("Failed to add addresses to customer: " . $e->getMessage());
         }
     }
     
@@ -2311,11 +2577,12 @@ class NetSuiteService {
             
             return null;
         } catch (\Exception $e) {
-            $this->logger->error('Failed to find sales order by external ID', [
-                'external_id' => $externalId,
+            $this->logger->error('Error searching for sales order by 3DCart order ID', [
+                'threedcart_order_id' => $threeDCartOrderId,
                 'error' => $e->getMessage()
             ]);
-            return null;
+            
+            throw $e;
         }
     }
     
@@ -2529,318 +2796,12 @@ class NetSuiteService {
                 ]);
                 return false;
             }
-            
-        } catch (RequestException $e) {
-            $statusCode = $e->getResponse() ? $e->getResponse()->getStatusCode() : null;
-            $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : null;
-            
+        } catch (\Exception $e) {
             $this->logger->error('Failed to delete sales order', [
                 'sales_order_id' => $salesOrderId,
-                'status_code' => $statusCode,
-                'error' => $e->getMessage(),
-                'response_body' => $responseBody
-            ]);
-            
-            throw new \Exception("Failed to delete sales order: " . $e->getMessage());
-        } catch (\Exception $e) {
-            $this->logger->error('Exception while deleting sales order', [
-                'sales_order_id' => $salesOrderId,
                 'error' => $e->getMessage()
             ]);
-            
-            throw $e;
-        }
-    }
-    
-    /**
-     * Search for sales order by 3DCart order ID
-     */
-    public function findSalesOrderBy3DCartId($threeDCartOrderId) {
-        try {
-            $this->logger->info('Searching for sales order by 3DCart order ID', [
-                'threedcart_order_id' => $threeDCartOrderId
-            ]);
-            
-            // Search by external ID (3DCART_OrderID format) using the same query structure as checkOrdersSyncStatus
-            $externalId = '3DCART_' . $threeDCartOrderId;
-            $query = "SELECT id, tranid, externalid, status, trandate, entity FROM transaction WHERE recordtype = 'salesorder' AND externalid = '{$externalId}'";
-            
-            $result = $this->executeSuiteQLQuery($query);
-            
-            if (isset($result['items']) && count($result['items']) > 0) {
-                $salesOrder = $result['items'][0];
-                $this->logger->info('Found sales order by 3DCart order ID', [
-                    'threedcart_order_id' => $threeDCartOrderId,
-                    'netsuite_sales_order_id' => $salesOrder['id'],
-                    'tranid' => $salesOrder['tranid'] ?? 'N/A',
-                    'status' => $salesOrder['status'] ?? 'N/A',
-                    'external_id' => $salesOrder['externalid'] ?? 'N/A'
-                ]);
-                
-                return $salesOrder;
-            }
-            
-            $this->logger->info('No sales order found for 3DCart order ID', [
-                'threedcart_order_id' => $threeDCartOrderId,
-                'external_id_searched' => $externalId
-            ]);
-            
-            return null;
-        } catch (\Exception $e) {
-            $this->logger->error('Error searching for sales order by 3DCart order ID', [
-                'threedcart_order_id' => $threeDCartOrderId,
-                'external_id_searched' => '3DCART_' . $threeDCartOrderId,
-                'error' => $e->getMessage()
-            ]);
-            return null;
-        }
-    }
-    
-
-    
-    /**
-     * Search for campaign by campaign ID
-     */
-    public function searchCampaign($campaignId) {
-        try {
-            $this->logger->info('Searching for campaign', ['campaign_id' => $campaignId]);
-            
-            $query = "SELECT title, campaignId, id FROM SearchCampaign WHERE title='{$campaignId}'";
-            
-            $response = $this->makeRequest('POST', '/query/v1/suiteql', [
-                'q' => $query
-            ], ['offset' => '0']);
-            
-            if ($response->getStatusCode() == 200) {
-                $data = json_decode($response->getBody()->getContents(), true);
-                
-                $campaigns = [];
-                if (isset($data['items']) && !empty($data['items'])) {
-                    foreach ($data['items'] as $item) {
-                        $campaigns[] = [
-                            'id' => $item['id'],
-                            'campaignid' => $item['campaignid'],
-                            'title' => $item['title']
-                        ];
-                    }
-                }
-                
-                $this->logger->info('Campaign search completed', [
-                    'campaign_id' => $campaignId,
-                    'found_count' => count($campaigns)
-                ]);
-                
-                return [
-                    'success' => true,
-                    'campaigns' => $campaigns
-                ];
-            }
-            
-            throw new \Exception('Unexpected status code: ' . $response->getStatusCode());
-            
-        } catch (RequestException $e) {
-            $error = 'Campaign search failed: ' . $e->getMessage();
-            $this->logger->error($error, ['campaign_id' => $campaignId]);
-            
-            return [
-                'success' => false,
-                'error' => $error,
-                'campaigns' => []
-            ];
-        } catch (\Exception $e) {
-            $error = 'Campaign search error: ' . $e->getMessage();
-            $this->logger->error($error, ['campaign_id' => $campaignId]);
-            
-            return [
-                'success' => false,
-                'error' => $error,
-                'campaigns' => []
-            ];
-        }
-    }
-    
-    /**
-     * Create a new campaign in NetSuite
-     */
-    public function createCampaign($campaignData) {
-        try {
-            $this->logger->info('Creating campaign in NetSuite', $campaignData);
-            
-            $response = $this->makeRequest('POST', '/campaign/', $campaignData);
-            
-            if ($response->getStatusCode() == 201) {
-                // Extract campaign ID from Location header
-                $locationHeader = $response->getHeader('Location');
-                $campaignId = null;
-                
-                if (!empty($locationHeader)) {
-                    $location = $locationHeader[0];
-                    $campaignId = basename($location);
-                }
-                
-                $this->logger->info('Campaign created successfully', [
-                    'campaign_id' => $campaignId,
-                    'title' => $campaignData['title'] ?? 'N/A'
-                ]);
-                
-                return [
-                    'success' => true,
-                    'campaign_id' => $campaignId
-                ];
-            }
-            
-            throw new \Exception('Unexpected status code: ' . $response->getStatusCode());
-            
-        } catch (RequestException $e) {
-            $error = 'Campaign creation failed: ' . $e->getMessage();
-            $this->logger->error($error, ['campaign_data' => $campaignData]);
-            
-            return [
-                'success' => false,
-                'error' => $error
-            ];
-        } catch (\Exception $e) {
-            $error = 'Campaign creation error: ' . $e->getMessage();
-            $this->logger->error($error, ['campaign_data' => $campaignData]);
-            
-            return [
-                'success' => false,
-                'error' => $error
-            ];
-        }
-    }
-    
-    /**
-     * Create a lead in NetSuite
-     */
-    public function createLead($leadData) {
-        try {
-            $this->logger->info('Creating lead in NetSuite', [
-                'email' => $leadData['email'] ?? 'N/A',
-                'hubspot_id' => $leadData['custentity_hs_vid'] ?? 'N/A'
-            ]);
-            
-            $response = $this->makeRequest('POST', '/customer', $leadData);
-            
-            $statusCode = $response->getStatusCode();
-            
-            if ($statusCode === 201 || $statusCode === 204) {
-                // Extract lead ID from Location header
-                $locationHeader = $response->getHeader('Location');
-                $leadId = null;
-                
-                if (!empty($locationHeader)) {
-                    $location = $locationHeader[0];
-                    $leadId = basename($location);
-                }
-                
-                $this->logger->info('Lead created successfully', [
-                    'lead_id' => $leadId,
-                    'email' => $leadData['email'] ?? 'N/A',
-                    'hubspot_id' => $leadData['custentity_hs_vid'] ?? 'N/A',
-                    'status_code' => $statusCode
-                ]);
-                
-                return [
-                    'success' => true,
-                    'lead_id' => $leadId
-                ];
-            }
-            
-            throw new \Exception('Unexpected status code: ' . $statusCode);
-            
-        } catch (RequestException $e) {
-            $error = 'Lead creation failed: ' . $e->getMessage();
-            $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
-            
-            $this->logger->error($error, [
-                'lead_data' => $leadData,
-                'response_body' => $responseBody
-            ]);
-            
-            return [
-                'success' => false,
-                'error' => $error,
-                'response_body' => $responseBody
-            ];
-        } catch (\Exception $e) {
-            $error = 'Lead creation error: ' . $e->getMessage();
-            $this->logger->error($error, ['lead_data' => $leadData]);
-            
-            return [
-                'success' => false,
-                'error' => $error
-            ];
-        }
-    }
-    
-    /**
-     * Find NetSuite employee by email address
-     */
-    public function findEmployeeByEmail($email) {
-        try {
-            $this->logger->info('Searching for NetSuite employee by email', ['email' => $email]);
-            
-            // URL encode the email for the query parameter
-            $encodedEmail = urlencode($email);
-            $query = "email IS \"{$email}\"";
-            $encodedQuery = urlencode($query);
-            
-            $response = $this->makeRequest('GET', "/employee?q={$encodedQuery}");
-            
-            if ($response->getStatusCode() === 200) {
-                $responseData = json_decode($response->getBody()->getContents(), true);
-                
-                if (isset($responseData['items']) && count($responseData['items']) > 0) {
-                    $employeeId = $responseData['items'][0]['id'];
-                    
-                    $this->logger->info('NetSuite employee found', [
-                        'email' => $email,
-                        'employee_id' => $employeeId,
-                        'total_results' => $responseData['totalResults'] ?? 0
-                    ]);
-                    
-                    return [
-                        'success' => true,
-                        'employee_id' => intval($employeeId)
-                    ];
-                } else {
-                    $this->logger->warning('No NetSuite employee found for email', [
-                        'email' => $email,
-                        'total_results' => $responseData['totalResults'] ?? 0
-                    ]);
-                    
-                    return [
-                        'success' => false,
-                        'error' => 'No employee found with email: ' . $email
-                    ];
-                }
-            } else {
-                throw new \Exception('Unexpected status code: ' . $response->getStatusCode());
-            }
-            
-        } catch (RequestException $e) {
-            $error = 'Failed to search NetSuite employee: ' . $e->getMessage();
-            $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
-            
-            $this->logger->error($error, [
-                'email' => $email,
-                'response_body' => $responseBody
-            ]);
-            
-            return [
-                'success' => false,
-                'error' => $error,
-                'response_body' => $responseBody
-            ];
-        } catch (\Exception $e) {
-            $error = 'NetSuite employee search error: ' . $e->getMessage();
-            $this->logger->error($error, ['email' => $email]);
-            
-            return [
-                'success' => false,
-                'error' => $error
-            ];
+            return false;
         }
     }
 }
