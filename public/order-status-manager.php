@@ -66,7 +66,7 @@ date_default_timezone_set($config['app']['timezone']);
 // Handle AJAX requests
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Ensure we always return JSON, even on fatal errors
-    header('Content-Type: application/json');
+    header('Content-Type: application/json; charset=utf-8');
     
     // Capture any output that might interfere with JSON
     ob_start();
@@ -74,9 +74,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $action = $_POST['action'] ?? '';
         
+        if (empty($action)) {
+            throw new Exception('Action parameter is required');
+        }
+        
         switch ($action) {
             case 'get_order_info':
-                $orderId = $_POST['order_id'] ?? '';
+                $orderId = trim($_POST['order_id'] ?? '');
                 
                 if (empty($orderId)) {
                     throw new Exception('Order ID is required');
@@ -84,13 +88,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $result = $syncService->getOrderInformation($orderId);
                 
+                if (!is_array($result)) {
+                    throw new Exception('Invalid service response received');
+                }
+                
                 // Clear any buffered output and send clean JSON
                 ob_clean();
                 echo json_encode($result);
                 exit;
                 
             case 'update_threedcart_fields':
-                $orderId = $_POST['order_id'] ?? '';
+                $orderId = trim($_POST['order_id'] ?? '');
                 $updateData = $_POST['update_data'] ?? [];
                 
                 if (empty($orderId)) {
@@ -104,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // Check if order is already synced
                 $orderInfo = $syncService->getOrderInformation($orderId);
                 if (!$orderInfo['success']) {
-                    throw new Exception('Failed to retrieve order information');
+                    throw new Exception($orderInfo['error'] ?? 'Failed to retrieve order information');
                 }
                 
                 if ($orderInfo['is_synced']) {
@@ -124,8 +132,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
                 
             case 'sync_to_netsuite':
-                $orderId = $_POST['order_id'] ?? '';
-                $customerId = $_POST['customer_id'] ?? '';
+                $orderId = trim($_POST['order_id'] ?? '');
+                $customerId = trim($_POST['customer_id'] ?? '');
                 $addShippingAddress = filter_var($_POST['add_shipping_address'] ?? false, FILTER_VALIDATE_BOOLEAN);
                 $addBillingAddress = filter_var($_POST['add_billing_address'] ?? false, FILTER_VALIDATE_BOOLEAN);
                 
@@ -141,7 +149,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     // Validate customer exists in NetSuite
                     $customerExists = $netSuiteService->validateCustomerExists($customerId);
                     if (!$customerExists) {
-                        throw new Exception('Customer ID ' . $customerId . ' does not exist in NetSuite. Please create the customer first before adding the order.');
+                        throw new Exception('Customer ID ' . htmlspecialchars($customerId) . ' does not exist in NetSuite. Please create the customer first before adding the order.');
                     }
                     
                     // Add addresses to customer profile if requested
@@ -179,7 +187,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 exit;
                 
             case 'update_from_netsuite':
-                $orderId = $_POST['order_id'] ?? '';
+                $orderId = trim($_POST['order_id'] ?? '');
                 
                 if (empty($orderId)) {
                     throw new Exception('Order ID is required');
@@ -187,21 +195,40 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 
                 $result = $syncService->updateOrderFromNetSuite($orderId);
                 
+                if (!is_array($result)) {
+                    throw new Exception('Invalid service response received');
+                }
+                
                 // Clear any buffered output and send clean JSON
                 ob_clean();
                 echo json_encode($result);
                 exit;
                 
             default:
-                throw new Exception('Invalid action');
+                throw new Exception('Invalid action: ' . htmlspecialchars($action));
         }
         
     } catch (\Exception $e) {
+        // Log the exception
+        $logger->error('Order Status Manager error', [
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+            'action' => $_POST['action'] ?? 'unknown'
+        ]);
+        
         // Clear any buffered output and send clean JSON error
         ob_clean();
         echo json_encode([
             'success' => false,
             'error' => $e->getMessage()
+        ]);
+        exit;
+    } catch (\Throwable $t) {
+        // Catch all other errors (PHP 7+)
+        ob_clean();
+        echo json_encode([
+            'success' => false,
+            'error' => 'An unexpected error occurred: ' . $t->getMessage()
         ]);
         exit;
     }
@@ -508,20 +535,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 },
                 body: `action=get_order_info&order_id=${encodeURIComponent(orderId)}`
             })
-            .then(response => response.json())
-            .then(data => {
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
+                }
+                return response.text(); // Get text first to check if it's valid JSON
+            })
+            .then(text => {
                 showLoading(false);
                 
-                if (data.success) {
-                    currentOrderData = data;
-                    displayOrderResults(data);
-                } else {
-                    showAlert(data.error || 'Failed to retrieve order information', 'danger');
+                try {
+                    const data = JSON.parse(text);
+                    
+                    if (data.success) {
+                        currentOrderData = data;
+                        displayOrderResults(data);
+                    } else {
+                        showAlert(data.error || 'Failed to retrieve order information', 'danger');
+                    }
+                } catch (e) {
+                    showAlert('Invalid response from server. Please try again.', 'danger');
+                    console.error('JSON parse error:', e, 'Response text:', text);
                 }
             })
             .catch(error => {
                 showLoading(false);
-                showAlert('Network error: ' + error.message, 'danger');
+                showAlert('Error: ' + error.message, 'danger');
+                console.error('Fetch error:', error);
             });
         }
         
@@ -1023,6 +1063,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             currentOrderData = null;
             editableFields = {};
         }
+        
+        // Initialize page - check for order_id in URL parameters
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('order_id');
+            
+            if (orderId && orderId.trim()) {
+                // Auto-populate and search
+                document.getElementById('order-id').value = orderId.trim();
+                // Auto-search after a short delay to ensure DOM is ready
+                setTimeout(() => searchOrder(), 100);
+            }
+        });
     </script>
 </body>
 </html>
