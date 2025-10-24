@@ -53,8 +53,8 @@ Once loaded, you'll have a full-featured reviews management interface:
 
 All configuration is already done in `.env`:
 ```env
-GOOGLE_API_KEY=AIzaSyAlALaC_HVhCqr7azd-HAyrAjHUUYAyZGM
-GOOGLE_PLACE_IDS=ChIJO2axl7aFToYR9oHtR1_nTb0, ChIJ66CsrYLe3IARJM2AVLO_wY4
+GOOGLE_API_KEY=sample_api_key_here
+GOOGLE_PLACE_IDS=sample_place_id_here, sample_place_id_here
 ```
 
 ### Change Locations

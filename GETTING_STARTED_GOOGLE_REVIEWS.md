@@ -92,9 +92,9 @@ GOOGLE_ACCOUNT_ID=YOUR_ACCOUNT_ID
 4. Replace `YOUR_CLIENT_ID`, `YOUR_CLIENT_SECRET`, `YOUR_ACCOUNT_ID` with what you copied
 5. **Example:**
 ```bash
-GOOGLE_CLIENTID=123456789-abc123def456.apps.googleusercontent.com
-GOOGLE_CLIENT_SECRET=GOCSPX-xyz789abc123
-GOOGLE_ACCOUNT_ID=104253967208137706761
+GOOGLE_CLIENTID=sample-client-id.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET=sample-secret
+GOOGLE_ACCOUNT_ID=sample-account-id
 ```
 
 6. Save the file
