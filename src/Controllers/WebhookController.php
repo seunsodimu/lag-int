@@ -8,6 +8,7 @@ use Laguna\Integration\Services\EnhancedEmailService;
 use Laguna\Integration\Models\Order;
 use Laguna\Integration\Models\Customer;
 use Laguna\Integration\Utils\Logger;
+use Laguna\Integration\Exceptions\StoreCustomerNotFoundException;
 
 /**
  * Webhook Controller
@@ -166,18 +167,26 @@ class WebhookController {
             ]);
             
             // Send success notification using new notification system
-            $this->emailService->sendNotification(
-                '3dcart_success_webhook',
-                '3DCart Order Successfully Processed (Webhook)',
-                [
-                    'Order ID' => $orderId,
-                    'NetSuite Order ID' => $netSuiteOrder['id'],
-                    'Customer ID' => $netSuiteCustomerId,
-                    'Order Total' => '$' . number_format($order->getTotal(), 2),
-                    'Items Count' => count($order->getItems()),
-                    'Processing Type' => 'Webhook'
-                ]
-            );
+            try {
+                $this->emailService->sendNotification(
+                    '3dcart_success_webhook',
+                    '3DCart Order Successfully Processed (Webhook)',
+                    [
+                        'Order ID' => $orderId,
+                        'NetSuite Order ID' => $netSuiteOrder['id'],
+                        'Customer ID' => $netSuiteCustomerId,
+                        'Order Total' => '$' . number_format($order->getTotal(), 2),
+                        'Items Count' => count($order->getItems()),
+                        'Processing Type' => 'Webhook'
+                    ]
+                );
+            } catch (\Exception $emailEx) {
+                // Log email failure but don't fail the order processing
+                $this->logger->warning('Failed to send success notification email', [
+                    'order_id' => $orderId,
+                    'error' => $emailEx->getMessage()
+                ]);
+            }
             
             return [
                 'success' => true,
@@ -186,7 +195,7 @@ class WebhookController {
                 'customer_id' => $netSuiteCustomerId
             ];
             
-        } catch (\LagunaIntegrations\Exceptions\StoreCustomerNotFoundException $e) {
+        } catch (StoreCustomerNotFoundException $e) {
             // Special handling for Store Shipment orders where store customer is not found
             // Do NOT retry - send email notification with link to order manager
             $this->logger->error('Store customer not found for Store Shipment order', [
@@ -200,19 +209,27 @@ class WebhookController {
             $orderLink = $baseUrl . '/public/order-status-manager.php?order_id=' . $orderId;
             
             // Send error notification with link to order
-            $this->emailService->sendNotification(
-                'store_customer_not_found',
-                'Store Customer Not Found - Action Required',
-                [
-                    'Order ID' => $orderId,
-                    'Payment Method' => 'Store Shipment',
-                    'Customer Email' => $e->getCustomerEmail(),
-                    'Error Message' => $e->getMessage(),
-                    'Action Required' => 'Create the store customer in NetSuite first, then retry processing this order',
-                    'Order Link' => $orderLink,
-                    'Processing Type' => 'Webhook'
-                ]
-            );
+            try {
+                $this->emailService->sendNotification(
+                    'store_customer_not_found',
+                    'Store Customer Not Found - Action Required',
+                    [
+                        'Order ID' => $orderId,
+                        'Payment Method' => 'Store Shipment',
+                        'Customer Email' => $e->getCustomerEmail(),
+                        'Error Message' => $e->getMessage(),
+                        'Action Required' => 'Create the store customer in NetSuite first, then retry processing this order',
+                        'Order Link' => $orderLink,
+                        'Processing Type' => 'Webhook'
+                    ]
+                );
+            } catch (\Exception $emailEx) {
+                // Log email failure but continue error handling
+                $this->logger->warning('Failed to send store customer not found notification email', [
+                    'order_id' => $orderId,
+                    'error' => $emailEx->getMessage()
+                ]);
+            }
             
             return [
                 'success' => false,
@@ -262,21 +279,29 @@ class WebhookController {
             }
             
             // Send error notification using new notification system with sales order payload
-            $this->emailService->sendNotification(
-                '3dcart_failed_webhook',
-                '3DCart Order Processing Failed (Webhook)',
-                [
-                    'Order ID' => $orderId,
-                    'Error Message' => $e->getMessage(),
-                    'Retry Count' => $retryCount,
-                    'Max Retries' => $maxRetries,
-                    'Customer ID' => $netSuiteCustomerId ?? 'N/A',
-                    'Order Total' => isset($order) ? '$' . number_format($order->getTotal(), 2) : 'N/A',
-                    'Customer Email' => $orderData['BillingEmailAddress'] ?? 'N/A',
-                    'Processing Type' => 'Webhook',
-                    'Sales Order Payload' => $salesOrderPayload
-                ]
-            );
+            try {
+                $this->emailService->sendNotification(
+                    '3dcart_failed_webhook',
+                    '3DCart Order Processing Failed (Webhook)',
+                    [
+                        'Order ID' => $orderId,
+                        'Error Message' => $e->getMessage(),
+                        'Retry Count' => $retryCount,
+                        'Max Retries' => $maxRetries,
+                        'Customer ID' => $netSuiteCustomerId ?? 'N/A',
+                        'Order Total' => isset($order) ? '$' . number_format($order->getTotal(), 2) : 'N/A',
+                        'Customer Email' => $orderData['BillingEmailAddress'] ?? 'N/A',
+                        'Processing Type' => 'Webhook',
+                        'Sales Order Payload' => $salesOrderPayload
+                    ]
+                );
+            } catch (\Exception $emailEx) {
+                // Log email failure but don't affect error handling
+                $this->logger->warning('Failed to send failed order notification email', [
+                    'order_id' => $orderId,
+                    'error' => $emailEx->getMessage()
+                ]);
+            }
             
             return [
                 'success' => false,
@@ -342,18 +367,27 @@ class WebhookController {
             ]);
             
             // Send success notification using new notification system
-            $this->emailService->sendNotification(
-                '3dcart_success_manual',
-                '3DCart Order Successfully Processed (Manual with Custom Customer)',
-                [
-                    'Order ID' => $orderId,
-                    'NetSuite Order ID' => $netSuiteOrder['id'],
-                    'Customer ID' => $customerId,
-                    'Order Total' => '$' . number_format($order->getTotal(), 2),
-                    'Items Count' => count($order->getItems()),
-                    'Processing Type' => 'Manual with Custom Customer ID'
-                ]
-            );
+            try {
+                $this->emailService->sendNotification(
+                    '3dcart_success_manual',
+                    '3DCart Order Successfully Processed (Manual with Custom Customer)',
+                    [
+                        'Order ID' => $orderId,
+                        'NetSuite Order ID' => $netSuiteOrder['id'],
+                        'Customer ID' => $customerId,
+                        'Order Total' => '$' . number_format($order->getTotal(), 2),
+                        'Items Count' => count($order->getItems()),
+                        'Processing Type' => 'Manual with Custom Customer ID'
+                    ]
+                );
+            } catch (\Exception $emailEx) {
+                // Log email failure but don't fail the order processing
+                $this->logger->warning('Failed to send success notification email for manual custom customer', [
+                    'order_id' => $orderId,
+                    'customer_id' => $customerId,
+                    'error' => $emailEx->getMessage()
+                ]);
+            }
             
             return [
                 'success' => true,
@@ -383,19 +417,28 @@ class WebhookController {
             }
             
             // Send error notification
-            $this->emailService->sendNotification(
-                '3dcart_failed_manual',
-                '3DCart Order Processing Failed (Manual with Custom Customer)',
-                [
-                    'Order ID' => $orderId,
-                    'Customer ID' => $customerId,
-                    'Error Message' => $e->getMessage(),
-                    'Retry Count' => $retryCount,
-                    'Max Retries' => $maxRetries,
-                    'Order Total' => isset($order) ? '$' . number_format($order->getTotal(), 2) : 'N/A',
-                    'Processing Type' => 'Manual with Custom Customer ID'
-                ]
-            );
+            try {
+                $this->emailService->sendNotification(
+                    '3dcart_failed_manual',
+                    '3DCart Order Processing Failed (Manual with Custom Customer)',
+                    [
+                        'Order ID' => $orderId,
+                        'Customer ID' => $customerId,
+                        'Error Message' => $e->getMessage(),
+                        'Retry Count' => $retryCount,
+                        'Max Retries' => $maxRetries,
+                        'Order Total' => isset($order) ? '$' . number_format($order->getTotal(), 2) : 'N/A',
+                        'Processing Type' => 'Manual with Custom Customer ID'
+                    ]
+                );
+            } catch (\Exception $emailEx) {
+                // Log email failure but don't affect error handling
+                $this->logger->warning('Failed to send failed order notification email for manual custom customer', [
+                    'order_id' => $orderId,
+                    'customer_id' => $customerId,
+                    'error' => $emailEx->getMessage()
+                ]);
+            }
             
             return [
                 'success' => false,
@@ -675,6 +718,7 @@ class WebhookController {
             
         } catch (StoreCustomerNotFoundException $e) {
             // Store Shipment order with customer not found - requires manual action
+            $orderData = $orderData ?? []; // Ensure $orderData is defined for error handling
             $this->logger->error('Store customer not found for Store Shipment order (webhook)', [
                 'order_id' => $orderId,
                 'customer_email' => $e->getCustomerEmail(),

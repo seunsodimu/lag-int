@@ -172,6 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'order_total' => $order['OrderAmount'] ?? ($order['OrderTotal'] ?? 0),
                         'order_status' => $statusId,
                         'order_status_name' => $statusName,
+                        'invoice_number' => $order['InvoiceNumber'] ?? '',
                         'in_netsuite' => $syncStatus['synced'],
                         'netsuite_id' => $syncStatus['netsuite_id'],
                         'netsuite_tranid' => $syncStatus['netsuite_tranid'],
@@ -496,6 +497,7 @@ $startDate = date('Y-m-d', strtotime('-7 days'));
                                         <th>Date</th>
                                         <th>Customer</th>
                                         <th>Total</th>
+                                        <th>Invoice #</th>
                                         <th>3DCart Status</th>
                                         <th>NetSuite Status</th>
                                         <th width="120">Actions</th>
@@ -665,7 +667,7 @@ $startDate = date('Y-m-d', strtotime('-7 days'));
             if (orders.length === 0) {
                 tbody.innerHTML = `
                     <tr>
-                        <td colspan="8" class="text-center py-4 text-muted">
+                        <td colspan="9" class="text-center py-4 text-muted">
                             <i class="fas fa-inbox fa-2x mb-2"></i><br>
                             No orders found for the selected criteria
                         </td>
@@ -739,6 +741,7 @@ $startDate = date('Y-m-d', strtotime('-7 days'));
                             <div>${customerName}${customerCompany}</div>
                         </td>
                         <td>$${orderTotal}</td>
+                        <td>${order.invoice_number || 'N/A'}</td>
                         <td>
                             <span class="badge bg-info status-badge">${order.order_status_name}</span>
                         </td>

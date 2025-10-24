@@ -5,6 +5,9 @@
  * This file contains the main configuration settings for the 3DCart to NetSuite integration.
  */
 
+// Load Composer autoloader first
+require_once __DIR__ . '/../vendor/autoload.php';
+
 // Load environment variables if .env file exists
 if (file_exists(__DIR__ . '/../.env')) {
     $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');

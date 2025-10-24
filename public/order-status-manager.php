@@ -622,6 +622,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <span class="field-label">Total:</span>
                     <span class="field-value">$${order.OrderTotal || '0.00'}</span>
                 </div>
+                <div class="field-row">
+                    <span class="field-label">Invoice Number:</span>
+                    <span class="field-value">${order.InvoiceNumber || 'N/A'}</span>
+                </div>
             `;
             
             // Billing Email (editable if not synced)

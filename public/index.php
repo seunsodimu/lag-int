@@ -246,6 +246,17 @@ if (!$currentUser) {
                     </div>
                 </div>
                 
+                <!-- Google Business Profile Reviews -->
+                <div class="feature-card" style="border-left: 4px solid #ffc107;">
+                    <div class="feature-icon">⭐</div>
+                    <h3>Google Reviews Analytics</h3>
+                    <p>Track review ratings over time and compare locations. View trends, distribution charts, and export analytics data. Uses Google Business Profile API with OAuth 2.0 authentication.</p>
+                    <div style="margin-top: 15px;">
+                        <a href="<?php echo UrlHelper::url('google-reviews.php'); ?>" class="btn">📊 View Analytics</a>
+                        <a href="<?php echo UrlHelper::url('oauth-callback.php'); ?>" class="btn">🔐 Authenticate</a>
+                    </div>
+                </div>
+                
                 <?php if ($currentUser['role'] === 'admin'): ?>
                 <!-- Pulse Display System -->
                 <div class="feature-card" style="border-left: 4px solid #9c27b0;">

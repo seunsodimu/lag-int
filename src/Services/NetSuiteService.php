@@ -674,7 +674,7 @@ class NetSuiteService {
                 'order_id' => $orderId,
                 'customer_email' => $customerEmail
             ]);
-            throw new \LagunaIntegrations\Exceptions\StoreCustomerNotFoundException(
+            throw new \Laguna\Integration\Exceptions\StoreCustomerNotFoundException(
                 $orderId,
                 $customerEmail,
                 "Store Shipment order requires a valid customer email in QuestionList (QuestionID=1). Email provided: " . ($customerEmail ?: 'NONE')
@@ -700,7 +700,7 @@ class NetSuiteService {
             'note' => 'Store Shipment orders require the store customer to exist in NetSuite'
         ]);
         
-        throw new \LagunaIntegrations\Exceptions\StoreCustomerNotFoundException(
+        throw new \Laguna\Integration\Exceptions\StoreCustomerNotFoundException(
             $orderId,
             $customerEmail,
             "Store customer with email '{$customerEmail}' not found in NetSuite. Please create the store customer first before processing this Store Shipment order."
@@ -2796,8 +2796,8 @@ class NetSuiteService {
                 ]);
                 return false;
             }
-        } catch (\Exception $e) {
-            $this->logger->error('Failed to delete sales order', [
+        } catch (Exception $e) {
+            $this->logger->error('Error deleting sales order', [
                 'sales_order_id' => $salesOrderId,
                 'error' => $e->getMessage()
             ]);

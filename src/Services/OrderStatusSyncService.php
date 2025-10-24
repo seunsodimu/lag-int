@@ -158,7 +158,8 @@ class OrderStatusSyncService {
         ]);
         
         // Check if order exists in NetSuite
-        $netSuiteSalesOrder = $this->netSuiteService->getSalesOrderByExternalId($orderId);
+        // External ID in NetSuite is formatted as "3DCART_{orderId}"
+        $netSuiteSalesOrder = $this->netSuiteService->getSalesOrderByExternalId('3DCART_' . $orderId);
         
         if (!$netSuiteSalesOrder) {
             $this->logger->info('Order not found in NetSuite, skipping', [
@@ -266,7 +267,8 @@ class OrderStatusSyncService {
             $threeDCartOrder = $this->threeDCartService->getOrder($orderId);
             
             // Check if order exists in NetSuite
-            $netSuiteSalesOrder = $this->netSuiteService->getSalesOrderByExternalId($orderId);
+            // External ID in NetSuite is formatted as "3DCART_{orderId}"
+            $netSuiteSalesOrder = $this->netSuiteService->getSalesOrderByExternalId('3DCART_' . $orderId);
             $fullNetSuiteOrder = null;
             
             if ($netSuiteSalesOrder) {

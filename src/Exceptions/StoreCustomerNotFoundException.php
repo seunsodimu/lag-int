@@ -1,6 +1,6 @@
 <?php
 
-namespace LagunaIntegrations\Exceptions;
+namespace Laguna\Integration\Exceptions;
 
 /**
  * Exception thrown when a store customer is not found for Store Shipment orders
