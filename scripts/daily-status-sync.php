@@ -19,7 +19,12 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
+// Load environment variables
+$config = require __DIR__ . '/../config/config.php';
+
 use Laguna\Integration\Services\OrderStatusSyncService;
+use Laguna\Integration\Services\EmailServiceFactory;
+use Laguna\Integration\Services\NotificationSettingsService;
 use Laguna\Integration\Utils\Logger;
 
 // Set timezone
@@ -51,6 +56,8 @@ if ($afterDate) {
 // Initialize services
 $logger = Logger::getInstance();
 $syncService = new OrderStatusSyncService();
+$notificationService = new NotificationSettingsService();
+$emailService = EmailServiceFactory::create();
 
 // Log job start
 $logger->info('Starting daily order status synchronization job', [
@@ -95,6 +102,30 @@ try {
                     echo "SKIPPED - {$orderResult['reason']}\n";
                 }
             }
+        }
+        
+        // Send email notification to recipients
+        $recipients = $notificationService->getDailyStatusSyncRecipients();
+        
+        if (!empty($recipients)) {
+            $emailResult = $emailService->sendDailyStatusSyncNotification($result, $recipients);
+            
+            if ($emailResult['success'] ?? false) {
+                echo "\nNotification email sent successfully to: " . implode(', ', $recipients) . "\n";
+                $logger->info('Daily status sync notification email sent', [
+                    'recipient_count' => count($recipients),
+                    'recipients' => $recipients
+                ]);
+            } else {
+                echo "\nWarning: Failed to send notification email\n";
+                echo "Error: " . ($emailResult['error'] ?? 'Unknown error') . "\n";
+                $logger->warning('Failed to send daily status sync notification email', [
+                    'error' => $emailResult['error'] ?? 'Unknown error'
+                ]);
+            }
+        } else {
+            echo "\nNo notification recipients configured. Email notification skipped.\n";
+            $logger->info('No notification recipients configured in .env (NOTIFICATION_TO_EMAILS)');
         }
         
         // Exit with success code

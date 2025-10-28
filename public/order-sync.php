@@ -721,6 +721,11 @@ $startDate = date('Y-m-d', strtotime('-7 days'));
                         <button class="btn btn-sm btn-primary" onclick="syncOrder('${order.order_id}')">
                             <i class="fas fa-sync me-1"></i>Sync
                         </button>
+                        <div>
+                            <a href="order-status-manager.php?order_id=${order.order_id}" target="_blank">
+                                <i class="fas fa-sync me-1"></i>Sync to Customer
+                            </a>
+                        </div>
                     `;
                 } else {
                     actions = `

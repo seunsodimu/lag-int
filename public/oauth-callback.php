@@ -19,12 +19,16 @@ $logger = Logger::getInstance();
 if (!isset($_GET['code'])) {
     try {
         $clientId = $_ENV['GOOGLE_CLIENTID'] ?? null;
+        $redirectUri = $_ENV['GOOGLE_REDIRECT_URI'] ?? null;
         
         if (!$clientId) {
             throw new Exception('GOOGLE_CLIENTID not configured in .env');
         }
         
-        $redirectUri = 'http://localhost:8080/lag-int/oauth-callback.php';
+        if (!$redirectUri) {
+            throw new Exception('GOOGLE_REDIRECT_URI not configured in .env');
+        }
+        
         $scopes = 'https://www.googleapis.com/auth/business.manage';
         
         $authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' . http_build_query([
@@ -49,12 +53,15 @@ if (!isset($_GET['code'])) {
         $code = $_GET['code'];
         $clientId = $_ENV['GOOGLE_CLIENTID'] ?? null;
         $clientSecret = $_ENV['GOOGLE_CLIENT_SECRET'] ?? null;
+        $redirectUri = $_ENV['GOOGLE_REDIRECT_URI'] ?? null;
         
         if (!$clientId || !$clientSecret) {
             throw new Exception('Google OAuth credentials not configured in .env');
         }
         
-        $redirectUri = 'http://localhost:8080/lag-int/oauth-callback.php';
+        if (!$redirectUri) {
+            throw new Exception('GOOGLE_REDIRECT_URI not configured in .env');
+        }
         
         $logger->info('Exchanging authorization code for tokens');
         
@@ -67,19 +74,41 @@ if (!isset($_GET['code'])) {
             'grant_type' => 'authorization_code'
         ];
         
-        $context = stream_context_create([
-            'http' => [
-                'method' => 'POST',
-                'header' => 'Content-Type: application/json',
-                'content' => json_encode($tokenData),
-                'timeout' => 10
-            ]
-        ]);
-        
-        $response = @file_get_contents('https://oauth2.googleapis.com/token', false, $context);
-        
-        if ($response === false) {
-            throw new Exception('Failed to connect to Google OAuth endpoint');
+        // Use cURL (more reliable)
+        if (function_exists('curl_init')) {
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, 'https://oauth2.googleapis.com/token');
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_POST, true);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($tokenData));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
+            
+            $response = curl_exec($ch);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+            
+            if ($response === false) {
+                throw new Exception('Failed to connect to Google OAuth endpoint: ' . $curlError);
+            }
+        } else {
+            // Fallback to file_get_contents
+            $context = stream_context_create([
+                'http' => [
+                    'method' => 'POST',
+                    'header' => 'Content-Type: application/json',
+                    'content' => json_encode($tokenData),
+                    'timeout' => 10
+                ]
+            ]);
+            
+            $response = @file_get_contents('https://oauth2.googleapis.com/token', false, $context);
+            
+            if ($response === false) {
+                throw new Exception('Failed to connect to Google OAuth endpoint');
+            }
         }
         
         $data = json_decode($response, true);

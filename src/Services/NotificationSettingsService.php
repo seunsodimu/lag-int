@@ -28,16 +28,25 @@ class NotificationSettingsService {
     const DEFAULT_RECIPIENT = 'web_dev@lagunatools.com';
     
     public function __construct() {
-        $config = require __DIR__ . '/../../config/config.php';
-        $dbConfig = $config['database'];
-        
-        $dsn = "mysql:host={$dbConfig['host']};port={$dbConfig['port']};dbname={$dbConfig['database']};charset={$dbConfig['charset']}";
-        $this->pdo = new PDO($dsn, $dbConfig['username'], $dbConfig['password'], [
-            PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        ]);
-        
+        $this->pdo = null; // Lazy initialization
         $this->logger = Logger::getInstance();
+    }
+    
+    /**
+     * Lazy load database connection
+     */
+    private function getConnection() {
+        if ($this->pdo === null) {
+            $config = require __DIR__ . '/../../config/config.php';
+            $dbConfig = $config['database'];
+            
+            $dsn = "mysql:host={$dbConfig['host']};port={$dbConfig['port']};dbname={$dbConfig['database']};charset={$dbConfig['charset']}";
+            $this->pdo = new PDO($dsn, $dbConfig['username'], $dbConfig['password'], [
+                PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+                PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+            ]);
+        }
+        return $this->pdo;
     }
     
     /**
@@ -85,7 +94,7 @@ class NotificationSettingsService {
      */
     public function getRecipients($notificationType) {
         try {
-            $stmt = $this->pdo->prepare("
+            $stmt = $this->getConnection()->prepare("
                 SELECT recipient_email 
                 FROM notification_settings 
                 WHERE notification_type = ? AND is_active = 1
@@ -123,7 +132,7 @@ class NotificationSettingsService {
      */
     public function getAllSettings() {
         try {
-            $stmt = $this->pdo->prepare("
+            $stmt = $this->getConnection()->prepare("
                 SELECT 
                     notification_type,
                     recipient_email,
@@ -172,7 +181,7 @@ class NotificationSettingsService {
                 ];
             }
             
-            $stmt = $this->pdo->prepare("
+            $stmt = $this->getConnection()->prepare("
                 INSERT INTO notification_settings (notification_type, recipient_email, created_by)
                 VALUES (?, ?, ?)
                 ON DUPLICATE KEY UPDATE 
@@ -220,7 +229,7 @@ class NotificationSettingsService {
                 ];
             }
             
-            $stmt = $this->pdo->prepare("
+            $stmt = $this->getConnection()->prepare("
                 UPDATE notification_settings 
                 SET is_active = 0, updated_at = CURRENT_TIMESTAMP
                 WHERE notification_type = ? AND recipient_email = ?
@@ -272,7 +281,7 @@ class NotificationSettingsService {
                 ];
             }
             
-            $stmt = $this->pdo->prepare("
+            $stmt = $this->getConnection()->prepare("
                 UPDATE notification_settings 
                 SET is_active = NOT is_active, updated_at = CURRENT_TIMESTAMP
                 WHERE notification_type = ? AND recipient_email = ?
@@ -344,7 +353,7 @@ class NotificationSettingsService {
      */
     public function getStatistics() {
         try {
-            $stmt = $this->pdo->prepare("
+            $stmt = $this->getConnection()->prepare("
                 SELECT 
                     notification_type,
                     COUNT(*) as total_recipients,
@@ -359,6 +368,46 @@ class NotificationSettingsService {
             
         } catch (\Exception $e) {
             $this->logger->error('Failed to get notification statistics', [
+                'error' => $e->getMessage()
+            ]);
+            return [];
+        }
+    }
+    
+    /**
+     * Get daily status sync notification recipients from .env
+     * 
+     * Retrieves email recipients configured in NOTIFICATION_TO_EMAILS environment variable.
+     * Emails should be comma-separated.
+     * 
+     * @return array List of email addresses
+     */
+    public function getDailyStatusSyncRecipients() {
+        try {
+            // Use $_ENV to read variables loaded by vlucas/phpdotenv
+            $recipientsEnv = $_ENV['NOTIFICATION_TO_EMAILS'] ?? null;
+            
+            if (empty($recipientsEnv)) {
+                $this->logger->warning('No daily status sync recipients configured in .env (NOTIFICATION_TO_EMAILS)');
+                return [];
+            }
+            
+            // Parse comma-separated emails
+            $emails = array_map('trim', explode(',', $recipientsEnv));
+            
+            // Filter out empty strings and validate email format
+            $validEmails = array_filter($emails, function($email) {
+                return !empty($email) && filter_var($email, FILTER_VALIDATE_EMAIL);
+            });
+            
+            $this->logger->info('Retrieved daily status sync recipients from .env', [
+                'recipient_count' => count($validEmails)
+            ]);
+            
+            return array_values($validEmails); // Reindex array
+            
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to get daily status sync recipients from .env', [
                 'error' => $e->getMessage()
             ]);
             return [];

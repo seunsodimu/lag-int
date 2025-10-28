@@ -13,10 +13,10 @@ use Laguna\Integration\Utils\Logger;
  * Documentation: https://www.twilio.com/docs/sendgrid/api-reference
  */
 class EmailService {
-    private $sendgrid;
-    private $credentials;
-    private $config;
-    private $logger;
+    protected $sendgrid;
+    protected $credentials;
+    protected $config;
+    protected $logger;
     
     public function __construct() {
         $credentials = require __DIR__ . '/../../config/credentials.php';
@@ -211,6 +211,30 @@ class EmailService {
     }
     
     /**
+     * Send daily order status sync notification
+     * 
+     * @param array $syncResult Results from the daily status sync process
+     * @param array $recipients List of email addresses to notify
+     * @return array Send result with success status
+     */
+    public function sendDailyStatusSyncNotification($syncResult, $recipients = []) {
+        if (!$this->config['enabled']) {
+            $this->logger->info('Email notifications disabled, skipping daily status sync notification');
+            return ['success' => true, 'message' => 'Email notifications disabled'];
+        }
+        
+        if (empty($recipients)) {
+            $this->logger->warning('No recipients provided for daily status sync notification');
+            return ['success' => false, 'error' => 'No recipients provided'];
+        }
+        
+        $subject = $this->config['subject_prefix'] . "Daily Order Status Sync Report - " . date('Y-m-d');
+        $content = $this->buildDailyStatusSyncContent($syncResult);
+        
+        return $this->sendEmail($subject, $content, $recipients);
+    }
+    
+    /**
      * Send test email
      */
     public function sendTestEmail($toEmail, $testType = 'basic') {
@@ -293,7 +317,7 @@ class EmailService {
     /**
      * Send generic email
      */
-    private function sendEmail($subject, $content, $recipients, $isTest = false) {
+    protected function sendEmail($subject, $content, $recipients, $isTest = false) {
         try {
             $email = new Mail();
             
@@ -636,6 +660,109 @@ class EmailService {
             <div style='margin-top: 20px; font-size: 12px; color: #6c757d;'>
                 <p>This summary covers the period from 00:00 to 23:59 on {$date}.</p>
                 <p>Generated automatically by the 3DCart to NetSuite integration system.</p>
+            </div>
+        </body>
+        </html>";
+        
+        return $html;
+    }
+    
+    /**
+     * Build daily order status sync email content
+     */
+    private function buildDailyStatusSyncContent($syncResult) {
+        $date = date('Y-m-d H:i:s');
+        $totalOrders = $syncResult['total_orders'] ?? 0;
+        $updatedCount = $syncResult['updated_count'] ?? 0;
+        $errorCount = $syncResult['error_count'] ?? 0;
+        
+        $html = "
+        <html>
+        <head>
+            <style>
+                body { font-family: Arial, sans-serif; margin: 20px; }
+                .header { background-color: #d4edda; padding: 20px; border-radius: 5px; margin-bottom: 20px; }
+                .summary-box { background-color: #f8f9fa; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+                .metric { display: inline-block; margin: 10px 20px 10px 0; }
+                .metric-value { font-size: 24px; font-weight: bold; color: #007bff; }
+                .metric-label { font-size: 14px; color: #6c757d; }
+                table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+                th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+                th { background-color: #f8f9fa; font-weight: bold; }
+                .success-row { background-color: #f0f8f5; }
+                .error-row { background-color: #fef5f5; }
+                .skipped-row { background-color: #fffbf0; }
+            </style>
+        </head>
+        <body>
+            <div class='header'>
+                <h2>📋 Daily Order Status Sync Report - {$date}</h2>
+            </div>
+            
+            <div class='summary-box'>
+                <h3>Synchronization Statistics</h3>
+                <div class='metric'>
+                    <div class='metric-value'>{$totalOrders}</div>
+                    <div class='metric-label'>Total Orders</div>
+                </div>
+                <div class='metric'>
+                    <div class='metric-value' style='color: #28a745;'>{$updatedCount}</div>
+                    <div class='metric-label'>Updated</div>
+                </div>
+                <div class='metric'>
+                    <div class='metric-value' style='color: #dc3545;'>{$errorCount}</div>
+                    <div class='metric-label'>Errors</div>
+                </div>
+            </div>";
+        
+        // Add detailed results if available
+        if (isset($syncResult['results']) && !empty($syncResult['results'])) {
+            $html .= "
+            <div class='summary-box'>
+                <h3>Detailed Results</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Status</th>
+                            <th>Details</th>
+                        </tr>
+                    </thead>
+                    <tbody>";
+            
+            foreach ($syncResult['results'] as $result) {
+                $orderId = $result['order_id'] ?? 'N/A';
+                $statusClass = 'skipped-row';
+                $statusBadge = '⏭️ SKIPPED';
+                
+                if ($result['updated'] ?? false) {
+                    $statusClass = 'success-row';
+                    $statusBadge = '✅ UPDATED';
+                } elseif (!empty($result['error'])) {
+                    $statusClass = 'error-row';
+                    $statusBadge = '❌ ERROR';
+                }
+                
+                $reason = $result['reason'] ?? $result['error'] ?? 'No details';
+                $html .= "
+                        <tr class='{$statusClass}'>
+                            <td>Order #{$orderId}</td>
+                            <td>{$statusBadge}</td>
+                            <td>{$reason}</td>
+                        </tr>";
+            }
+            
+            $html .= "
+                    </tbody>
+                </table>
+            </div>";
+        }
+        
+        $html .= "
+            <div style='margin-top: 20px; font-size: 12px; color: #6c757d;'>
+                <p>This report was generated automatically by the Order Status Synchronization system.</p>
+                <p>The synchronization process checks 3DCart orders with Processing status and updates them based on their NetSuite counterpart status.</p>
+                <p>Generated: {$date}</p>
             </div>
         </body>
         </html>";

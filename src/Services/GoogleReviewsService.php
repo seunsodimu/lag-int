@@ -6,9 +6,9 @@ use Exception;
 use Laguna\Integration\Utils\Logger;
 
 /**
- * Google Business Profile Reviews Service
- * Uses OAuth 2.0 to fetch reviews from Google Business Profile API
- * Provides analytics on review ratings over time and location comparison
+ * Google Reviews Service
+ * Uses Google My Business API v4 with OAuth 2.0
+ * Fetches reviews from accounts and locations
  */
 class GoogleReviewsService {
     private $clientId;
@@ -19,6 +19,7 @@ class GoogleReviewsService {
     private const API_BASE = 'https://mybusiness.googleapis.com/v4';
     private const TOKEN_URL = 'https://oauth2.googleapis.com/token';
     private const SCOPES = 'https://www.googleapis.com/auth/business.manage';
+    private const CACHE_DURATION = 86400; // 24 hours
     
     public function __construct() {
         $this->clientId = $_ENV['GOOGLE_CLIENTID'] ?? null;
@@ -27,8 +28,12 @@ class GoogleReviewsService {
         $this->logger = Logger::getInstance();
         $this->tokenCacheDir = dirname(dirname(__DIR__)) . '/uploads/google_reviews_cache';
         
-        if (!$this->clientId || !$this->clientSecret || !$this->accountId) {
-            throw new Exception('Google OAuth credentials not configured in .env');
+        if (!$this->clientId || !$this->clientSecret) {
+            throw new Exception('Google OAuth credentials (GOOGLE_CLIENTID, GOOGLE_CLIENT_SECRET) not configured in .env');
+        }
+        
+        if (!$this->accountId) {
+            throw new Exception('GOOGLE_ACCOUNT_ID not configured in .env');
         }
         
         // Create cache directory
@@ -88,7 +93,7 @@ class GoogleReviewsService {
         }
         
         // Cache the new token
-        $tokenData = [
+        $newTokenData = [
             'access_token' => $data['access_token'],
             'refresh_token' => $refreshToken,
             'expires_at' => time() + ($data['expires_in'] ?? 3600)
@@ -96,7 +101,7 @@ class GoogleReviewsService {
         
         file_put_contents(
             $this->tokenCacheDir . '/oauth_token.json',
-            json_encode($tokenData)
+            json_encode($newTokenData)
         );
         
         $this->logger->info('OAuth token refreshed');
@@ -127,12 +132,34 @@ class GoogleReviewsService {
     public function getAllLocations() {
         try {
             $accessToken = $this->getAccessToken();
-            $url = self::API_BASE . "/accounts/{$this->accountId}/locations";
             
-            $this->logger->info('Fetching locations', ['account_id' => $this->accountId]);
+            // Format account ID
+            $accountIdFormatted = str_starts_with($this->accountId, 'accounts/') 
+                ? $this->accountId 
+                : "accounts/{$this->accountId}";
+            
+            $url = self::API_BASE . "/{$accountIdFormatted}/locations";
+            
+            $this->logger->info('Fetching locations', [
+                'account_id' => $this->accountId,
+                'formatted_account_id' => $accountIdFormatted,
+                'url' => $url
+            ]);
             
             $response = $this->makeApiRequest($url, 'GET', null, $accessToken);
             $data = json_decode($response, true);
+            
+            if (isset($data['error'])) {
+                throw new Exception('Google API Error: ' . $data['error']['message']);
+            }
+            
+            if (!isset($data['locations'])) {
+                $this->logger->warning('No locations found in response', [
+                    'account_id' => $accountIdFormatted,
+                    'response' => $data
+                ]);
+                return [];
+            }
             
             $locations = $data['locations'] ?? [];
             $this->logger->info('Retrieved locations', ['count' => count($locations)]);
@@ -145,97 +172,187 @@ class GoogleReviewsService {
     }
     
     /**
-     * Get all reviews from all locations with analytics
+     * Get reviews for a specific location
+     */
+    public function getLocationReviews($location) {
+        try {
+            $accessToken = $this->getAccessToken();
+            
+            // Format account ID
+            $accountIdFormatted = str_starts_with($this->accountId, 'accounts/') 
+                ? $this->accountId 
+                : "accounts/{$this->accountId}";
+            
+            $locationId = $location['name'] ?? null;
+            if (!$locationId) {
+                throw new Exception('Location must have a name property');
+            }
+            
+            // Build URL for reviews endpoint
+            $url = self::API_BASE . "/{$accountIdFormatted}/{$locationId}/reviews";
+            
+            $this->logger->info('Fetching reviews for location', [
+                'location_id' => $locationId,
+                'url' => $url
+            ]);
+            
+            $response = $this->makeApiRequest($url, 'GET', null, $accessToken);
+            $data = json_decode($response, true);
+            
+            if (isset($data['error'])) {
+                throw new Exception('Google API Error: ' . $data['error']['message']);
+            }
+            
+            $reviews = $data['reviews'] ?? [];
+            
+            // Transform reviews to standard format
+            $transformedReviews = array_map(function($review) use ($location) {
+                return $this->transformReview($review, $location['displayName'] ?? 'Unknown Location');
+            }, $reviews);
+            
+            $this->logger->info('Retrieved reviews for location', [
+                'location' => $locationId,
+                'count' => count($transformedReviews)
+            ]);
+            
+            return $transformedReviews;
+            
+        } catch (Exception $e) {
+            $this->logger->error('Error fetching location reviews', [
+                'location' => $location['name'] ?? 'Unknown',
+                'error' => $e->getMessage()
+            ]);
+            // Return empty array instead of throwing to allow other locations to be processed
+            return [];
+        }
+    }
+    
+    /**
+     * Get all reviews with analytics using batch endpoint (more efficient)
      */
     public function getAllReviewsWithAnalytics() {
         try {
+            $accessToken = $this->getAccessToken();
             $locations = $this->getAllLocations();
-            $allReviews = [];
-            $locationData = [];
             
-            foreach ($locations as $location) {
-                try {
-                    $reviews = $this->getLocationReviews($location);
-                    $allReviews = array_merge($allReviews, $reviews);
+            if (empty($locations)) {
+                $this->logger->warning('No locations found for batch review fetch');
+                return [
+                    'allReviews' => [],
+                    'byLocation' => [],
+                    'totalReviews' => 0,
+                    'averageRating' => 0,
+                    'timeline' => []
+                ];
+            }
+            
+            // Format account ID
+            $accountIdFormatted = str_starts_with($this->accountId, 'accounts/') 
+                ? $this->accountId 
+                : "accounts/{$this->accountId}";
+            
+            // Build location names array for batch request
+            $locationNames = array_map(function($location) {
+                return $location['name'];
+            }, $locations);
+            
+            // Call batch endpoint
+            $url = self::API_BASE . "/{$accountIdFormatted}/locations:batchGetReviews";
+            
+            $payload = [
+                'locationNames' => $locationNames,
+                'pageSize' => 100,
+                'orderBy' => 'updateTime desc',
+                'ignoreRatingOnlyReviews' => false
+            ];
+            
+            $this->logger->info('Fetching reviews from batch endpoint', [
+                'account_id' => $accountIdFormatted,
+                'location_count' => count($locationNames),
+                'url' => $url
+            ]);
+            
+            $response = $this->makeApiRequest($url, 'POST', json_encode($payload), $accessToken);
+            $data = json_decode($response, true);
+            
+            if (isset($data['error'])) {
+                throw new Exception('Google API Error: ' . $data['error']['message']);
+            }
+            
+            // Process batch results
+            $allReviews = [];
+            $byLocation = [];
+            
+            if (isset($data['locationReviews'])) {
+                foreach ($data['locationReviews'] as $locationReview) {
+                    $locationName = $locationReview['name'] ?? null;
+                    if (!$locationName) continue;
                     
-                    // Calculate location analytics
-                    $ratings = array_map(function($r) { return $r['rating']; }, $reviews);
-                    $locationData[$location['name']] = [
-                        'displayName' => $location['displayName'] ?? 'Unknown',
-                        'reviewCount' => count($reviews),
-                        'averageRating' => count($ratings) > 0 ? array_sum($ratings) / count($ratings) : 0,
-                        'reviews' => $reviews
-                    ];
-                } catch (Exception $e) {
-                    $this->logger->error('Error fetching reviews for location', [
-                        'location' => $location['name'] ?? 'Unknown',
-                        'error' => $e->getMessage()
-                    ]);
+                    // Find the location display name
+                    $displayName = 'Unknown Location';
+                    foreach ($locations as $location) {
+                        if ($location['name'] === $locationName) {
+                            $displayName = $location['displayName'] ?? 'Unknown Location';
+                            break;
+                        }
+                    }
+                    
+                    // Transform and aggregate reviews
+                    if (isset($locationReview['reviews']) && is_array($locationReview['reviews'])) {
+                        $reviews = array_map(function($review) use ($displayName) {
+                            return $this->transformReview($review, $displayName);
+                        }, $locationReview['reviews']);
+                        
+                        $allReviews = array_merge($allReviews, $reviews);
+                        
+                        if (!empty($reviews)) {
+                            $ratings = array_map(function($r) { return $r['rating'] ?? 0; }, $reviews);
+                            $byLocation[$displayName] = [
+                                'reviewCount' => count($reviews),
+                                'averageRating' => count($ratings) > 0 ? array_sum($ratings) / count($ratings) : 0,
+                                'reviews' => $reviews
+                            ];
+                        }
+                    }
                 }
             }
             
+            $this->logger->info('Batch review fetch completed', [
+                'total_reviews' => count($allReviews),
+                'locations_with_reviews' => count($byLocation)
+            ]);
+            
             return [
                 'allReviews' => $this->sortReviewsByDate($allReviews),
-                'byLocation' => $locationData,
+                'byLocation' => $byLocation,
                 'totalReviews' => count($allReviews),
                 'averageRating' => $this->calculateOverallAverageRating($allReviews),
                 'timeline' => $this->buildTimeline($allReviews)
             ];
+            
         } catch (Exception $e) {
-            $this->logger->error('Error fetching reviews with analytics', ['error' => $e->getMessage()]);
+            $this->logger->error('Error fetching all reviews', ['error' => $e->getMessage()]);
             throw $e;
         }
     }
     
     /**
-     * Get reviews for a specific location
+     * Transform API review to standard format
      */
-    private function getLocationReviews($location) {
-        $accessToken = $this->getAccessToken();
-        $locationName = $location['name']; // Format: accounts/{accountId}/locations/{locationId}
-        $url = self::API_BASE . "/{$locationName}/reviews";
-        
-        $this->logger->debug('Fetching reviews for location', ['location' => $locationName]);
-        
-        $response = $this->makeApiRequest($url, 'GET', null, $accessToken);
-        $data = json_decode($response, true);
-        
-        $reviews = [];
-        $rawReviews = $data['reviews'] ?? [];
-        
-        foreach ($rawReviews as $review) {
-            $reviews[] = $this->transformReview($review, $location);
-        }
-        
-        return $reviews;
-    }
-    
-    /**
-     * Transform API review to application format
-     */
-    private function transformReview($review, $location) {
-        $timestamp = strtotime($review['createTime'] ?? 'now');
-        $dateTime = new \DateTime();
-        $dateTime->setTimestamp($timestamp);
-        
-        $month = (int)$dateTime->format('m');
-        $year = (int)$dateTime->format('Y');
-        $quarter = ceil($month / 3);
+    private function transformReview($review, $locationName) {
+        $time = isset($review['reviewReply']['updateTime']) 
+            ? strtotime($review['reviewReply']['updateTime']) 
+            : (isset($review['createTime']) ? strtotime($review['createTime']) : 0);
         
         return [
-            'id' => $review['name'] ?? '',
-            'locationName' => $location['displayName'] ?? 'Unknown',
-            'rating' => (int)($review['starRating'] ?? 0),
-            'reviewer' => $review['reviewer']['displayName'] ?? 'Anonymous',
-            'comment' => $review['comment'] ?? '',
-            'datePosted' => $dateTime->format('D, M d, Y h:i A'),
-            'timestamp' => $timestamp,
-            'quarterWithYear' => "Q{$quarter} {$year}",
-            'quarter' => "Q{$quarter}",
-            'year' => (string)$year,
-            'month' => $dateTime->format('M'),
-            'monthNum' => (int)$dateTime->format('m'),
-            'reply' => $review['reviewReply'] ?? null
+            'author' => $review['reviewer']['displayName'] ?? 'Anonymous',
+            'rating' => $review['reviewRating'] ?? 0,
+            'text' => $review['comment'] ?? '',
+            'date' => $time > 0 ? date('Y-m-d', $time) : 'Unknown',
+            'time' => $time,
+            'location' => $locationName,
+            'profile_photo_url' => $review['reviewer']['profilePhotoUrl'] ?? '',
+            'reply_text' => $review['reviewReply']['comment'] ?? null
         ];
     }
     
@@ -244,7 +361,7 @@ class GoogleReviewsService {
      */
     private function sortReviewsByDate($reviews) {
         usort($reviews, function($a, $b) {
-            return $b['timestamp'] - $a['timestamp'];
+            return ($b['time'] ?? 0) - ($a['time'] ?? 0);
         });
         return $reviews;
     }
@@ -253,110 +370,194 @@ class GoogleReviewsService {
      * Calculate overall average rating
      */
     private function calculateOverallAverageRating($reviews) {
-        if (empty($reviews)) {
-            return 0;
-        }
-        $ratings = array_map(function($r) { return $r['rating']; }, $reviews);
-        return round(array_sum($ratings) / count($ratings), 2);
+        if (empty($reviews)) return 0;
+        $ratings = array_map(function($r) { return $r['rating'] ?? 0; }, $reviews);
+        return array_sum($ratings) / count($ratings);
     }
     
     /**
-     * Build timeline data for charts
-     * Groups reviews by date and calculates daily average rating
+     * Build timeline of reviews
      */
     private function buildTimeline($reviews) {
         $timeline = [];
-        
         foreach ($reviews as $review) {
-            $date = date('Y-m-d', $review['timestamp']);
+            $quarter = 'Q' . ceil(intval(date('m', $review['time'])) / 3);
+            $year = date('Y', $review['time']);
+            $key = "$year-$quarter";
             
-            if (!isset($timeline[$date])) {
-                $timeline[$date] = [
-                    'date' => $date,
-                    'ratings' => [],
-                    'count' => 0
-                ];
+            if (!isset($timeline[$key])) {
+                $timeline[$key] = ['count' => 0, 'averageRating' => 0, 'totalRating' => 0];
             }
             
-            $timeline[$date]['ratings'][] = $review['rating'];
-            $timeline[$date]['count']++;
+            $timeline[$key]['count']++;
+            $timeline[$key]['totalRating'] += $review['rating'] ?? 0;
         }
         
         // Calculate averages
-        $result = [];
-        foreach ($timeline as $data) {
-            $result[] = [
-                'date' => $data['date'],
-                'average' => round(array_sum($data['ratings']) / $data['count'], 2),
-                'count' => $data['count']
-            ];
+        foreach ($timeline as &$entry) {
+            $entry['averageRating'] = $entry['count'] > 0 ? $entry['totalRating'] / $entry['count'] : 0;
         }
         
-        // Sort by date
-        usort($result, function($a, $b) {
-            return strcmp($a['date'], $b['date']);
-        });
-        
-        return $result;
+        return $timeline;
     }
     
     /**
-     * Get location comparison data
+     * Get location comparison
      */
     public function getLocationComparison() {
+        $reviews = $this->getAllReviewsWithAnalytics();
+        return $reviews['byLocation'] ?? [];
+    }
+    
+    /**
+     * Get rating trend within date range
+     */
+    public function getRatingTrend($startDate = null, $endDate = null) {
+        $reviews = $this->getAllReviewsWithAnalytics();
+        $timeline = $reviews['timeline'] ?? [];
+        
+        // Filter by date if provided
+        if ($startDate || $endDate) {
+            $filtered = [];
+            foreach ($timeline as $key => $data) {
+                if ($startDate && $key < $startDate) continue;
+                if ($endDate && $key > $endDate) continue;
+                $filtered[$key] = $data;
+            }
+            return $filtered;
+        }
+        
+        return $timeline;
+    }
+    
+    /**
+     * Clear cache
+     */
+    public function clearCache() {
         try {
-            $data = $this->getAllReviewsWithAnalytics();
+            $files = glob($this->tokenCacheDir . '/*.json');
+            foreach ($files as $file) {
+                if (basename($file) !== 'oauth_token.json') {
+                    unlink($file);
+                }
+            }
+            $this->logger->info('Cache cleared');
+            return true;
+        } catch (Exception $e) {
+            $this->logger->error('Error clearing cache', ['error' => $e->getMessage()]);
+            return false;
+        }
+    }
+    
+    /**
+     * Export reviews to spreadsheet
+     */
+    public function exportToSpreadsheet($reviews) {
+        try {
+            require_once __DIR__ . '/../../vendor/autoload.php';
             
-            $comparison = [];
-            foreach ($data['byLocation'] as $locationName => $stats) {
-                $comparison[] = [
-                    'location' => $stats['displayName'],
-                    'reviewCount' => $stats['reviewCount'],
-                    'averageRating' => round($stats['averageRating'], 2),
-                    'ratingPercentage' => round(($stats['averageRating'] / 5) * 100, 1)
-                ];
+            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            
+            // Set headers
+            $headers = ['Date', 'Location', 'Author', 'Rating', 'Review Text', 'Reply'];
+            foreach ($headers as $col => $header) {
+                $sheet->setCellValueByColumnAndRow($col + 1, 1, $header);
             }
             
-            return $comparison;
+            // Add data
+            $row = 2;
+            foreach ($reviews as $review) {
+                $sheet->setCellValueByColumnAndRow(1, $row, $review['date'] ?? '');
+                $sheet->setCellValueByColumnAndRow(2, $row, $review['location'] ?? '');
+                $sheet->setCellValueByColumnAndRow(3, $row, $review['author'] ?? '');
+                $sheet->setCellValueByColumnAndRow(4, $row, $review['rating'] ?? '');
+                $sheet->setCellValueByColumnAndRow(5, $row, $review['text'] ?? '');
+                $sheet->setCellValueByColumnAndRow(6, $row, $review['reply_text'] ?? '');
+                $row++;
+            }
+            
+            // Auto-size columns
+            foreach (range('A', 'F') as $col) {
+                $sheet->getColumnDimension($col)->setAutoSize(true);
+            }
+            
+            // Generate file
+            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
+            $filename = 'reviews_' . date('Y-m-d_His') . '.xlsx';
+            $filepath = $this->tokenCacheDir . '/' . $filename;
+            $writer->save($filepath);
+            
+            $this->logger->info('Reviews exported to spreadsheet', ['filename' => $filename]);
+            
+            return $filepath;
+            
         } catch (Exception $e) {
-            $this->logger->error('Error getting location comparison', ['error' => $e->getMessage()]);
+            $this->logger->error('Error exporting to spreadsheet', ['error' => $e->getMessage()]);
             throw $e;
         }
     }
     
     /**
-     * Get rating trend for a specific period
+     * Make HTTP request using cURL (more reliable than file_get_contents)
      */
-    public function getRatingTrend($startDate = null, $endDate = null) {
-        try {
-            $data = $this->getAllReviewsWithAnalytics();
-            $timeline = $data['timeline'];
+    private function makeHttpRequest($url, $method = 'GET', $body = null, $headers = []) {
+        // Try cURL first (more reliable)
+        if (function_exists('curl_init')) {
+            $ch = curl_init();
             
-            if ($startDate) {
-                $startDate = strtotime($startDate);
+            curl_setopt($ch, CURLOPT_URL, $url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+            
+            // Add headers
+            if (!empty($headers)) {
+                curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
             }
-            if ($endDate) {
-                $endDate = strtotime($endDate);
+            
+            // Add body for POST/PUT
+            if ($body) {
+                curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
             }
             
-            $filtered = array_filter($timeline, function($item) use ($startDate, $endDate) {
-                $timestamp = strtotime($item['date']);
-                
-                if ($startDate && $timestamp < $startDate) {
-                    return false;
-                }
-                if ($endDate && $timestamp > $endDate) {
-                    return false;
-                }
-                
-                return true;
-            });
+            // SSL verification (disabled for development - XAMPP CA bundle issue)
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
             
-            return array_values($filtered);
-        } catch (Exception $e) {
-            $this->logger->error('Error getting rating trend', ['error' => $e->getMessage()]);
-            throw $e;
+            $response = curl_exec($ch);
+            $curlError = curl_error($ch);
+            curl_close($ch);
+            
+            if ($response === false) {
+                throw new Exception('HTTP request failed (cURL): ' . $curlError);
+            }
+            
+            return $response;
         }
+        
+        // Fallback to file_get_contents if cURL not available
+        $context = stream_context_create([
+            'http' => [
+                'method' => $method,
+                'header' => implode("\r\n", $headers),
+                'content' => $body,
+                'timeout' => 30
+            ],
+            'ssl' => [
+                'verify_peer' => true,
+                'verify_peer_name' => true,
+            ]
+        ]);
+        
+        $response = @file_get_contents($url, false, $context);
+        
+        if ($response === false) {
+            $error = error_get_last();
+            throw new Exception('HTTP request failed (file_get_contents): ' . ($error['message'] ?? 'Unknown error'));
+        }
+        
+        return $response;
     }
     
     /**
@@ -370,105 +571,5 @@ class GoogleReviewsService {
         
         return $this->makeHttpRequest($url, $method, $body, $headers);
     }
-    
-    /**
-     * Make HTTP request
-     */
-    private function makeHttpRequest($url, $method = 'GET', $body = null, $headers = []) {
-        $context = stream_context_create([
-            'http' => [
-                'method' => $method,
-                'header' => implode("\r\n", $headers),
-                'content' => $body,
-                'timeout' => 30
-            ]
-        ]);
-        
-        $response = @file_get_contents($url, false, $context);
-        
-        if ($response === false) {
-            $error = error_get_last();
-            throw new Exception('HTTP request failed: ' . ($error['message'] ?? 'Unknown error'));
-        }
-        
-        return $response;
-    }
-    
-    /**
-     * Export reviews to spreadsheet
-     */
-    public function exportToSpreadsheet($reviews) {
-        try {
-            $spreadsheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-            $sheet = $spreadsheet->getActiveSheet();
-            
-            // Set headers
-            $headers = ['Location', 'Date Posted', 'Rating', 'Reviewer', 'Comment', 'Quarter'];
-            $sheet->fromArray($headers);
-            
-            // Style headers
-            $headerStyle = $sheet->getStyle('A1:F1');
-            $headerStyle->getFont()->setBold(true);
-            $headerStyle->getFill()->setFillType(\PhpOffice\PhpSpreadsheet\Style\Fill::FILL_SOLID);
-            $headerStyle->getFill()->getStartColor()->setARGB('FF4472C4');
-            $headerStyle->getFont()->getColor()->setARGB('FFFFFFFF');
-            
-            // Add data rows
-            $row = 2;
-            foreach ($reviews as $review) {
-                $sheet->setCellValue("A$row", $review['locationName']);
-                $sheet->setCellValue("B$row", $review['datePosted']);
-                $sheet->setCellValue("C$row", $review['rating']);
-                $sheet->setCellValue("D$row", $review['reviewer']);
-                $sheet->setCellValue("E$row", $review['comment']);
-                $sheet->setCellValue("F$row", $review['quarterWithYear']);
-                $row++;
-            }
-            
-            // Auto-size columns
-            foreach (range('A', 'F') as $col) {
-                $sheet->getColumnDimension($col)->setAutoSize(true);
-            }
-            
-            // Freeze header row
-            $sheet->freezePane('A2');
-            
-            $writer = new \PhpOffice\PhpSpreadsheet\Writer\Xlsx($spreadsheet);
-            $filename = 'google_reviews_' . date('Y-m-d_H-i-s') . '.xlsx';
-            $filepath = $this->tokenCacheDir . '/' . $filename;
-            
-            $writer->save($filepath);
-            
-            return $filepath;
-        } catch (Exception $e) {
-            $this->logger->error('Error exporting reviews to spreadsheet', [
-                'error' => $e->getMessage()
-            ]);
-            throw $e;
-        }
-    }
-    
-    /**
-     * Clear cache and tokens
-     */
-    public function clearCache() {
-        $files = glob($this->tokenCacheDir . '/*.json');
-        foreach ($files as $file) {
-            if (basename($file) !== 'oauth_token.json') {
-                @unlink($file);
-            }
-        }
-        $this->logger->info('Google reviews cache cleared');
-    }
-    
-    /**
-     * Clear all data including tokens
-     */
-    public function clearAllData() {
-        $files = glob($this->tokenCacheDir . '/*');
-        foreach ($files as $file) {
-            @unlink($file);
-        }
-        $this->logger->info('All Google reviews data cleared');
-    }
 }
+?>
