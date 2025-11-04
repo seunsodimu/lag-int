@@ -2201,7 +2201,7 @@ class NetSuiteService {
                     'description' => $itemData['ItemDescription'],
                     'basePrice' => (float)$itemData['ItemUnitPrice'],
                     'includeChildren' => false,
-                    'isInactive' => false,
+                    'isInactive' => 'F',
                     'subsidiary' => [['id' => $this->config['netsuite']['default_subsidiary_id']]],
                 ];
                 
@@ -2802,6 +2802,108 @@ class NetSuiteService {
                 'error' => $e->getMessage()
             ]);
             return false;
+        }
+    }
+
+    /**
+     * Search for an item in NetSuite by SKU
+     * 
+     * Searches for items by their itemid (SKU field) in NetSuite
+     * 
+     * @param string $sku The SKU/ItemID to search for
+     * @return array|null Item data if found, null otherwise
+     */
+    public function searchItemBySku($sku) {
+        try {
+            $this->logger->debug('Searching for item in NetSuite by SKU', [
+                'sku' => $sku
+            ]);
+            
+            // Escape single quotes in SKU for SuiteQL
+            $escapedSku = str_replace("'", "''", $sku);
+            
+            // Query to search items by itemid (SKU field)
+            $suiteQLQuery = "SELECT id, itemid, displayname, itemtype, isinactive, totalquantityonhand, custitem73 FROM item " .
+                            "WHERE itemid = '" . $escapedSku . "' AND isinactive = 'F'";
+            
+            $result = $this->executeSuiteQLQuery($suiteQLQuery);
+            
+            if (isset($result['items']) && count($result['items']) > 0) {
+                $item = $result['items'][0];
+                $this->logger->debug('Found item in NetSuite by SKU', [
+                    'sku' => $sku,
+                    'netsuite_id' => $item['id'] ?? null,
+                    'quantity_on_hand' => $item['totalquantityonhand'] ?? 0,
+                    'backordermessage' => $item['custitem73'] ?? null,
+                ]);
+                return $item;
+            }
+            
+            $this->logger->debug('Item not found in NetSuite by SKU', ['sku' => $sku]);
+            return null;
+            
+        } catch (\Exception $e) {
+            $this->logger->error('Error searching for item in NetSuite by SKU', [
+                'sku' => $sku,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+
+    /**
+     * Get pricing information for an inventory item by ID
+     * 
+     * @param string $itemId NetSuite inventory item ID
+     * @return array|null Price data if found, null otherwise
+     */
+    public function getItemPrice($itemId) {
+        try {
+            $this->logger->debug('Fetching price for inventory item', [
+                'item_id' => $itemId
+            ]);
+            
+            $startTime = microtime(true);
+            // Format: /inventoryitem/{id}/price/quantity=0,currencypage=1,pricelevel=1
+            $endpoint = "/inventoryitem/{$itemId}/price/quantity=0,currencypage=1,pricelevel=1";
+            $response = $this->makeRequest('GET', $endpoint, null);
+            $duration = (microtime(true) - $startTime) * 1000;
+            
+            $statusCode = $response->getStatusCode();
+            $this->logger->logApiCall('NetSuite', $endpoint, 'GET', $statusCode, $duration);
+            
+            if ($statusCode === 200) {
+                $priceData = json_decode($response->getBody()->getContents(), true);
+                
+                $this->logger->debug('Retrieved price data for inventory item', [
+                    'item_id' => $itemId,
+                    'price_data' => $priceData
+                ]);
+                
+                return $priceData;
+            } else {
+                $this->logger->warning('Unexpected status code fetching item price', [
+                    'item_id' => $itemId,
+                    'status_code' => $statusCode
+                ]);
+                return null;
+            }
+            
+        } catch (RequestException $e) {
+            $this->logger->warning('Failed to fetch item price from NetSuite', [
+                'item_id' => $itemId,
+                'error' => $e->getMessage(),
+                'status_code' => $e->getResponse() ? $e->getResponse()->getStatusCode() : null
+            ]);
+            return null;
+            
+        } catch (\Exception $e) {
+            $this->logger->error('Error fetching item price from NetSuite', [
+                'item_id' => $itemId,
+                'error' => $e->getMessage()
+            ]);
+            return null;
         }
     }
 }

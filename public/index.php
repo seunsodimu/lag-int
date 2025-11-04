@@ -205,9 +205,14 @@ if (!$currentUser) {
                     <h3>3DCart → NetSuite</h3>
                     <p>Automated order processing from 3DCart to NetSuite. Real-time webhook integration for orders, customer management, and sales order creation.</p>
                     <div style="margin-top: 15px;">
-                        <a href="<?php echo UrlHelper::url('status.php'); ?>" class="btn">📊 Status</a>
-                        <a href="<?php echo UrlHelper::url('order-sync.php'); ?>" class="btn">🔄 Sync Orders</a>
-                        <a href="<?php echo UrlHelper::url('upload.php'); ?>" class="btn">📤 Upload</a>
+                        <ul style="text-align: left; list-style: none; text-decoration: none;">
+                            <li>📊<a href="<?php echo UrlHelper::url('status.php'); ?>" > Status</a></li>
+                            <li>🔄<a href="<?php echo UrlHelper::url('order-sync.php'); ?>"> Sync Orders</a></li>
+                            <li>📤<a href="<?php echo UrlHelper::url('upload.php'); ?>" > Upload</a></li>
+                        </ul>
+                        
+                        
+                        
                     </div>
                 </div>
                 
@@ -217,9 +222,11 @@ if (!$currentUser) {
                     <h3>HubSpot → NetSuite</h3>
                     <p>Lead synchronization from HubSpot to NetSuite. Automatically creates leads in NetSuite when contact properties change in HubSpot.</p>
                     <div style="margin-top: 15px;">
-                        <a href="<?php echo UrlHelper::url('hubspot-status.php'); ?>" class="btn">📊 Status</a>
-                        <a href="<?php echo UrlHelper::url('test-hubspot.php'); ?>" class="btn">🧪 Test</a>
-                        <a href="<?php echo UrlHelper::url('hubspot-webhook.php'); ?>" class="btn">🔗 Webhook</a>
+                        <ul style="text-align: left; list-style: none; text-decoration: none;">
+                        <li>📊<a href="<?php echo UrlHelper::url('hubspot-status.php'); ?>" > Status</a></li>
+                        <li>🧪<a href="<?php echo UrlHelper::url('test-hubspot.php'); ?>" > Test</a></li>
+                        <li>🔗<a href="<?php echo UrlHelper::url('hubspot-webhook.php'); ?>" > Webhook</a></li>
+                        </ul>
                     </div>
                 </div>
                 
@@ -229,8 +236,11 @@ if (!$currentUser) {
                     <h3>System Management</h3>
                     <p>Monitor all integrations, check connection status, manage webhooks, and configure system settings from a centralized dashboard.</p>
                     <div style="margin-top: 15px;">
-                        <a href="<?php echo UrlHelper::url('status.php'); ?>" class="btn">📊 All Status</a>
-                        <a href="<?php echo UrlHelper::url('webhook-settings.php'); ?>" class="btn">⚙️ Settings</a>
+                        <ul style="text-align: left; list-style: none; text-decoration: none;">
+                            <li>📊<a href="<?php echo UrlHelper::url('status.php'); ?>" > Status</a></li>
+                            <li>⚙️<a href="<?php echo UrlHelper::url('webhook-settings.php'); ?>" > Webhooks</a></li>
+                        </ul>
+                       
                     </div>
                 </div>
                 
@@ -240,9 +250,12 @@ if (!$currentUser) {
                     <h3>Email Notifications</h3>
                     <p>Automated email notifications for integration events, errors, and status updates. Configure recipients by notification type.</p>
                     <div style="margin-top: 15px;">
-                        <a href="<?php echo UrlHelper::url('notification-settings.php'); ?>" class="btn">⚙️ Recipients</a>
-                        <a href="<?php echo UrlHelper::url('test-email.php'); ?>" class="btn">📧 Test Email</a>
-                        <a href="<?php echo UrlHelper::url('email-provider-config.php'); ?>" class="btn">⚙️ Config</a>
+                        <ul style="text-align: left; list-style: none; text-decoration: none;">
+                            <li>✉️<a href="<?php echo UrlHelper::url('test-email.php'); ?>" > Test Email</a></li>
+                            <li>⚙️<a href="<?php echo UrlHelper::url('notification-settings.php'); ?>" > Recipients</a></li>
+                            <li>⚙️<a href="<?php echo UrlHelper::url('email-provider-config.php'); ?>"> Config</a></li>
+                        </ul>
+                        
                     </div>
                 </div>
                 
@@ -252,8 +265,10 @@ if (!$currentUser) {
                     <h3>Google Reviews Analytics</h3>
                     <p>Track review ratings over time and compare locations. View trends, distribution charts, and export analytics data. Uses Google Business Profile API with OAuth 2.0 authentication.</p>
                     <div style="margin-top: 15px;">
-                        <a href="<?php echo UrlHelper::url('google-reviews.php'); ?>" class="btn">📊 View Analytics</a>
-                        <a href="<?php echo UrlHelper::url('oauth-callback.php'); ?>" class="btn">🔐 Authenticate</a>
+                        <ul style="text-align: left; list-style: none; text-decoration: none;">
+                            <li>📊<a href="<?php echo UrlHelper::url('google-reviews.php'); ?>" > View Analytics</a></li>
+                            <li>🔑<a href="<?php echo UrlHelper::url('oauth-callback.php'); ?>" > Authenticate</a></li>
+                        </ul>
                     </div>
                 </div>
                 
@@ -264,8 +279,10 @@ if (!$currentUser) {
                     <h3>Pulse Display System</h3>
                     <p>Manage the office bulletin board display system. Add, edit, and organize slides and footer messages for the digital signage.</p>
                     <div style="margin-top: 15px;">
-                        <a href="<?php echo UrlHelper::url('pulse-admin.php'); ?>" class="btn">⚙️ Admin Panel</a>
-                        <a href="<?php echo UrlHelper::url('pulse/index.html'); ?>" class="btn" target="_blank">👁️ View Display</a>
+                        <ul style="text-align: left; list-style: none; text-decoration: none;">
+                            <li>📄<a href="<?php echo UrlHelper::url('pulse-admin.php'); ?>" > Admin Panel</a></li>
+                            <li>👁️<a href="<?php echo UrlHelper::url('pulse-index.html'); ?>" > View Display</a></li>
+                        </ul>
                     </div>
                 </div>
                 <?php endif; ?>

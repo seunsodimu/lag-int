@@ -27,6 +27,7 @@ class OrderStatusSyncService {
     
     /**
      * Get all orders by status using pagination
+     * Retrieves orders with statusId 1 (pending) and 2 (processing)
      * 
      * @param string|null $afterDate Optional date filter (YYYY-MM-DD format)
      * @return array All orders matching the criteria
@@ -34,46 +35,59 @@ class OrderStatusSyncService {
     private function getAllOrdersByStatus($afterDate = null) {
         $allOrders = [];
         $limit = 100;
-        $offset = 0;
-        $hasMoreOrders = true;
+        $statusIds = [1, 2]; // Fetch both pending (1) and processing (2) orders
         
         $this->logger->info('Fetching all orders with pagination', [
             'after_date' => $afterDate,
-            'limit_per_page' => $limit
+            'limit_per_page' => $limit,
+            'status_ids' => $statusIds
         ]);
         
-        while ($hasMoreOrders) {
-            // Fetch orders for current page
-            if ($afterDate) {
-                $orders = $this->threeDCartService->getOrdersByStatusAfterDate(2, $afterDate, $limit, $offset);
-            } else {
-                $orders = $this->threeDCartService->getOrdersByStatus(2, $limit, $offset);
-            }
+        // Fetch orders for each status ID
+        foreach ($statusIds as $statusId) {
+            $offset = 0;
+            $hasMoreOrders = true;
             
-            $orderCount = count($orders);
-            
-            $this->logger->info('Fetched page of orders', [
-                'offset' => $offset,
-                'count' => $orderCount
+            $this->logger->info('Fetching orders for status', [
+                'status_id' => $statusId,
+                'after_date' => $afterDate
             ]);
             
-            // Add orders to the collection
-            if ($orderCount > 0) {
-                $allOrders = array_merge($allOrders, $orders);
-                $offset += $limit;
+            while ($hasMoreOrders) {
+                // Fetch orders for current page
+                if ($afterDate) {
+                    $orders = $this->threeDCartService->getOrdersByStatusAfterDate($statusId, $afterDate, $limit, $offset);
+                } else {
+                    $orders = $this->threeDCartService->getOrdersByStatus($statusId, $limit, $offset);
+                }
                 
-                // If we got fewer orders than the limit, we've reached the end
-                if ($orderCount < $limit) {
+                $orderCount = count($orders);
+                
+                $this->logger->info('Fetched page of orders', [
+                    'status_id' => $statusId,
+                    'offset' => $offset,
+                    'count' => $orderCount
+                ]);
+                
+                // Add orders to the collection
+                if ($orderCount > 0) {
+                    $allOrders = array_merge($allOrders, $orders);
+                    $offset += $limit;
+                    
+                    // If we got fewer orders than the limit, we've reached the end
+                    if ($orderCount < $limit) {
+                        $hasMoreOrders = false;
+                    }
+                } else {
+                    // No more orders to fetch
                     $hasMoreOrders = false;
                 }
-            } else {
-                // No more orders to fetch
-                $hasMoreOrders = false;
             }
         }
         
         $this->logger->info('Completed fetching all orders', [
-            'total_orders' => count($allOrders)
+            'total_orders' => count($allOrders),
+            'status_ids' => $statusIds
         ]);
         
         return $allOrders;
@@ -210,6 +224,9 @@ class OrderStatusSyncService {
         } elseif ($netSuiteStatus === 'Billed') {
             $newStatusId = 4; // 3DCart Shipped status
             $updateReason = 'NetSuite status: Billed';
+        }elseif (($netSuiteStatus === 'Pending Approval') || ($netSuiteStatus === 'Pending Fulfillment')){
+            $newStatusId = 2; // 3DCart Shipped status
+            $updateReason = 'NetSuite status: Pending Approval/Fulfillment';
         }
         
         if ($newStatusId === null) {
@@ -287,7 +304,7 @@ class OrderStatusSyncService {
             // Check if NetSuite order can be used to update 3DCart
             if ($fullNetSuiteOrder) {
                 $netSuiteStatus = $fullNetSuiteOrder['status']['refName'] ?? '';
-                $result['can_update_from_netsuite'] = in_array($netSuiteStatus, ['Billed', 'Partially Fulfilled']);
+                $result['can_update_from_netsuite'] = in_array($netSuiteStatus, ['Billed', 'Partially Fulfilled', 'Pending Approval']);
                 $result['netsuite_status'] = $netSuiteStatus;
                 $result['netsuite_tracking'] = $fullNetSuiteOrder['linkedTrackingNumbers'] ?? '';
                 $result['netsuite_ship_date'] = $fullNetSuiteOrder['shipDate'] ?? '';

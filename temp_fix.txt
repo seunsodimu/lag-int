@@ -1,0 +1,62 @@
+
+    /**
+     * Get pricing information for an inventory item by ID
+     * 
+     * @param string $itemId NetSuite inventory item ID
+     * @return array|null Price data if found, null otherwise
+     */
+    public function getItemPrice($itemId) {
+        try {
+            $this->logger->debug('Fetching price for inventory item', [
+                'item_id' => $itemId
+            ]);
+            
+            // Fetch price using the price endpoint with query parameters
+            $params = [
+                'quantity' => 0,
+                'currencypage' => 1,
+                'pricelevel' => 1
+            ];
+            
+            $startTime = microtime(true);
+            $endpoint = "/inventoryitem/{$itemId}/price";
+            $response = $this->makeRequest('GET', $endpoint, null, $params);
+            $duration = (microtime(true) - $startTime) * 1000;
+            
+            $statusCode = $response->getStatusCode();
+            $this->logger->logApiCall('NetSuite', $endpoint, 'GET', $statusCode, $duration);
+            
+            if ($statusCode === 200) {
+                $priceData = json_decode($response->getBody()->getContents(), true);
+                
+                $this->logger->debug('Retrieved price data for inventory item', [
+                    'item_id' => $itemId,
+                    'price_data' => $priceData
+                ]);
+                
+                return $priceData;
+            } else {
+                $this->logger->warning('Unexpected status code fetching item price', [
+                    'item_id' => $itemId,
+                    'status_code' => $statusCode
+                ]);
+                return null;
+            }
+            
+        } catch (RequestException $e) {
+            $this->logger->warning('Failed to fetch item price from NetSuite', [
+                'item_id' => $itemId,
+                'error' => $e->getMessage(),
+                'status_code' => $e->getResponse() ? $e->getResponse()->getStatusCode() : null
+            ]);
+            return null;
+            
+        } catch (\Exception $e) {
+            $this->logger->error('Error fetching item price from NetSuite', [
+                'item_id' => $itemId,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+}

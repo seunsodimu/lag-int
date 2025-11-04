@@ -23,6 +23,8 @@ class NotificationSettingsService {
     const TYPE_3DCART_FAILED_MANUAL = '3dcart_failed_manual';
     const TYPE_HUBSPOT_SUCCESS_MANUAL = 'hubspot_success_manual';
     const TYPE_HUBSPOT_FAILED_MANUAL = 'hubspot_failed_manual';
+    const TYPE_INVENTORY_SYNC_SUCCESS = 'inventory_sync_success';
+    const TYPE_INVENTORY_SYNC_FAILED = 'inventory_sync_failed';
     
     // Default recipient (always included)
     const DEFAULT_RECIPIENT = 'web_dev@lagunatools.com';
@@ -85,6 +87,14 @@ class NotificationSettingsService {
             self::TYPE_HUBSPOT_FAILED_MANUAL => [
                 'label' => 'HubSpot Failed (Manual)',
                 'description' => 'Failed manual contact sync'
+            ],
+            self::TYPE_INVENTORY_SYNC_SUCCESS => [
+                'label' => 'Inventory Sync Success',
+                'description' => 'Successful inventory synchronization between 3DCart and NetSuite'
+            ],
+            self::TYPE_INVENTORY_SYNC_FAILED => [
+                'label' => 'Inventory Sync Failed',
+                'description' => 'Failed inventory synchronization between 3DCart and NetSuite'
             ]
         ];
     }
