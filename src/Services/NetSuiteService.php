@@ -2121,10 +2121,9 @@ class NetSuiteService {
                 'search_method' => 'exact_match'
             ]);
             
-            // First, try to find existing item by exact SKU match using the correct endpoint
-            $query = 'itemId IS "' . $itemIdentifier . '"';
+            $escapedIdentifier = str_replace('"', '\\"', $itemIdentifier);
+            $query = 'itemId IS "' . $escapedIdentifier . '"';
             
-            // Try different item type endpoints in order of preference
             $itemEndpoints = ['/inventoryItem', '/noninventoryItem', '/serviceItem', '/item'];
             
             foreach ($itemEndpoints as $endpoint) {
@@ -2146,7 +2145,6 @@ class NetSuiteService {
                         return $data['items'][0]['id'];
                     }
                 } catch (RequestException $e) {
-                    // Continue to next endpoint if this one fails
                     $this->logger->debug('Exact item search failed on endpoint', [
                         'endpoint' => $endpoint,
                         'item_id' => $itemData['ItemID'],
@@ -2156,97 +2154,20 @@ class NetSuiteService {
                 }
             }
             
-            // If exact match fails, try partial match as fallback
-            $this->logger->info('Exact match failed, trying partial match', [
-                'item_id' => $itemData['ItemID']
-            ]);
-            
-            $partialQuery = 'itemId CONTAIN "' . $itemData['ItemID'] . '"';
-            
-            foreach ($itemEndpoints as $endpoint) {
-                try {
-                    $response = $this->makeRequest('GET', $endpoint, null, [
-                        'q' => $partialQuery,
-                        'limit' => 1
-                    ]);
-                    
-                    $data = json_decode($response->getBody()->getContents(), true);
-                    
-                    if (isset($data['items']) && count($data['items']) > 0) {
-                        $this->logger->warning('Found partial item match in NetSuite', [
-                            'item_id' => $itemData['ItemID'],
-                            'netsuite_id' => $data['items'][0]['id'],
-                            'endpoint' => $endpoint,
-                            'query_type' => 'partial_match',
-                            'warning' => 'Using partial match - verify this is the correct item'
-                        ]);
-                        return $data['items'][0]['id'];
-                    }
-                } catch (RequestException $e) {
-                    // Continue to next endpoint if this one fails
-                    $this->logger->debug('Partial item search failed on endpoint', [
-                        'endpoint' => $endpoint,
-                        'item_id' => $itemData['ItemID'],
-                        'error' => $e->getMessage()
-                    ]);
-                    continue;
-                }
-            }
-            
-            // If item doesn't exist, try to create it (if enabled in config)
-            if ($this->config['netsuite']['create_missing_items']) {
-                $newItem = [
-                    'itemId' => $itemData['ItemID'], // Use ItemID as the SKU
-                    'displayName' => $itemData['ItemDescription'],
-                    'description' => $itemData['ItemDescription'],
-                    'basePrice' => (float)$itemData['ItemUnitPrice'],
-                    'includeChildren' => false,
-                    'isInactive' => 'F',
-                    'subsidiary' => [['id' => $this->config['netsuite']['default_subsidiary_id']]],
-                ];
-                
-                try {
-                    $itemType = $this->config['netsuite']['item_type'];
-                    $response = $this->makeRequest('POST', '/' . $itemType, $newItem);
-                    $createdItem = json_decode($response->getBody()->getContents(), true);
-                    
-                    $this->logger->info('Created new item in NetSuite', [
-                        'item_id' => $itemData['ItemID'],
-                        'name' => $itemData['ItemDescription'],
-                        'netsuite_id' => $createdItem['id'],
-                        'item_type' => $itemType
-                    ]);
-                    
-                    return $createdItem['id'];
-                } catch (RequestException $createError) {
-                    $this->logger->warning('Failed to create item, using default', [
-                        'item_id' => $itemData['ItemID'],
-                        'item_type' => $itemType,
-                        'create_error' => $createError->getMessage()
-                    ]);
-                }
-            }
-            
-            // Return default item ID if creation is disabled or failed
-            $defaultItemId = $this->config['netsuite']['default_item_id'];
-            $this->logger->warning('Using default item ID - verify this item exists in NetSuite', [
-                'original_item_id' => $itemData['ItemID'],
-                'default_item_id' => $defaultItemId,
-                'reason' => 'Item not found and creation disabled or failed',
-                'warning' => 'If default_item_id does not exist in NetSuite, order creation will fail'
-            ]);
-            
-            return $defaultItemId;
-        } catch (RequestException $e) {
-            $defaultItemId = $this->config['netsuite']['default_item_id'];
-            $this->logger->error('Failed to search for item, using default - verify default item exists', [
+            $this->logger->error('Item not found in NetSuite', [
                 'item_id' => $itemData['ItemID'],
-                'default_item_id' => $defaultItemId,
-                'error' => $e->getMessage(),
-                'warning' => 'If default_item_id does not exist in NetSuite, order creation will fail'
+                'item_description' => $itemData['ItemDescription'] ?? 'N/A'
             ]);
             
-            return $defaultItemId;
+            throw new \Exception("Item not found in NetSuite: " . $itemIdentifier);
+            
+        } catch (RequestException $e) {
+            $this->logger->error('Failed to search for item in NetSuite', [
+                'item_id' => $itemData['ItemID'],
+                'error' => $e->getMessage()
+            ]);
+            
+            throw new \Exception("Failed to search for item in NetSuite: " . $e->getMessage());
         }
     }
     
