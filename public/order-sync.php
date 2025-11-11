@@ -739,7 +739,9 @@ $startDate = date('Y-m-d', strtotime('-7 days'));
                             ${order.can_sync ? `<input type="checkbox" class="form-check-input order-checkbox" value="${order.order_id}" onchange="updateSelection()">` : ''}
                         </td>
                         <td>
+                        <a href="order-status-manager.php?order_id=${order.order_id}" target="_blank">
                             <strong>#${order.order_id}</strong>
+                            </a>
                         </td>
                         <td>${orderDate}</td>
                         <td>
