@@ -92,7 +92,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     throw new Exception('Invalid service response received');
                 }
                 
-                // Clear any buffered output and send clean JSON
+                if ($result['success'] && !$result['is_synced'] && isset($result['threedcart_order']['ShipmentList'][0])) {
+                    $shipment = $result['threedcart_order']['ShipmentList'][0];
+                    $firstName = trim($shipment['ShipmentFirstName'] ?? '');
+                    $lastName = trim($shipment['ShipmentLastName'] ?? '');
+                    
+                    if (!empty($firstName) && !empty($lastName)) {
+                        $companyName = $firstName . ' ' . $lastName;
+                        $escapedCompanyName = str_replace("'", "''", $companyName);
+                        
+                        $query = "SELECT id, firstName, lastName, email, companyName, phone, isperson FROM customer WHERE companyname = '" . $escapedCompanyName . "' AND isperson = 'F'";
+                        
+                        try {
+                            $customerResult = $netSuiteService->executeSuiteQLQuery($query);
+                            $result['matching_customers'] = $customerResult['items'] ?? [];
+                        } catch (\Exception $e) {
+                            $logger->warning('Failed to search for matching customers', [
+                                'order_id' => $orderId,
+                                'company_name' => $companyName,
+                                'error' => $e->getMessage()
+                            ]);
+                            $result['matching_customers'] = [];
+                        }
+                    } else {
+                        $result['matching_customers'] = [];
+                    }
+                } else {
+                    $result['matching_customers'] = [];
+                }
+                
                 ob_clean();
                 echo json_encode($result);
                 exit;
@@ -328,6 +356,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: #ccc;
             cursor: not-allowed;
         }
+        .btn-sm {
+            padding: 8px 16px;
+            font-size: 13px;
+        }
         .btn-success {
             background: #28a745;
         }
@@ -448,6 +480,64 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         .back-link a:hover {
             text-decoration: underline;
         }
+        .json-container {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #f9f9f9;
+            overflow: hidden;
+        }
+        .json-header {
+            background: #f0f0f0;
+            padding: 12px 15px;
+            cursor: pointer;
+            user-select: none;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ddd;
+            transition: background 0.2s;
+        }
+        .json-header:hover {
+            background: #e8e8e8;
+        }
+        .json-header-title {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+        .json-toggle {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            text-align: center;
+            line-height: 20px;
+            color: #667eea;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .json-toggle.expanded {
+            transform: rotate(180deg);
+        }
+        .json-content {
+            display: none;
+            padding: 15px;
+            background: white;
+            max-height: 400px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 12px;
+            line-height: 1.5;
+            color: #333;
+        }
+        .json-content.expanded {
+            display: block;
+        }
+        .json-content pre {
+            margin: 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
     </style>
 </head>
 <body>
@@ -517,6 +607,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         let currentOrderData = null;
         let editableFields = {};
         
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const orderId = urlParams.get('order_id');
+            
+            if (orderId) {
+                document.getElementById('order-id').value = orderId;
+                searchOrder();
+            }
+        });
+        
         function searchOrder() {
             const orderId = document.getElementById('order-id').value.trim();
             
@@ -572,7 +672,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             const syncStatusBadge = document.getElementById('sync-status-badge');
             const actionButtons = document.getElementById('action-buttons');
             
-            // Set sync status badge
             if (data.is_synced) {
                 syncStatusBadge.textContent = 'Synced';
                 syncStatusBadge.className = 'status-badge status-synced';
@@ -581,23 +680,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 syncStatusBadge.className = 'status-badge status-not-synced';
             }
             
-            // Display 3DCart order information
-            display3DCartOrder(threeDCartContent, data.threedcart_order, data.can_edit_threedcart);
+            display3DCartOrder(threeDCartContent, data.threedcart_order, data.can_edit_threedcart, data.matching_customers || []);
             
-            // Display NetSuite order information
             displayNetSuiteOrder(netSuiteContent, data.netsuite_order);
             
-            // Display action buttons
             displayActionButtons(actionButtons, data);
             
             resultsDiv.classList.remove('hidden');
         }
         
-        function display3DCartOrder(container, order, canEdit) {
+        function display3DCartOrder(container, order, canEdit, matchingCustomers) {
             if (!order) {
                 container.innerHTML = '<p>Order not found in 3DCart</p>';
                 return;
             }
+            
+            matchingCustomers = matchingCustomers || [];
             
             const editableFieldsList = [
                 'BillingEmail',
@@ -740,16 +838,56 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // NetSuite Customer ID and Address Options (only show if not synced)
             if (canEdit) {
+                const shipFirstName = order.ShipmentList?.[0]?.ShipmentFirstName || '';
+                const shipLastName = order.ShipmentList?.[0]?.ShipmentLastName || '';
+                
                 html += `
                     <hr style="margin: 20px 0; border: none; border-top: 1px solid #e0e0e0;">
                     <div style="background: #f0f8ff; padding: 15px; border-radius: 4px; margin-top: 15px;">
                         <h4 style="margin-top: 0; color: #667eea;">NetSuite Customer Options</h4>
+                `;
+                
+                if (matchingCustomers.length > 0) {
+                    html += `
+                        <div style="margin-bottom: 15px; padding: 10px; background: #e7f3ff; border-left: 4px solid #667eea; border-radius: 4px;">
+                            <strong style="color: #667eea;">Found ${matchingCustomers.length} matching customer(s) for "${shipFirstName} ${shipLastName}"</strong>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <label class="field-label" style="margin-bottom: 10px; display: block;">Select Customer:</label>
+                            <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                    `;
+                    
+                    matchingCustomers.forEach(customer => {
+                        html += `
+                            <div style="padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s;"
+                                 onmouseover="this.style.background='#f8f9fa'" 
+                                 onmouseout="this.style.background='white'"
+                                 onclick="selectCustomer(${customer.id}, '${(customer.companyname || '').replace(/'/g, "\\'")}', '${(customer.email || '').replace(/'/g, "\\'")}')">
+                                <div style="font-weight: 500; color: #333;">
+                                    <strong>ID:</strong> ${customer.id} - ${customer.companyname || 'N/A'}
+                                </div>
+                                <div style="font-size: 0.9em; color: #666; margin-top: 4px;">
+                                    <strong>Email:</strong> ${customer.email || 'N/A'} | 
+                                    <strong>Phone:</strong> ${customer.phone || 'N/A'}
+                                </div>
+                            </div>
+                        `;
+                    });
+                    
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                }
+                
+                html += `
                         <div class="field-row" style="border: none; flex-direction: column; align-items: flex-start;">
                             <label class="field-label" style="margin-bottom: 5px;">Customer NetSuite ID (Optional):</label>
                             <input type="number" id="netsuite-customer-id" class="editable-field" 
-                                   placeholder="Leave empty to auto-create/find customer" 
+                                   placeholder="Leave empty to auto-create/find customer or select from list above" 
                                    style="width: 100%; background: white;">
                             <small style="color: #666; margin-top: 5px; display: block;">
+                                ${matchingCustomers.length > 0 ? 'Click a customer above to auto-fill this field, or ' : ''}
                                 If provided, the sales order will be associated with this customer ID. 
                                 The customer must exist in NetSuite.
                             </small>
@@ -770,6 +908,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 `;
             }
             
+            // Add JSON data container
+            html += `
+                <div class="json-container">
+                    <div class="json-header" onclick="toggleJsonContainer(this)">
+                        <span class="json-header-title">📋 Raw Response Data</span>
+                        <span class="json-toggle">▼</span>
+                    </div>
+                    <div class="json-content">
+                        <pre>${escapeHtml(JSON.stringify(order, null, 2))}</pre>
+                    </div>
+                </div>
+            `;
+            
             container.innerHTML = html;
         }
         
@@ -779,7 +930,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 return;
             }
             
-            const html = `
+            let html = `
                 <div class="field-row">
                     <span class="field-label">Sales Order ID:</span>
                     <span class="field-value">${order.id || 'N/A'}</span>
@@ -807,6 +958,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="field-row">
                     <span class="field-label">Transaction Date:</span>
                     <span class="field-value">${order.tranDate || 'N/A'}</span>
+                </div>
+            `;
+            
+            // Add JSON data container
+            html += `
+                <div class="json-container">
+                    <div class="json-header" onclick="toggleJsonContainer(this)">
+                        <span class="json-header-title">📋 Raw Response Data</span>
+                        <span class="json-toggle">▼</span>
+                    </div>
+                    <div class="json-content">
+                        <pre>${escapeHtml(JSON.stringify(order, null, 2))}</pre>
+                    </div>
                 </div>
             `;
             
@@ -1014,6 +1178,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 showLoading(false);
                 showAlert('Network error: ' + error.message, 'danger');
             });
+        }
+        
+        function selectCustomer(customerId, companyName, email) {
+            document.getElementById('netsuite-customer-id').value = customerId;
+            showAlert(`Selected customer: ${companyName} (ID: ${customerId})`, 'success');
+        }
+        
+        function toggleJsonContainer(header) {
+            const toggle = header.querySelector('.json-toggle');
+            const content = header.nextElementSibling;
+            
+            toggle.classList.toggle('expanded');
+            content.classList.toggle('expanded');
+        }
+        
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
         }
         
         function getOrderStatusName(statusId) {
