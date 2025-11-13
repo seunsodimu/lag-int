@@ -706,7 +706,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             let html = `
                 <div class="field-row">
                     <span class="field-label">Order ID:</span>
-                    <span class="field-value">${order.OrderID || 'N/A'}</span>
+                    <span class="field-value">
+                     ${order.OrderID ? `<a href="https://lagunaedi.com/admin/order_details.asp?orderid=${order.OrderID}" target="_blank">${order.OrderID}</a>` : 'N/A'}</span>
+                    </span>
                 </div>
                 <div class="field-row">
                     <span class="field-label">Order Date:</span>
@@ -714,15 +716,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="field-row">
                     <span class="field-label">Status:</span>
-                    <span class="field-value">${order.OrderStatusID || 'N/A'} (${getOrderStatusName(order.OrderStatusID)})</span>
+                    <span class="field-value" data-OrderStatusID="${order.OrderStatusID || ''}"> ${getOrderStatusName(order.OrderStatusID)}</span>
                 </div>
                 <div class="field-row">
                     <span class="field-label">Total:</span>
-                    <span class="field-value">$${order.OrderTotal || '0.00'}</span>
+                    <span class="field-value">$${order.OrderAmount || '0.00'}</span>
                 </div>
                 <div class="field-row">
                     <span class="field-label">Invoice Number:</span>
-                    <span class="field-value">${order.InvoiceNumber || 'N/A'}</span>
+                    <span class="field-value">${order.InvoiceNumberPrefix || ''}${order.InvoiceNumber || 'N/A'}</span>
                 </div>
             `;
             
@@ -933,7 +935,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             let html = `
                 <div class="field-row">
                     <span class="field-label">Sales Order ID:</span>
-                    <span class="field-value">${order.id || 'N/A'}</span>
+                    <span class="field-value">
+                    ${order.id ? `
+                    <a href="https://system.netsuite.com/app/accounting/transactions/salesord.nl?id=${order.id}&whence=" target="_blank">${order.id}</a>
+                    ` : 'N/A'}                    
+                    </span>
                 </div>
                 <div class="field-row">
                     <span class="field-label">Transaction ID:</span>
