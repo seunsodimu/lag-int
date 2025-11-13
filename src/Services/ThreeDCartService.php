@@ -196,7 +196,21 @@ class ThreeDCartService {
                 'filters' => $filters,
                 'error' => $e->getMessage()
             ]);
-            throw new \Exception("Failed to retrieve orders: " . $e->getMessage());
+            
+            $errorMessage = 'Failed to retrieve orders';
+            
+            if ($e->hasResponse()) {
+                try {
+                    $responseBody = json_decode($e->getResponse()->getBody()->getContents(), true);
+                    if (is_array($responseBody) && isset($responseBody[0]['Message'])) {
+                        $errorMessage = $responseBody[0]['Message'];
+                    }
+                } catch (\Exception $parseError) {
+                    // If we can't parse the response, use the generic message
+                }
+            }
+            
+            throw new \Exception($errorMessage);
         }
     }
     
@@ -387,7 +401,21 @@ class ThreeDCartService {
                 'start_date' => $startDate,
                 'end_date' => $endDate
             ]);
-            throw new \Exception('Failed to fetch orders from 3DCart: ' . $e->getMessage());
+            
+            $errorMessage = 'Failed to fetch orders from 3DCart';
+            
+            if ($e->hasResponse()) {
+                try {
+                    $responseBody = json_decode($e->getResponse()->getBody()->getContents(), true);
+                    if (is_array($responseBody) && isset($responseBody[0]['Message'])) {
+                        $errorMessage = $responseBody[0]['Message'];
+                    }
+                } catch (\Exception $parseError) {
+                    // If we can't parse the response, use the generic message
+                }
+            }
+            
+            throw new \Exception($errorMessage);
         }
     }
     
@@ -503,7 +531,21 @@ class ThreeDCartService {
                 'status_id' => $statusId,
                 'error' => $e->getMessage()
             ]);
-            throw new \Exception("Failed to retrieve orders by status: " . $e->getMessage());
+            
+            $errorMessage = 'Failed to retrieve orders by status';
+            
+            if ($e->hasResponse()) {
+                try {
+                    $responseBody = json_decode($e->getResponse()->getBody()->getContents(), true);
+                    if (is_array($responseBody) && isset($responseBody[0]['Message'])) {
+                        $errorMessage = $responseBody[0]['Message'];
+                    }
+                } catch (\Exception $parseError) {
+                    // If we can't parse the response, use the generic message
+                }
+            }
+            
+            throw new \Exception($errorMessage);
         }
     }
 
@@ -570,7 +612,21 @@ class ThreeDCartService {
                 'after_date' => $afterDate,
                 'error' => $e->getMessage()
             ]);
-            throw new \Exception("Failed to retrieve orders by status after date: " . $e->getMessage());
+            
+            $errorMessage = 'Failed to retrieve orders by status after date';
+            
+            if ($e->hasResponse()) {
+                try {
+                    $responseBody = json_decode($e->getResponse()->getBody()->getContents(), true);
+                    if (is_array($responseBody) && isset($responseBody[0]['Message'])) {
+                        $errorMessage = $responseBody[0]['Message'];
+                    }
+                } catch (\Exception $parseError) {
+                    // If we can't parse the response, use the generic message
+                }
+            }
+            
+            throw new \Exception($errorMessage);
         }
     }
     
