@@ -640,27 +640,38 @@
             await loadConfig();
             new OfficeDashboard();
 
-            // Fullscreen toggle handler
-            const fsBtn = document.getElementById('fullscreenBtn');
-            if (fsBtn) {
-                const isFS = () => document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
-                const enterFS = () => {
-                    const el = document.documentElement;
-                    if (el.requestFullscreen) return el.requestFullscreen();
-                    if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
-                    if (el.msRequestFullscreen) return el.msRequestFullscreen();
-                };
-                const exitFS = () => {
-                    if (document.exitFullscreen) return document.exitFullscreen();
-                    if (document.webkitExitFullscreen) return document.webkitExitFullscreen();
-                    if (document.msExitFullscreen) return document.msExitFullscreen();
-                };
-                const updateBtn = () => {
-                    const active = !!isFS();
+            const isFS = () => document.fullscreenElement || document.webkitFullscreenElement || document.msFullscreenElement;
+            const enterFS = () => {
+                const el = document.documentElement;
+                if (el.requestFullscreen) return el.requestFullscreen();
+                if (el.webkitRequestFullscreen) return el.webkitRequestFullscreen();
+                if (el.msRequestFullscreen) return el.msRequestFullscreen();
+            };
+            const exitFS = () => {
+                if (document.exitFullscreen) return document.exitFullscreen();
+                if (document.webkitExitFullscreen) return document.webkitExitFullscreen();
+                if (document.msExitFullscreen) return document.msExitFullscreen();
+            };
+            const updateBtn = () => {
+                const active = !!isFS();
+                const fsBtn = document.getElementById('fullscreenBtn');
+                if (fsBtn) {
                     fsBtn.title = active ? 'Exit fullscreen' : 'Enter fullscreen';
                     fsBtn.setAttribute('aria-label', fsBtn.title);
                     fsBtn.textContent = active ? '⤢' : '⛶';
-                };
+                }
+            };
+
+            // Auto-enter fullscreen on page load
+            try {
+                await enterFS();
+            } catch (e) {
+                console.warn('Auto fullscreen failed:', e);
+            }
+
+            // Fullscreen toggle handler
+            const fsBtn = document.getElementById('fullscreenBtn');
+            if (fsBtn) {
                 fsBtn.addEventListener('click', async () => {
                     try {
                         if (isFS()) {
@@ -677,6 +688,11 @@
                 document.addEventListener('msfullscreenchange', updateBtn);
                 updateBtn();
             }
+
+            // Reload page every hour (3600000 milliseconds)
+            setInterval(() => {
+                location.reload();
+            }, 3600000);
         });
 
         // Handle visibility change to pause/resume when tab is not visible
