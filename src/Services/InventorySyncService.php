@@ -251,7 +251,7 @@ class InventorySyncService {
             }
             
             // Extract quantity on hand from NetSuite
-            $quantityOnHand = $netSuiteItem['quantityonhand'] ?? $netSuiteItem['totalquantityonhand'] ?? 0;
+            $quantityOnHand = $netSuiteItem['custitem82'] ?? $netSuiteItem['custitem82'] ?? 0;
             $newBackOrderMessage = $netSuiteItem['custitem73'] ?? '';
             
             $currentStock = $product['SKUInfo']['Stock'] ?? 0;
