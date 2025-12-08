@@ -2124,7 +2124,7 @@ class NetSuiteService {
             $escapedIdentifier = str_replace('"', '\\"', $itemIdentifier);
             $query = 'itemId IS "' . $escapedIdentifier . '"';
             
-            $itemEndpoints = ['/inventoryItem', '/noninventoryItem', '/serviceItem', '/item'];
+            $itemEndpoints = ['/inventoryItem', '/noninventoryItem', '/serviceItem', '/item', '/kitItem'];
             
             foreach ($itemEndpoints as $endpoint) {
                 try {
@@ -2159,7 +2159,7 @@ class NetSuiteService {
                 'item_description' => $itemData['ItemDescription'] ?? 'N/A'
             ]);
             
-            throw new \Exception("Item not found in NetSuite: " . $itemIdentifier);
+            throw new \Exception("Item not found in NetSuite-: " . $itemIdentifier);
             
         } catch (RequestException $e) {
             $this->logger->error('Failed to search for item in NetSuite', [
