@@ -250,9 +250,9 @@ class InventorySyncService {
                 ];
             }
             
-            // Extract quantity on hand from NetSuite
-            $quantityOnHand = $netSuiteItem['custitem82'] ?? $netSuiteItem['custitem82'] ?? 0;
-            $newBackOrderMessage = $netSuiteItem['custitem73'] ?? '';
+            // Extract quantity on hand and back order message from NetSuite RESTlet response
+            $quantityOnHand = $netSuiteItem['quantityOnHand'] ?? $netSuiteItem['totalquantityonhand'] ?? 0;
+            $newBackOrderMessage = $netSuiteItem['backOrderMessage'] ?? $netSuiteItem['custitem73'] ?? '';
             
             $currentStock = $product['SKUInfo']['Stock'] ?? 0;
             $currentBackOrderMessage = $product['SKUInfo']['BackOrderMessage'] ?? '';
@@ -344,36 +344,50 @@ class InventorySyncService {
     }
     
     /**
-     * Find item in NetSuite by SKU
+     * Find item in NetSuite by SKU using RESTlet saved search
      * 
      * @param string $sku The SKU to search for
      * @return array|null Item data if found, null otherwise
      */
     private function findItemInNetSuite($sku) {
         try {
-            $this->logger->debug('Searching for item in NetSuite by SKU', [
+            $this->logger->debug('Searching for item in NetSuite by SKU using RESTlet', [
                 'sku' => $sku
             ]);
             
-            // Use the NetSuite service's public search method
-            $item = $this->netSuiteService->searchItemBySku($sku);
+            // Fetch inventory items from NetSuite RESTlet (saved search)
+            $items = $this->netSuiteService->callInventorySearchRestlet();
             
-            if ($item) {
-                $this->logger->debug('Found item in NetSuite', [
-                    'sku' => $sku,
-                    'netsuite_id' => $item['id'] ?? null
+            if (!$items) {
+                $this->logger->warning('Failed to retrieve items from NetSuite RESTlet', [
+                    'sku' => $sku
                 ]);
-                return $item;
+                return null;
             }
             
-            $this->logger->warning('Item not found in NetSuite', [
-                'sku' => $sku
+            // Search through returned items to find matching SKU
+            foreach ($items as $item) {
+                $itemSku = $item['sku'] ?? null;
+                
+                if ($itemSku === $sku) {
+                    $this->logger->debug('Found item in NetSuite', [
+                        'sku' => $sku,
+                        'netsuite_id' => $item['id'] ?? null,
+                        'display_name' => $item['displayname'] ?? null
+                    ]);
+                    return $item;
+                }
+            }
+            
+            $this->logger->warning('Item not found in NetSuite RESTlet results', [
+                'sku' => $sku,
+                'items_searched' => count($items)
             ]);
             
             return null;
             
         } catch (\Exception $e) {
-            $this->logger->error('Error searching NetSuite for item', [
+            $this->logger->error('Error searching NetSuite for item via RESTlet', [
                 'sku' => $sku,
                 'error' => $e->getMessage()
             ]);
@@ -397,6 +411,7 @@ class InventorySyncService {
                 $syncResult = $item['syncResult'];
                 $newStock = $syncResult['new_stock'];
                 $price = $syncResult['price'] ?? null;
+                $newBackOrderMessage = $syncResult['new_backorder_message'] ?? '';
                 
                 // Extract CatalogID from product (this identifies the product in 3DCart)
                 $catalogId = $product['SKUInfo']['CatalogID'] ?? $product['CatalogID'] ?? null;
@@ -420,9 +435,9 @@ class InventorySyncService {
                     $skuInfo['Price'] = (float)$price;
                     $skuInfo['RetailPrice'] = (float)$price;
                 }
-                // add BackOrderMessage is custitem73 is available
-                if(isset($product['custitem73'])){
-                    $skuInfo['BackOrderMessage'] = $product['custitem73'];
+                // Add BackOrderMessage if available from NetSuite
+                if (!empty($newBackOrderMessage)) {
+                    $skuInfo['BackOrderMessage'] = $newBackOrderMessage;
                 }
                 
                 $batchPayload[] = [
@@ -434,7 +449,7 @@ class InventorySyncService {
                     'sku' => $product['SKUInfo']['SKU'] ?? null,
                     'new_stock' => $newStock,
                     'price' => $price,
-                    'backordermessage' => $product['custitem73'] ?? null
+                    'backordermessage' => $newBackOrderMessage
                 ]);
             }
             

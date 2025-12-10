@@ -2744,7 +2744,7 @@ class NetSuiteService {
             $escapedSku = str_replace("'", "''", $sku);
             
             // Query to search items by itemid (SKU field)
-            $suiteQLQuery = "SELECT id, itemid, displayname, itemtype, isinactive, totalquantityonhand, custitem73 FROM item " .
+            $suiteQLQuery = "SELECT id, itemid, displayname, itemtype, isinactive, totalquantityonhand, custitem73, custitem82 FROM item " .
                             "WHERE itemid = '" . $escapedSku . "' AND isinactive = 'F'";
             
             $result = $this->executeSuiteQLQuery($suiteQLQuery);
@@ -2822,6 +2822,132 @@ class NetSuiteService {
         } catch (\Exception $e) {
             $this->logger->error('Error fetching item price from NetSuite', [
                 'item_id' => $itemId,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Call NetSuite RESTlet to fetch inventory items from a saved search
+     * 
+     * Returns inventory data in the format:
+     * - id: internal ID
+     * - sku: the formula text field (product identifier)
+     * - quantityOnHand: location quantity available
+     * - backOrderMessage: custom field for back order messaging
+     * - displayname: product display name
+     * 
+     * @param string $searchId The saved search ID to query (e.g., 'customsearch3921')
+     * @param string $scriptAndDeploy Optional script and deploy params (e.g., 'script=2691&deploy=1')
+     * @return array|null Array of item data if successful, null on failure
+     */
+    public function callInventorySearchRestlet($searchId = 'customsearch3921', $scriptAndDeploy = 'script=2691&deploy=1') {
+        try {
+            $this->logger->info('Calling NetSuite RESTlet for inventory search', [
+                'search_id' => $searchId,
+                'script_deploy' => $scriptAndDeploy
+            ]);
+            
+            // Use Guzzle client to make the RESTlet call
+            $client = new Client([
+                'timeout' => 60,
+                'verify' => false,
+            ]);
+            
+            $restletBaseUrl = $this->credentials['restlet_base_url'] ?? 'https://11134099.restlets.api.netsuite.com/app/site/hosting/restlet.nl';
+            $restletUrl = $restletBaseUrl . '?' . $scriptAndDeploy;
+            
+            // Extract query parameters for OAuth signature calculation
+            // OAuth 1.0 requires query parameters to be included in the signature base string
+            $queryParams = [];
+            if (!empty($scriptAndDeploy)) {
+                parse_str($scriptAndDeploy, $queryParams);
+            }
+            
+            $payload = [
+                'searchID' => $searchId
+            ];
+            
+            // Generate OAuth header for the RESTlet endpoint
+            // Note: Use base URL without query parameters, pass query params separately
+            $authHeader = $this->generateOAuthHeader('POST', $restletBaseUrl, $queryParams);
+            
+            $startTime = microtime(true);
+            $response = $client->post($restletUrl, [
+                'headers' => [
+                    'Content-Type' => 'application/json',
+                    'Prefer' => 'transient',
+                    'Authorization' => $authHeader
+                ],
+                'json' => $payload
+            ]);
+            $duration = (microtime(true) - $startTime) * 1000;
+            
+            $this->logger->logApiCall('NetSuite-RESTlet', '/inventory-search', 'POST', $response->getStatusCode(), $duration);
+            
+            $statusCode = $response->getStatusCode();
+            
+            if ($statusCode === 200) {
+                $responseData = json_decode($response->getBody()->getContents(), true);
+                
+                if (isset($responseData['results']) && is_array($responseData['results'])) {
+                    $items = [];
+                    
+                    foreach ($responseData['results'] as $result) {
+                        $values = $result['values'] ?? [];
+                        
+                        $item = [
+                            'id' => $result['id'] ?? null,
+                            'recordType' => $result['recordType'] ?? 'inventoryitem',
+                            'sku' => $values['formulatext'] ?? $values['itemid'] ?? null,
+                            'itemid' => $values['itemid'] ?? null,
+                            'displayname' => $values['displayname'] ?? null,
+                            'quantityOnHand' => (float)($values['locationquantityavailable'] ?? 0),
+                            'totalquantityonhand' => (float)($values['totalquantityonhand'] ?? 0),
+                            'backOrderMessage' => $values['custitem73'] ?? '',
+                            'custitem73' => $values['custitem73'] ?? '',
+                            'isinactive' => $values['isinactive'] ?? false
+                        ];
+                        
+                        $items[] = $item;
+                    }
+                    
+                    $this->logger->info('Successfully retrieved items from RESTlet', [
+                        'search_id' => $searchId,
+                        'items_count' => count($items),
+                        'response_time_ms' => round($duration, 2)
+                    ]);
+                    
+                    return $items;
+                } else {
+                    $this->logger->warning('Unexpected response format from RESTlet', [
+                        'search_id' => $searchId,
+                        'response_data' => $responseData
+                    ]);
+                    return [];
+                }
+            } else {
+                $this->logger->warning('Unexpected status code from RESTlet', [
+                    'search_id' => $searchId,
+                    'status_code' => $statusCode,
+                    'response_body' => $response->getBody()->getContents()
+                ]);
+                return null;
+            }
+            
+        } catch (RequestException $e) {
+            $this->logger->error('RESTlet request failed', [
+                'search_id' => $searchId,
+                'error' => $e->getMessage(),
+                'status_code' => $e->getResponse() ? $e->getResponse()->getStatusCode() : null,
+                'response_body' => $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response'
+            ]);
+            return null;
+            
+        } catch (\Exception $e) {
+            $this->logger->error('Error calling inventory search RESTlet', [
+                'search_id' => $searchId,
                 'error' => $e->getMessage()
             ]);
             return null;
