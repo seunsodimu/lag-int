@@ -23,6 +23,7 @@ class InventorySyncService {
     private $config;
     private $threeDCartV1BaseUrl = 'https://apirest.3dcart.com/3dCartWebAPI/v1/';
     private $threeDCartV2BaseUrl = 'https://apirest.3dcart.com/3dCartWebAPI/v2/';
+    private $netSuiteInventoryCache = null;
     
     public function __construct() {
         $this->credentials = require __DIR__ . '/../../config/credentials.php';
@@ -80,6 +81,21 @@ class InventorySyncService {
         ];
         
         try {
+            // Fetch inventory items from NetSuite once at the beginning
+            $this->netSuiteInventoryCache = $this->netSuiteService->callInventorySearchRestlet();
+            
+            if (!$this->netSuiteInventoryCache) {
+                $this->logger->error('Failed to fetch inventory items from NetSuite RESTlet');
+                $result['success'] = false;
+                $result['error'] = 'Failed to fetch inventory items from NetSuite';
+                $result['end_time'] = date('Y-m-d H:i:s');
+                return $result;
+            }
+            
+            $this->logger->info('Fetched inventory items from NetSuite', [
+                'items_count' => count($this->netSuiteInventoryCache)
+            ]);
+            
             // Fetch products from 3DCart
             $products = $this->fetchProductsFrom3DCart($filters);
             $result['total_products'] = count($products);
@@ -344,33 +360,31 @@ class InventorySyncService {
     }
     
     /**
-     * Find item in NetSuite by SKU using RESTlet saved search
+     * Find item in NetSuite by SKU from cached inventory results
      * 
      * @param string $sku The SKU to search for
      * @return array|null Item data if found, null otherwise
      */
     private function findItemInNetSuite($sku) {
         try {
-            $this->logger->debug('Searching for item in NetSuite by SKU using RESTlet', [
+            $this->logger->debug('Searching for item in NetSuite by SKU from cache', [
                 'sku' => $sku
             ]);
             
-            // Fetch inventory items from NetSuite RESTlet (saved search)
-            $items = $this->netSuiteService->callInventorySearchRestlet();
-            
-            if (!$items) {
-                $this->logger->warning('Failed to retrieve items from NetSuite RESTlet', [
+            // Use cached inventory items from NetSuite RESTlet (populated in syncInventory)
+            if (!$this->netSuiteInventoryCache) {
+                $this->logger->warning('NetSuite inventory cache is empty', [
                     'sku' => $sku
                 ]);
                 return null;
             }
             
-            // Search through returned items to find matching SKU
-            foreach ($items as $item) {
+            // Search through cached items to find matching SKU
+            foreach ($this->netSuiteInventoryCache as $item) {
                 $itemSku = $item['sku'] ?? null;
                 
                 if ($itemSku === $sku) {
-                    $this->logger->debug('Found item in NetSuite', [
+                    $this->logger->debug('Found item in NetSuite cache', [
                         'sku' => $sku,
                         'netsuite_id' => $item['id'] ?? null,
                         'display_name' => $item['displayname'] ?? null
@@ -379,15 +393,15 @@ class InventorySyncService {
                 }
             }
             
-            $this->logger->warning('Item not found in NetSuite RESTlet results', [
+            $this->logger->warning('Item not found in NetSuite cache', [
                 'sku' => $sku,
-                'items_searched' => count($items)
+                'items_in_cache' => count($this->netSuiteInventoryCache)
             ]);
             
             return null;
             
         } catch (\Exception $e) {
-            $this->logger->error('Error searching NetSuite for item via RESTlet', [
+            $this->logger->error('Error searching NetSuite cache for item', [
                 'sku' => $sku,
                 'error' => $e->getMessage()
             ]);

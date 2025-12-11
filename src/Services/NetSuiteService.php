@@ -2900,7 +2900,7 @@ class NetSuiteService {
                         $item = [
                             'id' => $result['id'] ?? null,
                             'recordType' => $result['recordType'] ?? 'inventoryitem',
-                            'sku' => $values['formulatext'] ?? $values['itemid'] ?? null,
+                            'sku' => trim($values['formulatext']) ?? $values['itemid'] ?? null,
                             'itemid' => $values['itemid'] ?? null,
                             'displayname' => $values['displayname'] ?? null,
                             'quantityOnHand' => (float)($values['locationquantityavailable'] ?? 0),
