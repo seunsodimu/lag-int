@@ -155,9 +155,9 @@ try {
     
     $mimeType = $mimeTypes[strtolower($fileExtension)] ?? 'application/octet-stream';
     
-    // Send file with appropriate headers
+    // Send file with appropriate headers (inline display instead of download)
     header('Content-Type: ' . $mimeType);
-    header('Content-Disposition: attachment; filename="' . basename($fileName . '.' . $fileExtension) . '"');
+    header('Content-Disposition: inline; filename="' . basename($fileName . '.' . $fileExtension) . '"');
     header('Content-Length: ' . strlen($fileContent));
     header('Cache-Control: no-cache, no-store, must-revalidate');
     header('Pragma: no-cache');
