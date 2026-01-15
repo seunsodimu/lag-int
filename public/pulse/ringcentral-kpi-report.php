@@ -19,12 +19,14 @@ $config = require __DIR__ . '/../../config/config.php';
 $kpiData = [];
 $userData = [];
 $error = null;
+$fileModifiedTime = null;
 
 $excelFile = __DIR__ . '/../../uploads/ringcentral_kpi/RingCentral_Customer_Service_KPI.xlsx';
 
 if (!file_exists($excelFile)) {
     $error = 'Excel file not found: ' . $excelFile;
 } else {
+    $fileModifiedTime = filemtime($excelFile);
     try {
         $reader = IOFactory::createReader('Xlsx');
         $spreadsheet = $reader->load($excelFile);
@@ -405,7 +407,7 @@ function formatExcelTime($value) {
                         </table>
                     </div>
                     <div class="last-updated">
-                        Last data refresh: <?php echo date('F j, Y \a\t g:i A'); ?>
+                        Last data refresh: <?php echo date('F j, Y \a\t g:i A', $fileModifiedTime); ?>
                     </div>
                 <?php endif; ?>
             <?php endif; ?>
