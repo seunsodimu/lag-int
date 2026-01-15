@@ -4,6 +4,7 @@
     "type": "project",
     "require": {
         "php": ">=7.4",
+        "aws/sdk-php": "^3.0",
         "guzzlehttp/guzzle": "^7.0",
         "monolog/monolog": "^2.0",
         "phpoffice/phpspreadsheet": "^1.24",
@@ -28,5 +29,8 @@
         "post-install-cmd": [
             "@php -r \"file_exists('config/credentials.php') || copy('config/credentials.example.php', 'config/credentials.php');\""
         ]
+    },
+    "config": {
+        "disable-tls": true
     }
 }

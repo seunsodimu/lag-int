@@ -1,0 +1,7 @@
+﻿Field Name,Database Column,Old NetSuite Field ID,New NetSuite Field ID
+Vessel Name,vessel_name,custbody36,custbodyvessel_name
+Vessel Identifier,vessel_identifier,custbody37,custbodyvessel_identifier
+Ex-Factory Date,expected_factory_date,custbody35,custbodyexpected_factory_date
+Vessel Onboard Date,port_date,custbody7,custbodyvessel_onboard_date
+Vessel Ship Date,ship_date,shipdate,custbodyvessel_ship_date
+US Delivery Date,estimated_delivery_date,custcol_est_delivery_date,custbodyus_delivery_date

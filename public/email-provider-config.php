@@ -60,12 +60,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } elseif ($action === 'update_credentials') {
         $provider = $_POST['credential_provider'] ?? '';
-        $apiKey = trim($_POST['api_key'] ?? '');
         $fromEmail = trim($_POST['from_email'] ?? '');
         $fromName = trim($_POST['from_name'] ?? '');
         
-        if (empty($apiKey) || empty($fromEmail) || empty($fromName)) {
-            $message = "All fields are required.";
+        // Validate common fields
+        if (empty($fromEmail) || empty($fromName)) {
+            $message = "Email and name fields are required.";
             $messageType = 'error';
         } elseif (!filter_var($fromEmail, FILTER_VALIDATE_EMAIL)) {
             $message = "Please enter a valid email address.";
@@ -77,21 +77,51 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             // Update credentials for the specified provider
             if (isset($credentials['email'][$provider])) {
-                $credentials['email'][$provider]['api_key'] = $apiKey;
-                $credentials['email'][$provider]['from_email'] = $fromEmail;
-                $credentials['email'][$provider]['from_name'] = $fromName;
-                
-                // Write back to file
-                $credentialsContent = "<?php\n\nreturn " . var_export($credentials, true) . ";\n";
-                
-                if (file_put_contents($credentialsFile, $credentialsContent)) {
-                    $message = "{$provider} credentials updated successfully!";
-                    $messageType = 'success';
-                    $logger->info('Email provider credentials updated', ['provider' => $provider]);
+                // Handle provider-specific credentials
+                if ($provider === 'ses') {
+                    // AWS SES specific credentials
+                    $region = trim($_POST['region'] ?? '');
+                    $accessKey = trim($_POST['access_key'] ?? '');
+                    $secretKey = trim($_POST['secret_key'] ?? '');
+                    
+                    if (empty($region) || empty($accessKey) || empty($secretKey)) {
+                        $message = "All AWS SES fields are required (Region, Access Key, Secret Key).";
+                        $messageType = 'error';
+                    } else {
+                        $credentials['email'][$provider]['region'] = $region;
+                        $credentials['email'][$provider]['access_key'] = $accessKey;
+                        $credentials['email'][$provider]['secret_key'] = $secretKey;
+                        $credentials['email'][$provider]['from_email'] = $fromEmail;
+                        $credentials['email'][$provider]['from_name'] = $fromName;
+                    }
                 } else {
-                    $message = "Failed to update configuration file.";
-                    $messageType = 'error';
-                    $logger->error('Failed to update email provider credentials', ['provider' => $provider]);
+                    // SendGrid and Brevo use API key
+                    $apiKey = trim($_POST['api_key'] ?? '');
+                    
+                    if (empty($apiKey)) {
+                        $message = "API Key is required for {$provider}.";
+                        $messageType = 'error';
+                    } else {
+                        $credentials['email'][$provider]['api_key'] = $apiKey;
+                        $credentials['email'][$provider]['from_email'] = $fromEmail;
+                        $credentials['email'][$provider]['from_name'] = $fromName;
+                    }
+                }
+                
+                // If no error, save the credentials
+                if ($messageType !== 'error') {
+                    // Write back to file
+                    $credentialsContent = "<?php\n\nreturn " . var_export($credentials, true) . ";\n";
+                    
+                    if (file_put_contents($credentialsFile, $credentialsContent)) {
+                        $message = "{$provider} credentials updated successfully!";
+                        $messageType = 'success';
+                        $logger->info('Email provider credentials updated', ['provider' => $provider]);
+                    } else {
+                        $message = "Failed to update configuration file.";
+                        $messageType = 'error';
+                        $logger->error('Failed to update email provider credentials', ['provider' => $provider]);
+                    }
                 }
             } else {
                 $message = "Invalid provider.";
@@ -369,17 +399,56 @@ $allProvidersStatus = EmailServiceFactory::testAllProviders();
                                 <input type="hidden" name="action" value="update_credentials">
                                 <input type="hidden" name="credential_provider" value="<?php echo $key; ?>">
                                 
-                                <div class="form-group">
-                                    <label for="<?php echo $key; ?>_api_key">API Key:</label>
-                                    <input type="password" 
-                                           name="api_key" 
-                                           id="<?php echo $key; ?>_api_key" 
-                                           class="form-control" 
-                                           value="<?php echo htmlspecialchars($credentials['email'][$key]['api_key'] ?? ''); ?>"
-                                           placeholder="Enter your <?php echo $provider['name']; ?> API key"
-                                           required>
-                                </div>
+                                <?php if ($key === 'ses'): ?>
+                                    <!-- AWS SES Credentials -->
+                                    <div class="form-group">
+                                        <label for="<?php echo $key; ?>_region">AWS Region:</label>
+                                        <input type="text" 
+                                               name="region" 
+                                               id="<?php echo $key; ?>_region" 
+                                               class="form-control" 
+                                               value="<?php echo htmlspecialchars($credentials['email'][$key]['region'] ?? 'us-east-1'); ?>"
+                                               placeholder="us-east-1"
+                                               required>
+                                        <small style="color: #6c757d;">Example: us-east-1, us-west-2, eu-west-1</small>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="<?php echo $key; ?>_access_key">AWS Access Key ID:</label>
+                                        <input type="password" 
+                                               name="access_key" 
+                                               id="<?php echo $key; ?>_access_key" 
+                                               class="form-control" 
+                                               value="<?php echo htmlspecialchars($credentials['email'][$key]['access_key'] ?? ''); ?>"
+                                               placeholder="AKIAIOSFODNN7EXAMPLE"
+                                               required>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="<?php echo $key; ?>_secret_key">AWS Secret Access Key:</label>
+                                        <input type="password" 
+                                               name="secret_key" 
+                                               id="<?php echo $key; ?>_secret_key" 
+                                               class="form-control" 
+                                               value="<?php echo htmlspecialchars($credentials['email'][$key]['secret_key'] ?? ''); ?>"
+                                               placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+                                               required>
+                                    </div>
+                                <?php else: ?>
+                                    <!-- SendGrid and Brevo API Key -->
+                                    <div class="form-group">
+                                        <label for="<?php echo $key; ?>_api_key">API Key:</label>
+                                        <input type="password" 
+                                               name="api_key" 
+                                               id="<?php echo $key; ?>_api_key" 
+                                               class="form-control" 
+                                               value="<?php echo htmlspecialchars($credentials['email'][$key]['api_key'] ?? ''); ?>"
+                                               placeholder="Enter your <?php echo $provider['name']; ?> API key"
+                                               required>
+                                    </div>
+                                <?php endif; ?>
                                 
+                                <!-- Common fields for all providers -->
                                 <div class="form-group">
                                     <label for="<?php echo $key; ?>_from_email">From Email:</label>
                                     <input type="email" 

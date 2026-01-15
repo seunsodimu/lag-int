@@ -25,6 +25,11 @@ class EmailServiceFactory {
             case 'brevo':
                 $logger->info('Creating Brevo email service instance');
                 return new BrevoEmailService();
+            
+            case 'ses':
+            case 'aws-ses':
+                $logger->info('Creating AWS SES email service instance');
+                return new SESEmailService();
                 
             case 'sendgrid':
             default:
@@ -47,6 +52,11 @@ class EmailServiceFactory {
                 'name' => 'Brevo',
                 'description' => 'Brevo (formerly SendinBlue) email delivery service',
                 'class' => 'BrevoEmailService'
+            ],
+            'ses' => [
+                'name' => 'AWS SES',
+                'description' => 'Amazon Simple Email Service (SES)',
+                'class' => 'SESEmailService'
             ]
         ];
     }
@@ -95,6 +105,21 @@ class EmailServiceFactory {
                     'success' => false,
                     'error' => $e->getMessage(),
                     'service' => 'Brevo'
+                ];
+            }
+        }
+        
+        // Test AWS SES if configured
+        if (!empty($credentials['email']['ses']['access_key']) && 
+            $credentials['email']['ses']['access_key'] !== 'your-aws-access-key') {
+            try {
+                $sesService = new SESEmailService();
+                $results['ses'] = $sesService->testConnection();
+            } catch (\Exception $e) {
+                $results['ses'] = [
+                    'success' => false,
+                    'error' => $e->getMessage(),
+                    'service' => 'AWS SES'
                 ];
             }
         }
