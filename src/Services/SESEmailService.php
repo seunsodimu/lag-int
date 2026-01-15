@@ -5,7 +5,7 @@ namespace Laguna\Integration\Services;
 use Laguna\Integration\Utils\Logger;
 
 /**
- * AWS SES Email Service
+ * AWS SES Email Service updated by lag-int
  * 
  * Docker-optimized implementation using AWS SDK as primary method.
  * Handles email sending via Amazon Simple Email Service (SES).
@@ -35,7 +35,7 @@ class SESEmailService {
     private function initializeClient() {
         if (!class_exists('Aws\Ses\SesClient')) {
             $this->logger->warning('AWS SDK not available - SES email service will not work', [
-                'hint' => 'Install aws/sdk-php: composer require aws/sdk-php'
+                'hint' => 'Install aws/aws-sdk-php: composer require aws/aws-sdk-php'
             ]);
             return;
         }
