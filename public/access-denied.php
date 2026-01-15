@@ -42,7 +42,8 @@ use Laguna\Integration\Utils\UrlHelper;
         <i class="fas fa-ban error-icon"></i>
         <h1 class="h2 mb-3">Access Denied</h1>
         <p class="text-muted mb-4">
-            You don't have permission to access this page. This area is restricted to administrators only.
+            You don't have permission to access this page. This area is restricted to administrators only. Please request admin access from the site administrator.<br><br>
+            Alternatively, you can return to the dashboard or logout by clicking on one of the buttons below.
         </p>
         
         <div class="d-grid gap-2 d-md-block">
