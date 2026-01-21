@@ -132,7 +132,7 @@ class PasswordResetService {
     }
 
     private function sendResetEmail(array $user, string $token, string $expiresAt): array {
-        $emailService = new UnifiedEmailService();
+        $emailService = new EnhancedEmailService();
 
         // Build absolute URL (fallback to relative if host missing)
         $path = UrlHelper::url('reset-password.php');
@@ -141,18 +141,7 @@ class PasswordResetService {
         $baseUrl = $host ? ($scheme . $host) : '';
         $resetUrl = $baseUrl . $path . '?token=' . urlencode($token);
 
-        $subject = '[3DCart Integration] Password Reset Request';
-        $html = "<html><body>"
-              . "<h2>Password Reset Requested</h2>"
-              . "<p>Hello " . htmlspecialchars($user['username']) . ",</p>"
-              . "<p>We received a request to reset the password for your account.</p>"
-              . "<p><a href='" . htmlspecialchars($resetUrl) . "' style='display:inline-block;padding:10px 16px;background:#667eea;color:#fff;text-decoration:none;border-radius:6px;'>Reset Password</a></p>"
-              . "<p>Or copy and paste this link into your browser:</p>"
-              . "<p><code>" . htmlspecialchars($resetUrl) . "</code></p>"
-              . "<p><small>This link will expire at " . htmlspecialchars($expiresAt) . ". If you did not request a password reset, you can safely ignore this email.</small></p>"
-              . "</body></html>";
-
-        return $emailService->sendEmail($subject, $html, [$user['email']]);
+        return $emailService->sendPasswordResetEmail($user['email'], $user['username'], $resetUrl, $expiresAt);
     }
 
     private function ensurePasswordResetTable(): void {

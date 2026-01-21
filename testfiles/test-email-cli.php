@@ -8,7 +8,7 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Laguna\Integration\Services\UnifiedEmailService;
+use Laguna\Integration\Services\EnhancedEmailService;
 use Laguna\Integration\Utils\Logger;
 
 // Set timezone
@@ -39,7 +39,7 @@ if (!in_array($testType, $validTypes)) {
 }
 
 try {
-    $emailService = new UnifiedEmailService();
+    $emailService = new EnhancedEmailService();
     $logger = Logger::getInstance();
     $providerInfo = $emailService->getProviderInfo();
     

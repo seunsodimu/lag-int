@@ -5,7 +5,7 @@ namespace Laguna\Integration\Controllers;
 use Laguna\Integration\Services\ThreeDCartService;
 use Laguna\Integration\Services\NetSuiteService;
 use Laguna\Integration\Services\HubSpotService;
-use Laguna\Integration\Services\UnifiedEmailService;
+use Laguna\Integration\Services\EnhancedEmailService;
 use Laguna\Integration\Utils\Logger;
 use Laguna\Integration\Utils\NetSuiteEnvironmentManager;
 
@@ -26,7 +26,7 @@ class StatusController {
         $this->threeDCartService = new ThreeDCartService();
         $this->netSuiteService = new NetSuiteService();
         $this->hubSpotService = new HubSpotService();
-        $this->emailService = new UnifiedEmailService();
+        $this->emailService = new EnhancedEmailService();
         $this->logger = Logger::getInstance();
         $this->config = require __DIR__ . '/../../config/config.php';
     }

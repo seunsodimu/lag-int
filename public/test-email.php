@@ -7,7 +7,7 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use Laguna\Integration\Services\UnifiedEmailService;
+use Laguna\Integration\Services\EnhancedEmailService;
 use Laguna\Integration\Services\EmailServiceFactory;
 use Laguna\Integration\Utils\Logger;
 use Laguna\Integration\Middleware\AuthMiddleware;
@@ -23,7 +23,7 @@ if (!$currentUser) {
     exit; // Middleware handles redirect
 }
 
-$emailService = new UnifiedEmailService();
+$emailService = new EnhancedEmailService();
 $logger = Logger::getInstance();
 
 $message = '';

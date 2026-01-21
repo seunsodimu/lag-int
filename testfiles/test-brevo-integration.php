@@ -9,7 +9,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 
 use Laguna\Integration\Services\BrevoEmailService;
 use Laguna\Integration\Services\EmailServiceFactory;
-use Laguna\Integration\Services\UnifiedEmailService;
+use Laguna\Integration\Services\EnhancedEmailService;
 use Laguna\Integration\Utils\Logger;
 
 echo "=== Brevo Integration Test ===\n\n";
@@ -36,20 +36,20 @@ try {
     echo "❌ EmailServiceFactory test failed: " . $e->getMessage() . "\n";
 }
 
-// Test 3: Check UnifiedEmailService
-echo "\n3. Testing UnifiedEmailService...\n";
+// Test 3: Check EnhancedEmailService
+echo "\n3. Testing EnhancedEmailService...\n";
 try {
-    $unifiedService = new UnifiedEmailService();
-    $providerInfo = $unifiedService->getProviderInfo();
-    echo "✅ Unified service created with provider: " . $providerInfo['name'] . "\n";
+    $enhancedService = new EnhancedEmailService();
+    $providerInfo = $enhancedService->getProviderInfo();
+    echo "✅ Enhanced service created with provider: " . $providerInfo['name'] . "\n";
 } catch (Exception $e) {
-    echo "❌ UnifiedEmailService test failed: " . $e->getMessage() . "\n";
+    echo "❌ EnhancedEmailService test failed: " . $e->getMessage() . "\n";
 }
 
 // Test 4: Test connection (will fail with invalid API key, but should handle gracefully)
 echo "\n4. Testing connection handling...\n";
 try {
-    $connectionResult = $unifiedService->testConnection();
+    $connectionResult = $enhancedService->testConnection();
     if ($connectionResult['success']) {
         echo "✅ Connection test successful\n";
     } else {
@@ -98,7 +98,7 @@ echo "\n7. Testing file structure...\n";
 $requiredFiles = [
     'src/Services/BrevoEmailService.php',
     'src/Services/EmailServiceFactory.php',
-    'src/Services/UnifiedEmailService.php',
+    'src/Services/EnhancedEmailService.php',
     'public/email-provider-config.php',
     'documentation/BREVO_EMAIL_SETUP.md'
 ];

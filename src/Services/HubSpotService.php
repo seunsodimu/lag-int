@@ -25,7 +25,6 @@ class HubSpotService {
         $this->config = require __DIR__ . '/../../config/config.php';
         $this->credentials = require __DIR__ . '/../../config/credentials.php';
         $this->logger = Logger::getInstance();
-        $this->emailService = new EmailService();
         $this->enhancedEmailService = new EnhancedEmailService($isWebhookContext);
         
         $this->client = new Client([

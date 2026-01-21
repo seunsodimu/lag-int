@@ -7,7 +7,7 @@
 
 require_once __DIR__ . '/../vendor/autoload.php';
 
-use Laguna\Integration\Services\UnifiedEmailService;
+use Laguna\Integration\Services\EnhancedEmailService;
 use Laguna\Integration\Services\EmailServiceFactory;
 use Laguna\Integration\Middleware\AuthMiddleware;
 
@@ -93,19 +93,19 @@ try {
         throw $e;
     }
     
-    // Step 3: Test UnifiedEmailService
-    $response['steps'][] = 'Step 3: Testing UnifiedEmailService...';
+    // Step 3: Test EnhancedEmailService
+    $response['steps'][] = 'Step 3: Testing EnhancedEmailService...';
     
     try {
-        $unifiedEmailService = new UnifiedEmailService();
-        $providerInfo = $unifiedEmailService->getProviderInfo();
+        $enhancedEmailService = new EnhancedEmailService();
+        $providerInfo = $enhancedEmailService->getProviderInfo();
         
-        $response['unified_service_provider'] = $providerInfo;
-        $response['steps'][] = "✅ UnifiedEmailService created successfully";
+        $response['enhanced_service_provider'] = $providerInfo;
+        $response['steps'][] = "✅ EnhancedEmailService created successfully";
         $response['steps'][] = "✅ Using provider: {$providerInfo['name']} ({$providerInfo['class']})";
         
         // Test connection
-        $connectionTest = $unifiedEmailService->testConnection();
+        $connectionTest = $enhancedEmailService->testConnection();
         $response['connection_test'] = $connectionTest;
         
         if ($connectionTest['success']) {
@@ -115,7 +115,7 @@ try {
         }
         
     } catch (Exception $e) {
-        $response['steps'][] = "❌ Error with UnifiedEmailService: " . $e->getMessage();
+        $response['steps'][] = "❌ Error with EnhancedEmailService: " . $e->getMessage();
         $response['connection_test'] = [
             'success' => false,
             'error' => $e->getMessage()
@@ -147,7 +147,7 @@ try {
         
         try {
             // Test with a simple notification
-            $testResult = $unifiedEmailService->sendOrderNotification(
+            $testResult = $enhancedEmailService->send3DCartOrderNotification(
                 'TEST-12345',
                 'Test Email Provider Selection',
                 [

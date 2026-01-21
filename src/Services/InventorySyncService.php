@@ -98,7 +98,6 @@ class InventorySyncService {
             
             // Fetch products from 3DCart
             $products = $this->fetchProductsFrom3DCart($filters);
-            $result['total_products'] = count($products);
             
             $this->logger->info('Retrieved products from 3DCart', [
                 'count' => count($products)
@@ -280,18 +279,6 @@ class InventorySyncService {
                 'current_3dcart_stock' => $currentStock
             ]);
             
-            // Check if update is needed
-            // if ($currentStock == $quantityOnHand) {
-            //     return [
-            //         'success' => false,
-            //         'skipped' => true,
-            //         'sku' => $sku,
-            //         'product_id' => $productId,
-            //         'reason' => 'Stock already up to date',
-            //         'stock' => $currentStock
-            //     ];
-            // }
-            
             // Fetch price from NetSuite
             $price = null;
             $netsuitItemId = $netSuiteItem['id'] ?? null;
@@ -299,7 +286,6 @@ class InventorySyncService {
                 $priceData = $this->netSuiteService->getItemPrice($netsuitItemId);
                 if ($priceData) {
                     // Extract the price from the price data
-                    // The response typically contains pricing info - extract the base price
                     if (is_array($priceData) && isset($priceData['price'])) {
                         $price = (float)$priceData['price'];
                     } elseif (is_array($priceData) && isset($priceData['items']) && count($priceData['items']) > 0) {
@@ -427,7 +413,7 @@ class InventorySyncService {
                 $price = $syncResult['price'] ?? null;
                 $newBackOrderMessage = $syncResult['new_backorder_message'] ?? '';
                 
-                // Extract CatalogID from product (this identifies the product in 3DCart)
+                // Extract CatalogID from product
                 $catalogId = $product['SKUInfo']['CatalogID'] ?? $product['CatalogID'] ?? null;
                 
                 if (!$catalogId) {
@@ -536,41 +522,20 @@ class InventorySyncService {
     }
     
     /**
-     * Send notification email with inventory sync summary
+     * Send email notification for inventory sync results
      * 
      * @param array $syncResult The result array from syncInventory()
      * @return array Email send result
      */
     public function sendSyncNotificationEmail($syncResult) {
         try {
-            $notificationService = new NotificationSettingsService();
-            $unifiedEmailService = new UnifiedEmailService();
+            $emailService = new EnhancedEmailService();
             
-            // Determine notification type based on result
-            $isSuccess = $syncResult['success'] && $syncResult['error_count'] == 0;
-            $notificationType = $isSuccess 
-                ? NotificationSettingsService::TYPE_INVENTORY_SYNC_SUCCESS 
-                : NotificationSettingsService::TYPE_INVENTORY_SYNC_FAILED;
+            // Send email using centralized logic in EnhancedEmailService
+            $emailResult = $emailService->sendInventorySyncNotification($syncResult);
             
-            // Get recipients from notification settings
-            $recipients = $notificationService->getRecipients($notificationType);
-            
-            if (empty($recipients)) {
-                $this->logger->warning('No email recipients configured for inventory sync notifications');
-                return ['success' => false, 'error' => 'No email recipients configured'];
-            }
-            
-            // Build email content
-            $subject = $this->buildNotificationSubject($syncResult, $isSuccess);
-            $htmlContent = $this->buildNotificationEmailContent($syncResult, $isSuccess);
-            
-            // Send email
-            $emailResult = $unifiedEmailService->sendEmail($subject, $htmlContent, $recipients);
-            
-            $this->logger->info('Inventory sync notification email sent', [
-                'recipients' => count($recipients),
-                'success' => $emailResult['success'] ?? false,
-                'subject' => $subject
+            $this->logger->info('Inventory sync notification email sent via EnhancedEmailService', [
+                'success' => $emailResult['success'] ?? false
             ]);
             
             return $emailResult;
@@ -584,217 +549,6 @@ class InventorySyncService {
                 'success' => false,
                 'error' => 'Failed to send notification email: ' . $e->getMessage()
             ];
-        }
-    }
-    
-    /**
-     * Build email notification subject
-     * 
-     * @param array $syncResult Sync result array
-     * @param bool $isSuccess Whether the sync was successful
-     * @return string Email subject
-     */
-    private function buildNotificationSubject($syncResult, $isSuccess) {
-        $prefix = '[3DCart Integration]';
-        $status = $isSuccess ? 'SUCCESS' : 'FAILED';
-        $timestamp = date('Y-m-d H:i:s');
-        
-        if ($isSuccess) {
-            return "{$prefix} Inventory Sync {$status} - {$syncResult['synced_count']} products updated - {$timestamp}";
-        } else {
-            return "{$prefix} Inventory Sync {$status} - Action Required - {$timestamp}";
-        }
-    }
-    
-    /**
-     * Build HTML email content for inventory sync notification
-     * 
-     * @param array $syncResult Sync result array
-     * @param bool $isSuccess Whether the sync was successful
-     * @return string HTML email content
-     */
-    private function buildNotificationEmailContent($syncResult, $isSuccess) {
-        $statusColor = $isSuccess ? '#28a745' : '#dc3545';
-        $statusLabel = $isSuccess ? 'SUCCESS' : 'FAILED';
-        
-        $duration = $this->calculateDuration(
-            $syncResult['start_time'] ?? '',
-            $syncResult['end_time'] ?? ''
-        );
-        
-        $html = '
-        <html>
-        <head>
-            <style>
-                body { font-family: Arial, sans-serif; color: #333; line-height: 1.6; }
-                .container { max-width: 700px; margin: 0 auto; padding: 20px; }
-                .header { background: ' . $statusColor . '; color: white; padding: 20px; border-radius: 5px 5px 0 0; }
-                .header h2 { margin: 0; font-size: 24px; }
-                .content { background: #f8f9fa; padding: 20px; border-radius: 0 0 5px 5px; border: 1px solid #dee2e6; }
-                .summary { background: white; padding: 15px; border-left: 4px solid ' . $statusColor . '; margin: 20px 0; }
-                .summary-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
-                .summary-row:last-child { border-bottom: none; }
-                .summary-label { font-weight: bold; color: #555; }
-                .summary-value { color: #333; font-weight: bold; }
-                .stats { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 15px; margin: 20px 0; }
-                .stat-box { background: white; padding: 15px; border-radius: 5px; border-left: 4px solid #007bff; text-align: center; }
-                .stat-number { font-size: 28px; font-weight: bold; color: #007bff; }
-                .stat-label { font-size: 12px; color: #666; margin-top: 5px; text-transform: uppercase; }
-                .synced { border-left-color: #28a745; }
-                .synced .stat-number { color: #28a745; }
-                .skipped { border-left-color: #ffc107; }
-                .skipped .stat-number { color: #ffc107; }
-                .errors { border-left-color: #dc3545; }
-                .errors .stat-number { color: #dc3545; }
-                .products-list { background: white; padding: 15px; margin: 15px 0; border-radius: 5px; }
-                .products-list h4 { margin: 0 0 10px 0; color: #333; }
-                .product-item { padding: 10px; border-bottom: 1px solid #eee; font-size: 13px; }
-                .product-item:last-child { border-bottom: none; }
-                .product-sku { font-weight: bold; color: #007bff; }
-                .product-change { color: #28a745; margin: 5px 0; }
-                .product-price { color: #ff6b6b; font-weight: 500; margin: 5px 0; }
-                .error-box { background: #f8d7da; border: 1px solid #f5c6cb; border-radius: 5px; padding: 15px; margin: 15px 0; }
-                .error-box h4 { margin: 0 0 10px 0; color: #721c24; }
-                .error-item { background: white; padding: 10px; margin: 5px 0; border-left: 3px solid #dc3545; font-size: 13px; }
-                .footer { background: white; padding: 15px; text-align: center; font-size: 12px; color: #666; border-top: 1px solid #eee; margin-top: 20px; }
-                .timestamp { color: #999; font-size: 12px; }
-            </style>
-        </head>
-        <body>
-            <div class="container">
-                <div class="header">
-                    <h2>📊 Inventory Synchronization Report</h2>
-                    <p style="margin: 10px 0 0 0;">Status: <strong>' . $statusLabel . '</strong></p>
-                </div>
-                
-                <div class="content">
-                    <div class="summary">
-                        <div class="summary-row">
-                            <span class="summary-label">Execution Time:</span>
-                            <span class="summary-value">' . htmlspecialchars($syncResult['start_time'] ?? 'N/A') . '</span>
-                        </div>
-                        <div class="summary-row">
-                            <span class="summary-label">Duration:</span>
-                            <span class="summary-value">' . $duration . '</span>
-                        </div>
-                    </div>
-                    
-                    <div class="stats">
-                        <div class="stat-box">
-                            <div class="stat-number">' . $syncResult['total_products'] . '</div>
-                            <div class="stat-label">Total Products</div>
-                        </div>
-                        <div class="stat-box synced">
-                            <div class="stat-number">' . $syncResult['synced_count'] . '</div>
-                            <div class="stat-label">Updated</div>
-                        </div>
-                        <div class="stat-box skipped">
-                            <div class="stat-number">' . $syncResult['skipped_count'] . '</div>
-                            <div class="stat-label">Skipped</div>
-                        </div>
-                        <div class="stat-box errors">
-                            <div class="stat-number">' . $syncResult['error_count'] . '</div>
-                            <div class="stat-label">Errors</div>
-                        </div>
-                    </div>
-        ';
-        
-        // Add products section if there are updates
-        if (!empty($syncResult['products'])) {
-            $html .= '<div class="products-list">
-                <h4>✅ Successfully Updated Products (' . count($syncResult['products']) . ')</h4>';
-            
-            foreach ($syncResult['products'] as $product) {
-                $oldStock = $product['old_stock'] ?? 'N/A';
-                $newStock = $product['new_stock'] ?? 'N/A';
-                $price = $product['price'] ?? null;
-                $sku = htmlspecialchars($product['sku'] ?? 'Unknown');
-                $oldBackOrderMessage = htmlspecialchars($product['old_backorder_message'] ?? '');
-                $newBackOrderMessage = htmlspecialchars($product['new_backorder_message'] ?? '');
-                
-                $priceHtml = '';
-                if ($price !== null) {
-                    $priceHtml = '<div class="product-price">Price: $' . number_format($price, 2) . '</div>';
-                }
-                
-                $html .= '
-                    <div class="product-item">
-                        <div class="product-sku">SKU: ' . $sku . '</div>
-                        <div class="product-change">Stock Updated: ' . $oldStock . ' → ' . $newStock . '</div>
-                        ' . $priceHtml . '
-                        <div class="product-backorder-message">Old Back Order Message: ' . $oldBackOrderMessage . '</div>
-                        <div class="product-backorder-message">New Back Order Message: ' . $newBackOrderMessage . '</div>
-                    </div>
-                ';
-            }
-            
-            $html .= '</div>';
-        }
-        
-        // Add errors section if there are errors
-        if (!empty($syncResult['errors'])) {
-            $html .= '<div class="error-box">
-                <h4>⚠️ Errors Encountered (' . count($syncResult['errors']) . ')</h4>';
-            
-            foreach ($syncResult['errors'] as $error) {
-                $html .= '<div class="error-item">' . htmlspecialchars($error) . '</div>';
-            }
-            
-            $html .= '</div>';
-        }
-        
-        // Add additional info
-        if (isset($syncResult['error'])) {
-            $html .= '<div class="error-box">
-                <h4>⚠️ Critical Error</h4>
-                <div class="error-item">' . htmlspecialchars($syncResult['error']) . '</div>
-            </div>';
-        }
-        
-        $html .= '
-                    <div class="footer">
-                        <p>This is an automated notification from your 3DCart to NetSuite integration system.</p>
-                        <p class="timestamp">Report generated: ' . date('Y-m-d H:i:s T') . '</p>
-                    </div>
-                </div>
-            </div>
-        </body>
-        </html>';
-        
-        return $html;
-    }
-    
-    /**
-     * Calculate duration between two timestamps
-     * 
-     * @param string $startTime Start time (Y-m-d H:i:s format)
-     * @param string $endTime End time (Y-m-d H:i:s format)
-     * @return string Formatted duration
-     */
-    private function calculateDuration($startTime, $endTime) {
-        try {
-            if (empty($startTime) || empty($endTime)) {
-                return 'N/A';
-            }
-            
-            $start = new \DateTime($startTime);
-            $end = new \DateTime($endTime);
-            $interval = $start->diff($end);
-            
-            $parts = [];
-            if ($interval->h > 0) {
-                $parts[] = $interval->h . 'h';
-            }
-            if ($interval->i > 0) {
-                $parts[] = $interval->i . 'm';
-            }
-            if ($interval->s > 0 || empty($parts)) {
-                $parts[] = $interval->s . 's';
-            }
-            
-            return implode(' ', $parts);
-        } catch (\Exception $e) {
-            return 'N/A';
         }
     }
 }

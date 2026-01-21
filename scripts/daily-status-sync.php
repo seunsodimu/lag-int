@@ -23,7 +23,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 $config = require __DIR__ . '/../config/config.php';
 
 use Laguna\Integration\Services\OrderStatusSyncService;
-use Laguna\Integration\Services\EmailServiceFactory;
+use Laguna\Integration\Services\EnhancedEmailService;
 use Laguna\Integration\Services\NotificationSettingsService;
 use Laguna\Integration\Utils\Logger;
 
@@ -57,7 +57,7 @@ if ($afterDate) {
 $logger = Logger::getInstance();
 $syncService = new OrderStatusSyncService();
 $notificationService = new NotificationSettingsService();
-$emailService = EmailServiceFactory::create();
+$emailService = new EnhancedEmailService();
 
 // Log job start
 $logger->info('Starting daily order status synchronization job', [

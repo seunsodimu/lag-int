@@ -61,7 +61,7 @@ laguna-integrations/
 - **HubSpotService**: HubSpot API interactions and webhook processing
 - **NetSuiteService**: NetSuite REST API operations (extended for campaigns/leads)
 - **ThreeDCartService**: 3DCart API operations
-- **UnifiedEmailService**: Multi-provider email notifications
+- **EnhancedEmailService**: Multi-provider email notifications with setting support
 
 #### Controllers
 - **StatusController**: System health monitoring (updated for multi-integration)
