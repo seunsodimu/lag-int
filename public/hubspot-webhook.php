@@ -57,49 +57,65 @@ try {
         throw new \Exception('Invalid JSON payload: ' . json_last_error_msg());
     }
     
-    // Verify webhook signature if configured
-    $signature = $_SERVER['HTTP_X_HUBSPOT_SIGNATURE'] ?? $_SERVER['HTTP_X_HUBSPOT_SIGNATURE_V2'] ?? null;
-    if ($signature && !empty($config['hubspot']['webhook_secret'])) {
-        if (!$hubspotService->verifyWebhookSignature($rawPayload, $signature)) {
-            http_response_code(401);
-            $logger->warning('HubSpot webhook signature verification failed');
-            echo json_encode(['error' => 'Signature verification failed']);
-            exit;
+    // HubSpot sends an array of webhook events
+    if (!is_array($payload)) {
+        throw new \Exception('Invalid payload format: expected array');
+    }
+
+    // Handle single object payload if sent (though HubSpot usually sends array)
+    $events = isset($payload[0]) ? $payload : [$payload];
+
+    $results = [];
+    $hasError = false;
+
+    foreach ($events as $event) {
+        // Verify webhook signature if configured
+        $signature = $_SERVER['HTTP_X_HUBSPOT_SIGNATURE'] ?? $_SERVER['HTTP_X_HUBSPOT_SIGNATURE_V2'] ?? null;
+        if ($signature && !empty($config['hubspot']['webhook_secret'])) {
+            if (!$hubspotService->verifyWebhookSignature($rawPayload, $signature)) {
+                http_response_code(401);
+                $logger->warning('HubSpot webhook signature verification failed');
+                echo json_encode(['error' => 'Signature verification failed']);
+                exit;
+            }
+        }
+        
+        // Log processed event
+        $logger->info('Processing HubSpot webhook event', [
+            'subscription_type' => $event['subscriptionType'] ?? 'Unknown',
+            'object_id' => $event['objectId'] ?? 'Unknown',
+            'property_name' => $event['propertyName'] ?? 'Unknown',
+            'property_value' => $event['propertyValue'] ?? 'Unknown'
+        ]);
+        
+        // Process the webhook event
+        $result = $hubspotService->processWebhook($event);
+        $results[] = $result;
+
+        if (!$result['success']) {
+            $hasError = true;
         }
     }
     
-    // Log processed payload
-    $logger->info('HubSpot webhook payload processed', [
-        'subscription_type' => $payload['subscriptionType'] ?? 'Unknown',
-        'object_id' => $payload['objectId'] ?? 'Unknown',
-        'property_name' => $payload['propertyName'] ?? 'Unknown',
-        'property_value' => $payload['propertyValue'] ?? 'Unknown'
-    ]);
-    
-    // Process the webhook
-    $result = $hubspotService->processWebhook($payload);
-    
-    if ($result['success']) {
+    if (!$hasError) {
         http_response_code(200);
-        $logger->info('HubSpot webhook processed successfully', [
-            'object_id' => $payload['objectId'] ?? 'Unknown',
-            'message' => $result['message'] ?? 'Success'
-        ]);
+        $logger->info('All HubSpot webhook events processed successfully');
         
         echo json_encode([
             'success' => true,
-            'message' => $result['message'] ?? 'Webhook processed successfully'
+            'message' => 'Webhook events processed successfully',
+            'results' => $results
         ]);
     } else {
-        http_response_code(400);
-        $logger->error('HubSpot webhook processing failed', [
-            'object_id' => $payload['objectId'] ?? 'Unknown',
-            'error' => $result['error']
-        ]);
+        // If at least one failed, we might want to return 400 or still 200 depending on preference
+        // Usually 200 is safer so HubSpot doesn't keep retrying all events
+        http_response_code(200); 
+        $logger->warning('Some HubSpot webhook events failed to process');
         
         echo json_encode([
             'success' => false,
-            'error' => $result['error']
+            'message' => 'Some events failed to process',
+            'results' => $results
         ]);
     }
     
