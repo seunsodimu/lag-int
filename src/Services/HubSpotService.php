@@ -295,14 +295,27 @@ class HubSpotService {
 
                 $netSuiteService = new NetSuiteService();
                 
-                // Per instructions: The customer id in the url should be replaced with the objectId from the HubSpot payload
-                $netsuiteCustomerId = $payload['objectId'];
+                // Lookup NetSuite customer ID using HubSpot objectId
+                $hubspotObjectId = $payload['objectId'];
+                $netsuiteCustomerId = $this->findNetSuiteCustomerByHubSpotId($hubspotObjectId, $netSuiteService);
+                
+                if (!$netsuiteCustomerId) {
+                    $this->logger->warning('NetSuite customer not found for HubSpot property change', [
+                        'hubspot_id' => $hubspotObjectId,
+                        'property' => $propertyName
+                    ]);
+                    return [
+                        'success' => false,
+                        'message' => "NetSuite customer not found for HubSpot ID {$hubspotObjectId}"
+                    ];
+                }
                 
                 $updateData = [
                     $mapping['field'] => $mapping['value']
                 ];
                 
                 $this->logger->info('Updating NetSuite customer from HubSpot property change', [
+                    'hubspot_id' => $hubspotObjectId,
                     'netsuite_customer_id' => $netsuiteCustomerId,
                     'property' => $propertyName,
                     'mapped_field' => $mapping['field'],
@@ -684,6 +697,28 @@ class HubSpotService {
         ];
     }
     
+    /**
+     * Find NetSuite customer ID by HubSpot object ID using SuiteQL
+     */
+    private function findNetSuiteCustomerByHubSpotId($hubspotId, $netSuiteService) {
+        try {
+            $query = "SELECT id FROM customer WHERE custentity_celigo_hubspot_id = " . intval($hubspotId);
+            $result = $netSuiteService->executeSuiteQLQuery($query);
+            
+            if (isset($result['items']) && count($result['items']) > 0) {
+                return $result['items'][0]['id'];
+            }
+            
+            return null;
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to lookup NetSuite customer by HubSpot ID', [
+                'hubspot_id' => $hubspotId,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
     /**
      * Check if synchronization is enabled for a specific property
      */
