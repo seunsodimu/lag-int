@@ -702,7 +702,7 @@ class HubSpotService {
      */
     private function findNetSuiteCustomerByHubSpotId($hubspotId, $netSuiteService) {
         try {
-            $query = "SELECT id FROM customer WHERE custentity_celigo_hubspot_id = " . intval($hubspotId);
+            $query = "SELECT id FROM customer WHERE custentity_hs_vid = " . intval($hubspotId);
             $result = $netSuiteService->executeSuiteQLQuery($query);
             
             if (isset($result['items']) && count($result['items']) > 0) {
