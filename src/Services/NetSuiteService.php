@@ -250,12 +250,49 @@ class NetSuiteService {
                 ]);
                 return null;
             }
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             $this->logger->error('Error retrieving customer by ID', [
                 'customer_id' => $customerId,
                 'error' => $e->getMessage()
             ]);
             return null;
+        }
+    }
+
+    /**
+     * Update customer record in NetSuite
+     */
+    public function updateCustomer($customerId, $data) {
+        try {
+            $this->logger->info('Updating customer record', [
+                'customer_id' => $customerId,
+                'data' => $data
+            ]);
+            
+            $startTime = microtime(true);
+            $response = $this->makeRequest('PATCH', "/customer/{$customerId}", $data);
+            $duration = (microtime(true) - $startTime) * 1000;
+            
+            $this->logger->logApiCall('NetSuite', "/customer/{$customerId}", 'PATCH', $response->getStatusCode(), $duration);
+            
+            $statusCode = $response->getStatusCode();
+            if ($statusCode === 204 || $statusCode === 200) {
+                return [
+                    'success' => true,
+                    'status_code' => $statusCode
+                ];
+            } else {
+                throw new \Exception('Unexpected status code: ' . $statusCode);
+            }
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to update customer in NetSuite', [
+                'customer_id' => $customerId,
+                'error' => $e->getMessage()
+            ]);
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
         }
     }
     

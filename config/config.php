@@ -41,7 +41,14 @@ return [
             'name' => 'HubSpot to NetSuite',
             'description' => 'Lead synchronization from HubSpot to NetSuite',
             'webhook_endpoint' => 'hubspot-webhook.php',
-            'status_page' => 'hubspot-status.php'
+            'status_page' => 'hubspot-status.php',
+            'sync_properties' => [
+                'hubspot_owner_id' => false,
+                'sales_readiness' => true,
+                'projected_value' => true,
+                'buying_reason' => true,
+                'buying_time_frame' => true,
+            ]
         ]
     ],
 

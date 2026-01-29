@@ -236,33 +236,88 @@ class HubSpotService {
                     'message' => 'Webhook ignored - not a contact property change'
                 ];
             }
-            
-            // Get contact information
-            $contactResult = $this->getContact($payload['objectId']);
-            if (!$contactResult['success']) {
-                throw new \Exception('Failed to retrieve contact: ' . $contactResult['error']);
-            }
-            
-            $contact = $contactResult['data'];
-            
-            // Check if lifecycle stage is 'lead'
-            $lifecycleStage = strtolower($contact['properties']['lifecyclestage']) ?? '';
-            if ($lifecycleStage !== 'lead')  {
-                $this->logger->info('Contact is not a lead, skipping processing. But its a '.$contact['properties']['lifecyclestage'], [
-                    'contact_id' => $payload['objectId'],
-                    'lifecyclestage' => $lifecycleStage
-                ]);
+
+            $propertyName = $payload['propertyName'] ?? '';
+            $propertyValue = $payload['propertyValue'] ?? '';
+
+            // Check if property synchronization is enabled
+            if (!$this->isPropertySyncEnabled($propertyName)) {
+                $this->logger->info('Property synchronization disabled', ['property' => $propertyName]);
                 return [
                     'success' => true,
-                    'message' => 'Contact is not a lead - processing skipped'
+                    'message' => "Property {$propertyName} synchronization is disabled"
                 ];
             }
-            
-            // Process the lead
-            $netSuiteService = new NetSuiteService();
-            $leadResult = $this->processLead($contact, $payload, $netSuiteService);
-            
-            return $leadResult;
+
+            // Handle different property changes
+            if ($propertyName === 'hubspot_owner_id') {
+                // Current logic: Create/Update lead in NetSuite when owner is assigned
+                
+                // Get contact information
+                $contactResult = $this->getContact($payload['objectId']);
+                if (!$contactResult['success']) {
+                    throw new \Exception('Failed to retrieve contact: ' . $contactResult['error']);
+                }
+                
+                $contact = $contactResult['data'];
+                
+                // Check if lifecycle stage is 'lead'
+                $lifecycleStage = strtolower($contact['properties']['lifecyclestage'] ?? '');
+                if ($lifecycleStage !== 'lead')  {
+                    $this->logger->info('Contact is not a lead, skipping processing. But its a '.($contact['properties']['lifecyclestage'] ?? 'N/A'), [
+                        'contact_id' => $payload['objectId'],
+                        'lifecyclestage' => $lifecycleStage
+                    ]);
+                    return [
+                        'success' => true,
+                        'message' => 'Contact is not a lead - processing skipped'
+                    ];
+                }
+                
+                // Process the lead
+                $netSuiteService = new NetSuiteService();
+                return $this->processLead($contact, $payload, $netSuiteService);
+
+            } elseif (in_array($propertyName, ['sales_readiness', 'projected_value', 'buying_reason', 'buying_time_frame'])) {
+                // New logic: Update specific fields in NetSuite
+                
+                $mapping = $this->mapHubSpotToNetSuite($propertyName, $propertyValue);
+                if (!$mapping) {
+                    $this->logger->warning('No mapping found for HubSpot property change', [
+                        'property' => $propertyName,
+                        'value' => $propertyValue
+                    ]);
+                    return [
+                        'success' => false,
+                        'message' => "No mapping found for property {$propertyName} with value {$propertyValue}"
+                    ];
+                }
+
+                $netSuiteService = new NetSuiteService();
+                
+                // Per instructions: The customer id in the url should be replaced with the objectId from the HubSpot payload
+                $netsuiteCustomerId = $payload['objectId'];
+                
+                $updateData = [
+                    $mapping['field'] => $mapping['value']
+                ];
+                
+                $this->logger->info('Updating NetSuite customer from HubSpot property change', [
+                    'netsuite_customer_id' => $netsuiteCustomerId,
+                    'property' => $propertyName,
+                    'mapped_field' => $mapping['field'],
+                    'mapped_value' => $mapping['value']
+                ]);
+                
+                return $netSuiteService->updateCustomer($netsuiteCustomerId, $updateData);
+
+            } else {
+                $this->logger->info('Ignoring property change', ['property' => $propertyName]);
+                return [
+                    'success' => true,
+                    'message' => "Property {$propertyName} ignored"
+                ];
+            }
             
         } catch (\Exception $e) {
             $error = 'HubSpot webhook processing failed: ' . $e->getMessage();
@@ -629,6 +684,69 @@ class HubSpotService {
         ];
     }
     
+    /**
+     * Check if synchronization is enabled for a specific property
+     */
+    private function isPropertySyncEnabled($propertyName) {
+        $syncProperties = $this->config['integrations']['hubspot_netsuite']['sync_properties'] ?? [];
+        
+        // If the property is not in the list, we assume it's disabled 
+        // OR we can default to true for backward compatibility.
+        // Given the request, we should check specifically for the provided properties.
+        return $syncProperties[$propertyName] ?? true;
+    }
+
+    /**
+     * Map HubSpot property and value to NetSuite field and ID
+     */
+    private function mapHubSpotToNetSuite($propertyName, $propertyValue) {
+        $mappingFile = __DIR__ . '/../../docs/netsuite_hubspot_mapping.csv';
+        if (!file_exists($mappingFile)) {
+            $this->logger->error('Mapping file not found', ['file' => $mappingFile]);
+            return null;
+        }
+
+        $handle = fopen($mappingFile, 'r');
+        if ($handle === false) {
+            $this->logger->error('Failed to open mapping file', ['file' => $mappingFile]);
+            return null;
+        }
+
+        // Skip header
+        fgetcsv($handle);
+
+        $mappedField = null;
+        $mappedValue = null;
+
+        while (($data = fgetcsv($handle)) !== false) {
+            // CSV structure: Values, NetSuite Value Internal ID, Label, NetSuite field ID, HubSpot field ID
+            // Index 0: Value (HubSpot value)
+            // Index 1: NetSuite Internal ID
+            // Index 3: NetSuite field ID
+            // Index 4: HubSpot field ID
+            
+            // Check for property name match (index 4) and value match (index 0)
+            if (isset($data[4]) && $data[4] === $propertyName && isset($data[0]) && $data[0] === $propertyValue) {
+                $mappedField = $data[3];
+                $mappedValue = $data[1];
+                break;
+            }
+        }
+
+        fclose($handle);
+
+        if ($mappedField && $mappedValue) {
+            // Special handling for salesreadines -> salesreadiness if needed, 
+            // but we follow the CSV as requested.
+            return [
+                'field' => $mappedField,
+                'value' => $mappedValue
+            ];
+        }
+
+        return null;
+    }
+
     /**
      * Verify webhook signature (if needed)
      */
