@@ -30,6 +30,7 @@ class HubSpotService {
         $this->client = new Client([
             'base_uri' => $this->credentials['hubspot']['base_url'],
             'timeout' => 30,
+            'verify' => false,
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->credentials['hubspot']['access_token'],
                 'Content-Type' => 'application/json',
@@ -801,6 +802,61 @@ class HubSpotService {
         }
 
         return null;
+    }
+
+    /**
+     * Update HubSpot contact properties
+     */
+    public function updateContact($contactId, $properties) {
+        try {
+            $url = "/crm/v3/objects/contacts/{$contactId}";
+            
+            $data = [
+                'properties' => $properties
+            ];
+            
+            $response = $this->client->patch($url, [
+                'json' => $data
+            ]);
+            
+            if ($response->getStatusCode() === 200) {
+                $responseData = json_decode($response->getBody()->getContents(), true);
+                $this->logger->info('Successfully updated HubSpot contact properties', [
+                    'contact_id' => $contactId,
+                    'properties' => array_keys($properties)
+                ]);
+                
+                return [
+                    'success' => true,
+                    'data' => $responseData
+                ];
+            } else {
+                throw new \Exception('Unexpected status code: ' . $response->getStatusCode());
+            }
+        } catch (RequestException $e) {
+            $error = 'Failed to update HubSpot contact: ' . $e->getMessage();
+            $this->logger->error($error, [
+                'contact_id' => $contactId,
+                'properties' => $properties,
+                'response' => $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'N/A'
+            ]);
+            
+            return [
+                'success' => false,
+                'error' => $error
+            ];
+        } catch (\Exception $e) {
+            $error = 'Error updating HubSpot contact: ' . $e->getMessage();
+            $this->logger->error($error, [
+                'contact_id' => $contactId,
+                'error' => $e->getMessage()
+            ]);
+            
+            return [
+                'success' => false,
+                'error' => $error
+            ];
+        }
     }
 
     /**

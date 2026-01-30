@@ -18,6 +18,7 @@ date_default_timezone_set('America/New_York');
 $logger = Logger::getInstance();
 $hubspotService = new HubSpotService(true); // true = webhook context
 $config = require __DIR__ . '/../config/config.php';
+$credentials = require __DIR__ . '/../config/credentials.php';
 
 // Log incoming request
 $logger->info('HubSpot webhook endpoint accessed', [
@@ -71,7 +72,7 @@ try {
     foreach ($events as $event) {
         // Verify webhook signature if configured
         $signature = $_SERVER['HTTP_X_HUBSPOT_SIGNATURE'] ?? $_SERVER['HTTP_X_HUBSPOT_SIGNATURE_V2'] ?? null;
-        if ($signature && !empty($config['hubspot']['webhook_secret'])) {
+        if ($signature && !empty($credentials['hubspot']['webhook_secret'])) {
             if (!$hubspotService->verifyWebhookSignature($rawPayload, $signature)) {
                 http_response_code(401);
                 $logger->warning('HubSpot webhook signature verification failed');
