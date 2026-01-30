@@ -805,6 +805,35 @@ class HubSpotService {
     }
 
     /**
+     * Map NetSuite field values back to HubSpot property values
+     */
+    public function mapNetSuiteToHubSpot($payload) {
+        $propertyMapping = $this->config['integrations']['hubspot_netsuite']['property_mapping'] ?? [];
+        $hubspotProperties = [];
+
+        foreach ($propertyMapping as $hsProp => $config) {
+            $nsField = $config['netsuite_field'];
+            
+            if (isset($payload[$nsField])) {
+                $nsValue = $payload[$nsField];
+                $values = $config['values'];
+                
+                // Find the HubSpot label that corresponds to this NetSuite ID
+                $hsValue = array_search($nsValue, $values);
+                
+                if ($hsValue !== false) {
+                    $hubspotProperties[$hsProp] = $hsValue;
+                } else {
+                    // Fallback to raw value if no mapping found
+                    $hubspotProperties[$hsProp] = $nsValue;
+                }
+            }
+        }
+
+        return $hubspotProperties;
+    }
+
+    /**
      * Update HubSpot contact properties
      */
     public function updateContact($contactId, $properties) {

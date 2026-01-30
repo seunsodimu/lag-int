@@ -7,7 +7,7 @@ A flexible, multi-platform integration hub that connects various business system
 The Laguna Integrations Platform has evolved from a single 3DCart-NetSuite integration to a comprehensive multi-integration system that supports:
 
 - **3DCart → NetSuite**: Automated order processing and customer management
-- **HubSpot → NetSuite**: Lead synchronization and campaign management
+- **HubSpot ↔ NetSuite**: Bidirectional lead synchronization and campaign management
 - **Extensible Architecture**: Easy to add new integrations
 
 ## Features
@@ -20,11 +20,17 @@ The Laguna Integrations Platform has evolved from a single 3DCart-NetSuite integ
 - Manual upload capabilities for bulk processing
 
 ### 🎯 HubSpot Integration
-- Contact property change webhooks
-- Automatic lead creation in NetSuite
-- Campaign management and synchronization
-- Lead lifecycle stage filtering
-- Sales team assignment
+- **Bidirectional Sync**: Synchronize data between HubSpot and NetSuite
+- **HubSpot → NetSuite**:
+    - Contact property change webhooks
+    - Automatic lead creation in NetSuite
+    - Campaign management and synchronization
+    - Lead lifecycle stage filtering
+    - Sales team assignment
+- **NetSuite → HubSpot**:
+    - Real-time updates from NetSuite to HubSpot via webhooks
+    - Secure authentication (X-NetSuite-Secret)
+    - Automated property mapping
 
 ### ⚙️ System Management
 - Unified status monitoring for all integrations
@@ -108,7 +114,7 @@ Add HubSpot credentials to `config/credentials.php`:
 
 ## HubSpot Integration Details
 
-### Webhook Setup
+### HubSpot Webhook Setup
 1. Go to HubSpot account settings
 2. Navigate to Integrations → Private Apps
 3. Create or edit your private app
@@ -116,6 +122,16 @@ Add HubSpot credentials to `config/credentials.php`:
 5. Add webhook URL: `https://yourdomain.com/hubspot-webhook.php`
 6. Subscribe to "Contact property change" events
 7. Set property filter to "hubspot_owner_id" (optional)
+
+### NetSuite Webhook Setup
+1. Create a Workflow or User Event Script in NetSuite on the Customer record.
+2. Configure it to send a POST request to: `https://yourdomain.com/netsuite-webhook.php`
+3. Include the following headers:
+   - `X-NetSuite-Secret`: Your configured secret (matches `NS_WEBHOOK_SECRET` in `.env`)
+   - `Content-Type`: `application/json`
+4. The JSON payload must include:
+   - `custentity_hs_vid`: The HubSpot Contact ID
+   - Any fields you wish to sync (e.g., `custentity_projected_value`, `buyingreason`, etc.)
 
 ### Processing Flow
 1. **Webhook Trigger**: Contact property change in HubSpot
@@ -142,6 +158,7 @@ Add HubSpot credentials to `config/credentials.php`:
 ### Webhook Endpoints
 - `POST /webhook.php` - 3DCart order webhooks
 - `POST /hubspot-webhook.php` - HubSpot contact property change webhooks
+- `POST /netsuite-webhook.php` - NetSuite customer property change webhooks
 
 ### Management Pages
 - `/index.php` - Main dashboard

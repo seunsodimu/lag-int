@@ -38,12 +38,22 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 // Authentication using NS_WEBHOOK_SECRET
-$secretHeader = $_SERVER['HTTP_X_NETSUITE_SECRET'] ?? '';
+$secretHeader = $_SERVER['HTTP_X_NETSUITE_SECRET'] ?? $_SERVER['X_NETSUITE_SECRET'] ?? '';
+$authHeader = $_SERVER['HTTP_AUTHORIZATION'] ?? $_SERVER['REDIRECT_HTTP_AUTHORIZATION'] ?? '';
+
+// Support "Bearer <secret>" format
+if (empty($secretHeader) && !empty($authHeader) && preg_match('/Bearer\s+(.*)$/i', $authHeader, $matches)) {
+    $secretHeader = $matches[1];
+}
+
 $expectedSecret = $_ENV['NS_WEBHOOK_SECRET'] ?? '';
 
 if (empty($secretHeader) || $secretHeader !== $expectedSecret) {
     http_response_code(401);
-    $logger->warning('Unauthorized NetSuite webhook attempt', ['provided_secret' => $secretHeader]);
+    $logger->warning('Unauthorized NetSuite webhook attempt', [
+        'has_secret_header' => !empty($_SERVER['HTTP_X_NETSUITE_SECRET']),
+        'has_auth_header' => !empty($_SERVER['HTTP_AUTHORIZATION'])
+    ]);
     echo json_encode(['success' => false, 'error' => 'Unauthorized']);
     exit;
 }
@@ -70,20 +80,8 @@ try {
 
     $hubspotContactId = $payload['custentity_hs_vid'];
     
-    // Mapping NetSuite fields to HubSpot properties
-    $mapping = [
-        'custentity_projected_value' => 'projected_value',
-        'buyingreason' => 'buying_reason',
-        'salesreadiness' => 'sales_readiness',
-        'buyingtimeframe' => 'buying_time_frame'
-    ];
-
-    $hubspotProperties = [];
-    foreach ($mapping as $nsField => $hsProp) {
-        if (isset($payload[$nsField])) {
-            $hubspotProperties[$hsProp] = $payload[$nsField];
-        }
-    }
+    // Map NetSuite fields to HubSpot properties using service
+    $hubspotProperties = $hubspotService->mapNetSuiteToHubSpot($payload);
 
     if (empty($hubspotProperties)) {
         $logger->info('No mappable fields found in payload', ['payload' => $payload]);

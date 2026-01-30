@@ -9,6 +9,11 @@ RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
+# Redirect /file.php/ to /file.php (strip trailing slash for php files)
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^(.*\.php)/+$ $1 [L,R=301]
+
 # If the request starts with /lag-int/public/ or /public/, strip it so files resolve in public/
 RewriteRule ^(lag-int/)?public/(.*)$ $2 [L,QSA]
 
