@@ -48,6 +48,50 @@ return [
                 'projected_value' => true,
                 'buying_reason' => true,
                 'buying_time_frame' => true,
+            ],
+            'property_mapping' => [
+                'buying_reason' => [
+                    'netsuite_field' => 'buyingreason',
+                    'values' => [
+                        'New Requirement' => 1,
+                        'Other' => 3,
+                        'Replace Existing' => 2,
+                    ]
+                ],
+                'buying_time_frame' => [
+                    'netsuite_field' => 'buyingtimeframe',
+                    'values' => [
+                        '1 - 3 months' => 2,
+                        '10 - 12 months' => 5,
+                        '4 - 6 months' => 3,
+                        '7 - 9 months' => 4,
+                        'Greater than 1 year' => 6,
+                        'Less than 1 month' => 1,
+                    ]
+                ],
+                'sales_readiness' => [
+                    'netsuite_field' => 'salesreadiness',
+                    'values' => [
+                        'Cold' => 1,
+                        'Hot' => 3,
+                        'Warm' => 2,
+                    ]
+                ],
+                'projected_value' => [
+                    'netsuite_field' => 'custentity_projected_value',
+                    'values' => [
+                        '$8,000 - $13,000' => 1,
+                        '$15,000' => 2,
+                        '$15,000 - $29,000' => 3,
+                        '$39,000 - $44,000' => 4,
+                        '$50,000 - $65,000' => 5,
+                        '$69,000 -$77,000' => 6,
+                        '$78,000 - $107,000' => 7,
+                        '$106,000 - $140,000' => 8,
+                        '$177,000 - $200,000' => 9,
+                        '> $200,000' => 10,
+                    ]
+                ]
             ]
         ]
     ],

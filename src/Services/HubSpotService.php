@@ -295,11 +295,11 @@ class HubSpotService {
 
                 $netSuiteService = new NetSuiteService();
                 
-                // Lookup NetSuite customer ID using HubSpot objectId
+                // Lookup NetSuite customer details using HubSpot objectId
                 $hubspotObjectId = $payload['objectId'];
-                $netsuiteCustomerId = $this->findNetSuiteCustomerByHubSpotId($hubspotObjectId, $netSuiteService);
+                $netsuiteCustomer = $this->findNetSuiteCustomerByHubSpotId($hubspotObjectId, $netSuiteService);
                 
-                if (!$netsuiteCustomerId) {
+                if (!$netsuiteCustomer) {
                     $this->logger->warning('NetSuite customer not found for HubSpot property change', [
                         'hubspot_id' => $hubspotObjectId,
                         'property' => $propertyName
@@ -309,16 +309,38 @@ class HubSpotService {
                         'message' => "NetSuite customer not found for HubSpot ID {$hubspotObjectId}"
                     ];
                 }
+
+                $netsuiteCustomerId = $netsuiteCustomer['id'];
+                $netsuiteFieldName = $mapping['field'];
+                $currentValue = $netsuiteCustomer[$netsuiteFieldName] ?? null;
+
+                // Check if the field already has a value in NetSuite
+                // treat "-None-", "-none-", "null" as empty
+                $isEmpty = empty($currentValue) || in_array(strtolower((string)$currentValue), ['-none-', 'null']);
+
+                if (!$isEmpty) {
+                    $this->logger->info('Skipping update: NetSuite field already has a value', [
+                        'hubspot_id' => $hubspotObjectId,
+                        'netsuite_customer_id' => $netsuiteCustomerId,
+                        'field' => $netsuiteFieldName,
+                        'current_value' => $currentValue,
+                        'new_value' => $mapping['value']
+                    ]);
+                    return [
+                        'success' => true,
+                        'message' => "Update skipped: Field {$netsuiteFieldName} already has a value in NetSuite"
+                    ];
+                }
                 
                 $updateData = [
-                    $mapping['field'] => $mapping['value']
+                    $netsuiteFieldName => $mapping['value']
                 ];
                 
                 $this->logger->info('Updating NetSuite customer from HubSpot property change', [
                     'hubspot_id' => $hubspotObjectId,
                     'netsuite_customer_id' => $netsuiteCustomerId,
                     'property' => $propertyName,
-                    'mapped_field' => $mapping['field'],
+                    'mapped_field' => $netsuiteFieldName,
                     'mapped_value' => $mapping['value']
                 ]);
                 
@@ -698,15 +720,15 @@ class HubSpotService {
     }
     
     /**
-     * Find NetSuite customer ID by HubSpot object ID using SuiteQL
+     * Find NetSuite customer details by HubSpot object ID using SuiteQL
      */
     private function findNetSuiteCustomerByHubSpotId($hubspotId, $netSuiteService) {
         try {
-            $query = "SELECT id FROM customer WHERE custentity_hs_vid = " . intval($hubspotId);
+            $query = "SELECT id, buyingtimeframe, salesreadiness, buyingreason, custentity_projected_value FROM customer WHERE custentity_hs_vid = " . intval($hubspotId);
             $result = $netSuiteService->executeSuiteQLQuery($query);
             
             if (isset($result['items']) && count($result['items']) > 0) {
-                return $result['items'][0]['id'];
+                return $result['items'][0];
             }
             
             return null;
@@ -725,9 +747,6 @@ class HubSpotService {
     private function isPropertySyncEnabled($propertyName) {
         $syncProperties = $this->config['integrations']['hubspot_netsuite']['sync_properties'] ?? [];
         
-        // If the property is not in the list, we assume it's disabled 
-        // OR we can default to true for backward compatibility.
-        // Given the request, we should check specifically for the provided properties.
         return $syncProperties[$propertyName] ?? true;
     }
 
@@ -735,48 +754,50 @@ class HubSpotService {
      * Map HubSpot property and value to NetSuite field and ID
      */
     private function mapHubSpotToNetSuite($propertyName, $propertyValue) {
-        $mappingFile = __DIR__ . '/../../docs/netsuite_hubspot_mapping.csv';
-        if (!file_exists($mappingFile)) {
-            $this->logger->error('Mapping file not found', ['file' => $mappingFile]);
+        $propertyMapping = $this->config['integrations']['hubspot_netsuite']['property_mapping'] ?? [];
+        
+        if (!isset($propertyMapping[$propertyName])) {
+            $this->logger->warning('No mapping configuration found for HubSpot property', ['property' => $propertyName]);
             return null;
         }
 
-        $handle = fopen($mappingFile, 'r');
-        if ($handle === false) {
-            $this->logger->error('Failed to open mapping file', ['file' => $mappingFile]);
-            return null;
-        }
+        $config = $propertyMapping[$propertyName];
+        $mappedField = $config['netsuite_field'];
+        $values = $config['values'];
 
-        // Skip header
-        fgetcsv($handle);
-
-        $mappedField = null;
-        $mappedValue = null;
-
-        while (($data = fgetcsv($handle)) !== false) {
-            // CSV structure: Values, NetSuite Value Internal ID, Label, NetSuite field ID, HubSpot field ID
-            // Index 0: Value (HubSpot value)
-            // Index 1: NetSuite Internal ID
-            // Index 3: NetSuite field ID
-            // Index 4: HubSpot field ID
-            
-            // Check for property name match (index 4) and value match (index 0)
-            if (isset($data[4]) && $data[4] === $propertyName && isset($data[0]) && $data[0] === $propertyValue) {
-                $mappedField = $data[3];
-                $mappedValue = $data[1];
-                break;
-            }
-        }
-
-        fclose($handle);
-
-        if ($mappedField && $mappedValue) {
-            // Special handling for salesreadines -> salesreadiness if needed, 
-            // but we follow the CSV as requested.
+        // Direct match
+        if (isset($values[$propertyValue])) {
             return [
                 'field' => $mappedField,
-                'value' => $mappedValue
+                'value' => $values[$propertyValue]
             ];
+        }
+
+        // Exact match with trimmed value
+        $trimmedValue = trim($propertyValue);
+        if (isset($values[$trimmedValue])) {
+            return [
+                'field' => $mappedField,
+                'value' => $values[$trimmedValue]
+            ];
+        }
+
+        // Special handling for range matching (projected_value and buying_time_frame)
+        if ($propertyName === 'projected_value' || $propertyName === 'buying_time_frame') {
+            foreach ($values as $range => $id) {
+                // If the HubSpot value is contained in the range string
+                if (strpos((string)$range, $trimmedValue) !== false) {
+                    $this->logger->info("Found range match for {$propertyName}", [
+                        'value' => $propertyValue,
+                        'matched_range' => $range,
+                        'matched_id' => $id
+                    ]);
+                    return [
+                        'field' => $mappedField,
+                        'value' => $id
+                    ];
+                }
+            }
         }
 
         return null;
