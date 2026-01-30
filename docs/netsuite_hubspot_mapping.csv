@@ -8,9 +8,9 @@ Replace Existing,2,Buying Reason,buyingreason,buying_reason
 7 - 9 months,4,Buying Time Frame,buyingtimeframe,buying_time_frame
 Greater than 1 year,6,Buying Time Frame,buyingtimeframe,buying_time_frame
 Less than 1 month,1,Buying Time Frame,buyingtimeframe,buying_time_frame
-Cold,1,Sales Readiness,salesreadines,sales_readiness
-Hot,3,Sales Readiness,salesreadines,sales_readiness
-Warm,2,Sales Readiness,salesreadines,sales_readiness
+Cold,1,Sales Readiness,salesreadiness,sales_readiness
+Hot,3,Sales Readiness,salesreadiness,sales_readiness
+Warm,2,Sales Readiness,salesreadiness,sales_readiness
 "$8,000 - $13,000",1,Projected Value,custentity_projected_value,projected_value
 "$15,000 ",2,Projected Value,custentity_projected_value,projected_value
 "$15,000 - $29,000",3,Projected Value,custentity_projected_value,projected_value
