@@ -9,7 +9,10 @@ RewriteCond %{REQUEST_FILENAME} -f [OR]
 RewriteCond %{REQUEST_FILENAME} -d
 RewriteRule ^ - [L]
 
-# If the request starts with /lag-int, strip the prefix so files resolve in public/
+# If the request starts with /lag-int/public/ or /public/, strip it so files resolve in public/
+RewriteRule ^(lag-int/)?public/(.*)$ $2 [L,QSA]
+
+# If the request starts with /lag-int, strip the prefix
 RewriteRule ^lag-int/?$ index.php [L,QSA]
 RewriteRule ^lag-int/(.*)$ $1 [L,QSA]
 
