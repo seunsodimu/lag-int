@@ -143,7 +143,7 @@ return [
         'auto_create_customers' => true,
         'default_customer_type' => 'individual',
         'default_payment_terms' => 'Net 30',
-        'retry_attempts' => 3,
+        'retry_attempts' => 1,
         'retry_delay' => 5, // seconds
         
         // 3DCart Order Status Updates

@@ -723,7 +723,7 @@ class HubSpotService {
     /**
      * Find NetSuite customer details by HubSpot object ID using SuiteQL
      */
-    private function findNetSuiteCustomerByHubSpotId($hubspotId, $netSuiteService) {
+    public function findNetSuiteCustomerByHubSpotId($hubspotId, $netSuiteService) {
         try {
             $query = "SELECT id, buyingtimeframe, salesreadiness, buyingreason, custentity_projected_value FROM customer WHERE custentity_hs_vid = " . intval($hubspotId);
             $result = $netSuiteService->executeSuiteQLQuery($query);
@@ -754,7 +754,7 @@ class HubSpotService {
     /**
      * Map HubSpot property and value to NetSuite field and ID
      */
-    private function mapHubSpotToNetSuite($propertyName, $propertyValue) {
+    public function mapHubSpotToNetSuite($propertyName, $propertyValue) {
         $propertyMapping = $this->config['integrations']['hubspot_netsuite']['property_mapping'] ?? [];
         
         if (!isset($propertyMapping[$propertyName])) {
