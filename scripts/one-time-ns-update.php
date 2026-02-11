@@ -1,9 +1,9 @@
 <?php
 /**
- * One-time NetSuite Update Script
+ * One-time HubSpot to NetSuite Update Script
  * 
- * Uses data from docs/ns_update.csv to update NetSuite customer records
- * following the existing integration logic.
+ * Uses data from docs/hs_ns_update.csv to retrieve contact data from HubSpot
+ * and update corresponding NetSuite customer records.
  */
 
 require_once __DIR__ . '/../vendor/autoload.php';
@@ -11,6 +11,7 @@ require_once __DIR__ . '/../vendor/autoload.php';
 use Laguna\Integration\Services\HubSpotService;
 use Laguna\Integration\Services\NetSuiteService;
 use Laguna\Integration\Utils\Logger;
+use GuzzleHttp\Client;
 
 // Set timezone
 date_default_timezone_set('America/New_York');
@@ -20,14 +21,28 @@ $logger = Logger::getInstance();
 $hubspotService = new HubSpotService();
 $netsuiteService = new NetSuiteService();
 
-$csvFile = __DIR__ . '/../docs/ns_update.csv';
+// Get credentials for direct HubSpot API call
+$credentials = require __DIR__ . '/../config/credentials.php';
+$hubspotAccessToken = $credentials['hubspot']['access_token'];
+$hubspotBaseUrl = $credentials['hubspot']['base_url'];
+
+$httpClient = new Client([
+    'base_uri' => $hubspotBaseUrl,
+    'timeout' => 30,
+    'headers' => [
+        'Authorization' => 'Bearer ' . $hubspotAccessToken,
+        'Accept' => 'application/json'
+    ]
+]);
+
+$csvFile = __DIR__ . '/../docs/hs_ns_update.csv';
 
 if (!file_exists($csvFile)) {
     die("Error: CSV file not found at $csvFile\n");
 }
 
 $file = fopen($csvFile, 'r');
-$header = fgetcsv($file); // Skip header
+$header = fgetcsv($file); // Skip header (HubSpot ID)
 
 $stats = [
     'total' => 0,
@@ -38,38 +53,65 @@ $stats = [
     'not_found' => 0
 ];
 
-$logger->info('Starting one-time NetSuite update from CSV', ['file' => $csvFile]);
+$logger->info('Starting one-time NetSuite update from HubSpot CSV', ['file' => $csvFile]);
 
 while (($row = fgetcsv($file)) !== false) {
-    // Check if row is empty (all columns empty)
     if (empty(array_filter($row))) {
         continue;
     }
 
     $stats['total']++;
     
-    $vid = trim($row[0] ?? '');
-    if (empty($vid)) {
-        $logger->warning('Skipping row with empty HubSpot VID', ['row' => $row]);
+    // Handle scientific notation for HubSpot IDs from CSV
+    $hubspotId = trim($row[0] ?? '');
+    if (strpos(strtoupper($hubspotId), 'E+') !== false) {
+        $hubspotId = sprintf("%.0f", (float)$hubspotId);
+    }
+
+    if (empty($hubspotId)) {
         continue;
     }
 
     $stats['processed']++;
 
-    // Mapping CSV columns to HubSpot property names
-    $data = [
-        'sales_readiness' => trim($row[1] ?? ''),
-        'buying_time_frame' => trim($row[2] ?? ''),
-        'buying_reason' => trim($row[3] ?? ''),
-        'projected_value' => trim($row[4] ?? '')
-    ];
-
     try {
-        // Find NetSuite customer
-        $netsuiteCustomer = $hubspotService->findNetSuiteCustomerByHubSpotId($vid, $netsuiteService);
+        // Retrieve contact data from HubSpot using specified properties from cURL
+        $properties = [
+            'projected_value',
+            'buying_time_frame',
+            'ns_customer_id',
+            'ns_entity_id',
+            'buying_reason',
+            'sales_readiness'
+        ];
         
+        $url = "/crm/v3/objects/contacts/{$hubspotId}?properties=" . implode('&properties=', $properties) . "&archived=false";
+        $response = $httpClient->get($url);
+        
+        if ($response->getStatusCode() !== 200) {
+            $logger->warning('HubSpot contact not found', ['hubspot_id' => $hubspotId]);
+            $stats['not_found']++;
+            continue;
+        }
+
+        $hsData = json_decode($response->getBody()->getContents(), true);
+        $hsProperties = $hsData['properties'] ?? [];
+
+        // Find NetSuite customer using existing logic (SuiteQL lookup by VID)
+        $netsuiteCustomer = $hubspotService->findNetSuiteCustomerByHubSpotId($hubspotId, $netsuiteService);
+        
+        // If not found by VID, try using ns_customer_id from HubSpot properties
+        if (!$netsuiteCustomer && !empty($hsProperties['ns_customer_id'])) {
+            $nsId = $hsProperties['ns_customer_id'];
+            $query = "SELECT id, buyingtimeframe, salesreadiness, buyingreason, custentity_projected_value FROM customer WHERE id = " . intval($nsId);
+            $result = $netsuiteService->executeSuiteQLQuery($query);
+            if (isset($result['items']) && count($result['items']) > 0) {
+                $netsuiteCustomer = $result['items'][0];
+            }
+        }
+
         if (!$netsuiteCustomer) {
-            $logger->warning('NetSuite customer not found for HubSpot ID', ['vid' => $vid]);
+            $logger->warning('NetSuite customer not found for HubSpot contact', ['hubspot_id' => $hubspotId]);
             $stats['not_found']++;
             continue;
         }
@@ -77,14 +119,22 @@ while (($row = fgetcsv($file)) !== false) {
         $netsuiteCustomerId = $netsuiteCustomer['id'];
         $updateData = [];
 
-        foreach ($data as $hsProp => $hsValue) {
+        // Properties to check and map
+        $propToUpdate = [
+            'sales_readiness',
+            'buying_time_frame',
+            'buying_reason',
+            'projected_value'
+        ];
+
+        foreach ($propToUpdate as $hsProp) {
+            $hsValue = trim($hsProperties[$hsProp] ?? '');
             if (empty($hsValue)) {
                 continue;
             }
 
             $mapping = $hubspotService->mapHubSpotToNetSuite($hsProp, $hsValue);
             if (!$mapping) {
-                $logger->warning('No mapping found for property', ['vid' => $vid, 'property' => $hsProp, 'value' => $hsValue]);
                 continue;
             }
 
@@ -92,19 +142,11 @@ while (($row = fgetcsv($file)) !== false) {
             $nsValue = $mapping['value'];
             $currentValue = $netsuiteCustomer[$nsField] ?? null;
 
-            // Follow existing logic: only update if current value is empty
+            // Only update if NetSuite field is currently empty or null
             $isEmpty = empty($currentValue) || in_array(strtolower((string)$currentValue), ['-none-', 'null']);
             
             if ($isEmpty) {
                 $updateData[$nsField] = $nsValue;
-            } else {
-                $logger->info('Skipping field update: NetSuite already has a value', [
-                    'vid' => $vid,
-                    'ns_id' => $netsuiteCustomerId,
-                    'field' => $nsField,
-                    'current' => $currentValue,
-                    'new' => $nsValue
-                ]);
             }
         }
 
@@ -112,14 +154,14 @@ while (($row = fgetcsv($file)) !== false) {
             $result = $netsuiteService->updateCustomer($netsuiteCustomerId, $updateData);
             if ($result['success']) {
                 $logger->info('Successfully updated NetSuite customer', [
-                    'vid' => $vid,
+                    'hubspot_id' => $hubspotId,
                     'ns_id' => $netsuiteCustomerId,
                     'updates' => array_keys($updateData)
                 ]);
                 $stats['updated']++;
             } else {
                 $logger->error('Failed to update NetSuite customer', [
-                    'vid' => $vid,
+                    'hubspot_id' => $hubspotId,
                     'ns_id' => $netsuiteCustomerId,
                     'error' => $result['error'] ?? 'Unknown'
                 ]);
@@ -130,8 +172,8 @@ while (($row = fgetcsv($file)) !== false) {
         }
 
     } catch (\Exception $e) {
-        $logger->error('Error processing row', [
-            'vid' => $vid,
+        $logger->error('Error processing HubSpot ID', [
+            'hubspot_id' => $hubspotId,
             'error' => $e->getMessage()
         ]);
         $stats['failed']++;
@@ -142,4 +184,3 @@ fclose($file);
 
 $logger->info('One-time NetSuite update completed', $stats);
 echo "Update completed. Stats: " . json_encode($stats, JSON_PRETTY_PRINT) . "\n";
-echo "Check logs for detailed information.\n";
