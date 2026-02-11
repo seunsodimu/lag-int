@@ -329,16 +329,8 @@ function formatExcelTime($value) {
     </style>
 </head>
 <body>
-    <div class="container">
-        
-        <div class="content">
-            <?php if ($error): ?>
-                <div class="error">
-                    <strong>Error:</strong> <?php echo htmlspecialchars($error); ?>
-                </div>
-            <?php else: ?>
-                
-                <?php if (!empty($kpiData)): ?>
+     <div id="kpis">
+        <?php if (!empty($kpiData)): ?>
                     <h2 class="section-title"> Customer Service KPI</h2>
                     <div class="kpi-cards">
                         <div class="kpi-card total-calls">
@@ -367,6 +359,17 @@ function formatExcelTime($value) {
                         </div>
                     </div>
                 <?php endif; ?>
+            </div>
+    <div class="container">
+        
+        <div class="content">
+            <?php if ($error): ?>
+                <div class="error">
+                    <strong>Error:</strong> <?php echo htmlspecialchars($error); ?>
+                </div>
+            <?php else: ?>
+                
+                
                 
                 <?php if (!empty($userData)): ?>
                     <h2 class="section-title"> Team</h2>
@@ -415,7 +418,7 @@ function formatExcelTime($value) {
         
         
     </div>
-    
+   
     <script>
         function setupDailyRefresh(refreshTime) {
             const [hour, minute] = refreshTime.split(':').map(Number);

@@ -72,14 +72,14 @@ try {
     foreach ($events as $event) {
         // Verify webhook signature if configured
         $signature = $_SERVER['HTTP_X_HUBSPOT_SIGNATURE'] ?? $_SERVER['HTTP_X_HUBSPOT_SIGNATURE_V2'] ?? null;
-        // if ($signature && !empty($credentials['hubspot']['webhook_secret'])) {
-        //     if (!$hubspotService->verifyWebhookSignature($rawPayload, $signature)) {
-        //         http_response_code(401);
-        //         $logger->warning('HubSpot webhook signature verification failed');
-        //         echo json_encode(['error' => 'Signature verification failed']);
-        //         exit;
-        //     }
-        // }
+        if ($signature && !empty($credentials['hubspot']['webhook_secret'])) {
+            if (!$hubspotService->verifyWebhookSignature($rawPayload, $signature)) {
+                http_response_code(401);
+                $logger->warning('HubSpot webhook signature verification failed');
+                echo json_encode(['error' => 'Signature verification failed']);
+                exit;
+            }
+        }
         
         // Log processed event
         $logger->info('Processing HubSpot webhook event', [
