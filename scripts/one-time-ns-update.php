@@ -29,6 +29,7 @@ $hubspotBaseUrl = $credentials['hubspot']['base_url'];
 $httpClient = new Client([
     'base_uri' => $hubspotBaseUrl,
     'timeout' => 30,
+    // 'verify' => false,
     'headers' => [
         'Authorization' => 'Bearer ' . $hubspotAccessToken,
         'Accept' => 'application/json'

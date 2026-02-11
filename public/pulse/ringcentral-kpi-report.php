@@ -98,12 +98,22 @@ function formatExcelTime($value) {
             box-sizing: border-box;
         }
         
-        body {
+         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             background: #f5f5f5;
             color: #333;
-            padding: 20px;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden; /* Prevent body scroll, use container scrolls instead */
         }
+        .dashboard-wrapper {
+            display: flex;
+            height: 100vh;
+            width: 100vw;
+            gap: 0;
+        }
+        
         
         .container {
             max-width: 1400px;
@@ -174,20 +184,28 @@ function formatExcelTime($value) {
             margin-bottom: 20px;
         }
         
+        #kpis {
+            width: 300px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
+        }
+        
         .kpi-cards {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
-            gap: 5px;
-            margin-bottom: 10px;
+            display: flex;
+            flex-direction: column; /* Stacked vertically */
+            gap: 10px;
         }
         
         .kpi-card {
             background: white;
             border: 1px solid #e0e0e0;
             border-radius: 8px;
-            padding: 10px;
+            padding: 0px;
             text-align: center;
-            transition: all 0.3s;
             box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         
@@ -236,19 +254,29 @@ function formatExcelTime($value) {
             border-left: 4px solid #17a2b8;
         }
         
-        .section-title {
-            font-size: 1.5em;
-            font-weight: 600;
-            margin: 30px 0 20px 0;
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+       #kpis {
+            width: 300px;
+            background: white;
+            border-right: 1px solid #e0e0e0;
+            padding: 20px;
+            overflow-y: auto;
+            flex-shrink: 0;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.05);
         }
         
-        .table-container {
-            overflow-x: auto;
-            margin-bottom: 20px;
+        .kpi-cards {
+            display: flex;
+            flex-direction: column; /* Stacked vertically */
+            gap: 15px;
+        }
+        
+        .kpi-card {
+            background: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
         }
         
         table {
@@ -329,6 +357,7 @@ function formatExcelTime($value) {
     </style>
 </head>
 <body>
+        <div class="dashboard-wrapper">
      <div id="kpis">
         <?php if (!empty($kpiData)): ?>
                     <h2 class="section-title"> Customer Service KPI</h2>
@@ -418,7 +447,7 @@ function formatExcelTime($value) {
         
         
     </div>
-   
+   </div>
     <script>
         function setupDailyRefresh(refreshTime) {
             const [hour, minute] = refreshTime.split(':').map(Number);
