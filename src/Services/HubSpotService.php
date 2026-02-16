@@ -290,7 +290,7 @@ class HubSpotService {
                     ]);
                     return [
                         'success' => false,
-                        'message' => "No mapping found for property {$propertyName} with value {$propertyValue}"
+                        'message' => "No mapping found for property {$propertyName} with value {$propertyValue} for HubSpot Contact ID ".$payload['objectId']
                     ];
                 }
 
