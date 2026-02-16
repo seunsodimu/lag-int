@@ -221,6 +221,43 @@ class NetSuiteService {
     }
     
     /**
+     * Update Sales Order record in NetSuite
+     */
+    public function updateSalesOrder($salesOrderId, $data) {
+        try {
+            $this->logger->info('Updating Sales Order record', [
+                'sales_order_id' => $salesOrderId,
+                'data' => $data
+            ]);
+            
+            $startTime = microtime(true);
+            $response = $this->makeRequest('PATCH', "/salesOrder/{$salesOrderId}", $data);
+            $duration = (microtime(true) - $startTime) * 1000;
+            
+            $this->logger->logApiCall('NetSuite', "/salesOrder/{$salesOrderId}", 'PATCH', $response->getStatusCode(), $duration);
+            
+            $statusCode = $response->getStatusCode();
+            if ($statusCode === 204 || $statusCode === 200) {
+                return [
+                    'success' => true,
+                    'status_code' => $statusCode
+                ];
+            } else {
+                throw new \Exception('Unexpected status code: ' . $statusCode);
+            }
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to update Sales Order in NetSuite', [
+                'sales_order_id' => $salesOrderId,
+                'error' => $e->getMessage()
+            ]);
+            return [
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
      * Get full customer record by ID including addresses
      */
     public function getCustomerById($customerId) {

@@ -284,7 +284,7 @@ class HubSpotService {
                 
                 $mapping = $this->mapHubSpotToNetSuite($propertyName, $propertyValue);
                 if (!$mapping) {
-                    $this->logger->warning('No mapping found for HubSpot property change', [
+                    $this->logger->warning('No mapping found for HubSpot property change for HubSpot Contact ID '.$payload['objectId'], [
                         'property' => $propertyName,
                         'value' => $propertyValue
                     ]);
