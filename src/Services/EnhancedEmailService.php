@@ -380,6 +380,23 @@ class EnhancedEmailService {
     }
     
     /**
+     * Get recipients for a specific notification type
+     */
+    private function getRecipientsForType($notificationType) {
+        if ($this->notificationSettings !== null) {
+            $recipients = $this->notificationSettings->getRecipients($notificationType);
+        } else {
+            $recipients = $this->config['to_emails'] ?? ['web_dev@lagunatools.com'];
+        }
+        
+        if (empty($recipients)) {
+            $recipients = ['web_dev@lagunatools.com'];
+        }
+        
+        return $recipients;
+    }
+    
+    /**
      * Send 3DCart order notification with appropriate recipients
      */
     public function send3DCartOrderNotification($orderId, $status, $details = [], $isSuccess = true) {
@@ -388,30 +405,17 @@ class EnhancedEmailService {
             return ['success' => true, 'message' => 'Email notifications disabled'];
         }
         
-        // Determine notification type based on context and status
         $notificationType = $this->get3DCartNotificationType($isSuccess);
-        
-        // Get recipients - use default if notification settings service is unavailable
-        if ($this->notificationSettings !== null) {
-            $recipients = $this->notificationSettings->getRecipients($notificationType);
-        } else {
-            $recipients = $this->config['to_emails']; // Use default config recipients as fallback
-        }
-        
-        if (empty($recipients)) {
-            $recipients = ['web_dev@lagunatools.com'];
-        }
+        $recipients = $this->getRecipientsForType($notificationType);
         
         $statusText = $isSuccess ? 'Successfully Processed' : 'Processing Failed';
-        $subject = $this->config['subject_prefix'] . "3DCart Order {$orderId} - {$statusText}";
+        $subject = ($this->config['subject_prefix'] ?? '') . "3DCart Order {$orderId} - {$statusText}";
         $content = $this->build3DCartOrderNotificationContent($orderId, $statusText, $details, $isSuccess);
         
         $this->logger->info('Sending 3DCart order notification', [
             'order_id' => $orderId,
             'notification_type' => $notificationType,
-            'recipient_count' => count($recipients),
-            'is_webhook' => $this->isWebhookContext,
-            'is_success' => $isSuccess
+            'recipient_count' => count($recipients)
         ]);
         
         return $this->sendEmail($subject, $content, $recipients);
@@ -426,30 +430,17 @@ class EnhancedEmailService {
             return ['success' => true, 'message' => 'Email notifications disabled'];
         }
         
-        // Determine notification type based on context and status
         $notificationType = $this->getHubSpotNotificationType($isSuccess);
-        
-        // Get recipients - use default if notification settings service is unavailable
-        if ($this->notificationSettings !== null) {
-            $recipients = $this->notificationSettings->getRecipients($notificationType);
-        } else {
-            $recipients = $this->config['to_emails']; // Use default config recipients as fallback
-        }
-        
-        if (empty($recipients)) {
-            $recipients = ['web_dev@lagunatools.com'];
-        }
+        $recipients = $this->getRecipientsForType($notificationType);
         
         $statusText = $isSuccess ? 'Successfully Synced' : 'Sync Failed';
-        $subject = $this->config['subject_prefix'] . "HubSpot Contact {$contactId} - {$statusText}";
+        $subject = ($this->config['subject_prefix'] ?? '') . "HubSpot Contact {$contactId} - {$statusText}";
         $content = $this->buildHubSpotSyncNotificationContent($contactId, $statusText, $details, $isSuccess);
         
         $this->logger->info('Sending HubSpot sync notification', [
             'contact_id' => $contactId,
             'notification_type' => $notificationType,
-            'recipient_count' => count($recipients),
-            'is_webhook' => $this->isWebhookContext,
-            'is_success' => $isSuccess
+            'recipient_count' => count($recipients)
         ]);
         
         return $this->sendEmail($subject, $content, $recipients);
@@ -496,22 +487,11 @@ class EnhancedEmailService {
             return ['success' => true, 'message' => 'Email notifications disabled'];
         }
         
-        // Determine notification type based on status and context
         $isSuccess = stripos($status, 'success') !== false || stripos($status, 'processed') !== false;
         $notificationType = $this->get3DCartNotificationType($isSuccess);
+        $recipients = $this->getRecipientsForType($notificationType);
         
-        // Get recipients - use default if notification settings service is unavailable
-        if ($this->notificationSettings !== null) {
-            $recipients = $this->notificationSettings->getRecipients($notificationType);
-        } else {
-            $recipients = $this->config['to_emails']; // Use default config recipients as fallback
-        }
-        
-        if (empty($recipients)) {
-            $recipients = ['web_dev@lagunatools.com'];
-        }
-        
-        $subject = $this->config['subject_prefix'] . "Order {$orderId} - {$status}";
+        $subject = ($this->config['subject_prefix'] ?? '') . "Order {$orderId} - {$status}";
         $content = $this->buildOrderNotificationContent($orderId, $status, $details);
         
         $this->logger->info('Sending order notification', [
@@ -533,21 +513,10 @@ class EnhancedEmailService {
             return ['success' => true, 'message' => 'Email notifications disabled'];
         }
         
-        // Use failed webhook notification type for most failures
         $notificationType = NotificationSettingsService::TYPE_3DCART_FAILED_WEBHOOK;
+        $recipients = $this->getRecipientsForType($notificationType);
         
-        // Get recipients - use default if notification settings service is unavailable
-        if ($this->notificationSettings !== null) {
-            $recipients = $this->notificationSettings->getRecipients($notificationType);
-        } else {
-            $recipients = $this->config['to_emails']; // Use default config recipients as fallback
-        }
-        
-        if (empty($recipients)) {
-            $recipients = ['web_dev@lagunatools.com'];
-        }
-        
-        $subject = $this->config['subject_prefix'] . "Order Processing Failed: " . ucfirst(str_replace('_', ' ', $failureType));
+        $subject = ($this->config['subject_prefix'] ?? '') . "Order Processing Failed: " . ucfirst(str_replace('_', ' ', $failureType));
         $content = $this->buildFailedOrderNotificationContent($failureType, $details);
         
         $this->logger->info('Sending failed order notification', [
@@ -568,22 +537,11 @@ class EnhancedEmailService {
             return ['success' => true, 'message' => 'Email notifications disabled'];
         }
         
-        // Determine notification type based on result
         $isSuccess = ($syncResult['success'] ?? false) && ($syncResult['error_count'] ?? 0) == 0;
         $notificationType = $isSuccess 
             ? NotificationSettingsService::TYPE_INVENTORY_SYNC_SUCCESS 
             : NotificationSettingsService::TYPE_INVENTORY_SYNC_FAILED;
-        
-        // Get recipients - use default if notification settings service is unavailable
-        if ($this->notificationSettings !== null) {
-            $recipients = $this->notificationSettings->getRecipients($notificationType);
-        } else {
-            $recipients = $this->config['to_emails']; // Use default config recipients as fallback
-        }
-        
-        if (empty($recipients)) {
-            $recipients = ['web_dev@lagunatools.com'];
-        }
+        $recipients = $this->getRecipientsForType($notificationType);
         
         $subject = ($this->config['subject_prefix'] ?? '[3DCart Integration] ') . "Inventory Sync " . ($isSuccess ? 'SUCCESS' : 'FAILED') . " - " . date('Y-m-d H:i:s');
         $content = $this->buildInventorySyncContent($syncResult, $isSuccess);
@@ -659,24 +617,7 @@ class EnhancedEmailService {
      * Send notification with appropriate recipients based on type
      */
     private function sendNotificationByType($notificationType, $subject, $details = [], $isSuccess = true) {
-        // Get recipients - use default if notification settings service is unavailable
-        if ($this->notificationSettings !== null) {
-            $recipients = $this->notificationSettings->getRecipients($notificationType);
-        } else {
-            $this->logger->warning('Using default recipients because notification settings service is unavailable', [
-                'notification_type' => $notificationType
-            ]);
-            $recipients = $this->config['to_emails']; // Use default config recipients as fallback
-        }
-        
-        if (empty($recipients)) {
-            $this->logger->warning('No recipients available for notification', [
-                'notification_type' => $notificationType
-            ]);
-            // Use default recipient as last resort
-            $recipients = ['web_dev@lagunatools.com'];
-        }
-        
+        $recipients = $this->getRecipientsForType($notificationType);
         $content = $this->buildGenericNotificationContent($subject, $details, $isSuccess, $notificationType);
         
         $this->logger->info('Sending notification by type', [

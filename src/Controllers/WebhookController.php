@@ -5,6 +5,7 @@ namespace Laguna\Integration\Controllers;
 use Laguna\Integration\Services\ThreeDCartService;
 use Laguna\Integration\Services\NetSuiteService;
 use Laguna\Integration\Services\EnhancedEmailService;
+use Laguna\Integration\Services\DatabaseService;
 use Laguna\Integration\Models\Order;
 use Laguna\Integration\Models\Customer;
 use Laguna\Integration\Utils\Logger;
@@ -19,6 +20,7 @@ class WebhookController {
     private $threeDCartService;
     private $netSuiteService;
     private $emailService;
+    private $dbService;
     private $logger;
     private $config;
     
@@ -26,6 +28,7 @@ class WebhookController {
         $this->threeDCartService = new ThreeDCartService();
         $this->netSuiteService = new NetSuiteService();
         $this->emailService = new EnhancedEmailService(true); // true = webhook context
+        $this->dbService = DatabaseService::getInstance();
         $this->logger = Logger::getInstance();
         $this->config = require __DIR__ . '/../../config/config.php';
     }
@@ -68,30 +71,56 @@ class WebhookController {
             
             $this->logger->info('Processing webhook for order', ['order_id' => $orderId]);
             
-            // Check if this is a test webhook with complete order data
-            $isTestWebhook = $this->isTestWebhook($webhookData);
-            
-            $this->logger->info('Webhook classification', [
-                'order_id' => $orderId,
-                'is_test_webhook' => $isTestWebhook,
-                'has_order_items' => isset($webhookData['OrderItemList']),
-                'has_billing_email' => isset($webhookData['BillingEmail']),
-                'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'
+            // Log the start of processing
+            $this->logIntegrationActivity($orderId, 'order_processing', 'pending', [
+                'source' => 'webhook',
+                'raw_data_received' => true
             ]);
             
-            // Process the order
-            if ($isTestWebhook) {
-                $this->logger->info('Processing as test webhook with complete data');
-                $result = $this->processOrderFromWebhookData($webhookData);
-            } else {
-                $this->logger->info('Processing as production webhook - fetching complete data from 3DCart API');
-                $result = $this->processOrder($orderId);
+            // Check if order was already successfully processed recently to avoid duplicates
+            if ($this->isOrderAlreadyProcessed($orderId)) {
+                $this->logger->info('Order already successfully processed recently, skipping', ['order_id' => $orderId]);
+                $this->respondWithSuccess('Order already processed');
+                return;
             }
             
-            if ($result['success']) {
-                $this->respondWithSuccess('Order processed successfully', $result);
-            } else {
-                $this->respondWithError($result['error'], 500);
+            // Acquire lock to prevent concurrent processing
+            $lockName = "order_processing_{$orderId}";
+            if (!$this->dbService->acquireLock($lockName, 30)) {
+                $this->logger->warning('Failed to acquire lock for order processing', ['order_id' => $orderId]);
+                $this->respondWithError('Order is currently being processed by another request', 429);
+                return;
+            }
+            
+            try {
+                // Check if this is a test webhook with complete order data
+                $isTestWebhook = $this->isTestWebhook($webhookData);
+                
+                $this->logger->info('Webhook classification', [
+                    'order_id' => $orderId,
+                    'is_test_webhook' => $isTestWebhook,
+                    'has_order_items' => isset($webhookData['OrderItemList']),
+                    'has_billing_email' => isset($webhookData['BillingEmail']),
+                    'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? 'unknown'
+                ]);
+                
+                // Process the order
+                if ($isTestWebhook) {
+                    $this->logger->info('Processing as test webhook with complete data');
+                    $result = $this->processOrderFromWebhookData($webhookData);
+                } else {
+                    $this->logger->info('Processing as production webhook - fetching complete data from 3DCart API');
+                    $result = $this->processOrder($orderId);
+                }
+                
+                if ($result['success']) {
+                    $this->respondWithSuccess('Order processed successfully', $result);
+                } else {
+                    $this->respondWithError($result['error'], 500);
+                }
+            } finally {
+                // Always release the lock
+                $this->dbService->releaseLock($lockName);
             }
             
         } catch (\Exception $e) {
@@ -168,18 +197,30 @@ class WebhookController {
             
             // Send success notification using new notification system
             try {
+                $notificationDetails = [
+                    'Order ID' => $orderId,
+                    'NetSuite Order ID' => $netSuiteOrder['id'],
+                    'Customer ID' => $netSuiteCustomerId,
+                    'Order Total' => '$' . number_format($order->getTotal(), 2),
+                    'Items Count' => count($order->getItems()),
+                    'Processing Type' => 'Webhook',
+                    '3DCart Status Updated' => $statusUpdateResult ? 'Yes' : 'No (check logs for details)'
+                ];
+                
                 $this->emailService->sendNotification(
                     '3dcart_success_webhook',
                     '3DCart Order Successfully Processed (Webhook)',
-                    [
-                        'Order ID' => $orderId,
-                        'NetSuite Order ID' => $netSuiteOrder['id'],
-                        'Customer ID' => $netSuiteCustomerId,
-                        'Order Total' => '$' . number_format($order->getTotal(), 2),
-                        'Items Count' => count($order->getItems()),
-                        'Processing Type' => 'Webhook'
-                    ]
+                    $notificationDetails
                 );
+                
+                // Log success in integration activity log
+                $this->logIntegrationActivity($orderId, 'order_processing', 'success', [
+                    'netsuite_order_id' => $netSuiteOrder['id'],
+                    'customer_id' => $netSuiteCustomerId,
+                    'order_total' => $order->getTotal(),
+                    'items_count' => count($order->getItems()),
+                    '3dcart_status_updated' => $statusUpdateResult
+                ]);
             } catch (\Exception $emailEx) {
                 // Log email failure but don't fail the order processing
                 $this->logger->warning('Failed to send success notification email', [
@@ -295,6 +336,12 @@ class WebhookController {
                         'Sales Order Payload' => $salesOrderPayload
                     ]
                 );
+                
+                // Log failure in integration activity log
+                $this->logIntegrationActivity($orderId, 'order_processing', 'failure', [
+                    'error' => $e->getMessage(),
+                    'retry_count' => $retryCount
+                ], $e->getMessage());
             } catch (\Exception $emailEx) {
                 // Log email failure but don't affect error handling
                 $this->logger->warning('Failed to send failed order notification email', [
@@ -881,17 +928,59 @@ class WebhookController {
                 'trace' => $e->getTraceAsString()
             ]);
             
-            // Optionally send notification about status update failure
-            $this->emailService->sendErrorNotification(
-                "Failed to update 3DCart order status to Processing for Order #{$orderId}: " . $e->getMessage(),
-                [
-                    'order_id' => $orderId,
-                    'netsuite_order_id' => $netSuiteOrderId,
-                    'error_details' => $e->getMessage()
-                ]
-            );
-            
             return false;
+        }
+    }
+    
+    /**
+     * Check if an order was already successfully processed recently
+     */
+    private function isOrderAlreadyProcessed($orderId) {
+        try {
+            $pdo = $this->dbService->getConnection();
+            $stmt = $pdo->prepare("
+                SELECT COUNT(*) 
+                FROM integration_activity_log 
+                WHERE order_id = ? 
+                AND activity_type = 'order_processing' 
+                AND status = 'success'
+                AND created_at > DATE_SUB(NOW(), INTERVAL 24 HOUR)
+            ");
+            $stmt->execute([$orderId]);
+            return (int)$stmt->fetchColumn() > 0;
+        } catch (\Exception $e) {
+            $this->logger->error('Error checking if order already processed', [
+                'order_id' => $orderId,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+    
+    /**
+     * Log integration activity to database
+     */
+    private function logIntegrationActivity($orderId, $activityType, $status, $details = [], $errorMessage = null) {
+        try {
+            $pdo = $this->dbService->getConnection();
+            $stmt = $pdo->prepare("
+                INSERT INTO integration_activity_log 
+                (activity_type, order_id, status, details, error_message, created_at) 
+                VALUES (?, ?, ?, ?, ?, NOW())
+            ");
+            
+            $stmt->execute([
+                $activityType,
+                $orderId,
+                $status,
+                json_encode($details),
+                $errorMessage
+            ]);
+        } catch (\Exception $e) {
+            $this->logger->error('Failed to log integration activity to database', [
+                'order_id' => $orderId,
+                'error' => $e->getMessage()
+            ]);
         }
     }
 }

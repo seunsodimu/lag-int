@@ -114,6 +114,12 @@ class NotificationSettingsService {
             
             $recipients = $stmt->fetchAll(PDO::FETCH_COLUMN);
             
+            // Trim whitespace from all recipient emails
+            $recipients = array_map('trim', $recipients);
+            
+            // Remove duplicates
+            $recipients = array_unique($recipients);
+            
             // Always include default recipient if not already in list
             if (!in_array(self::DEFAULT_RECIPIENT, $recipients)) {
                 $recipients[] = self::DEFAULT_RECIPIENT;
