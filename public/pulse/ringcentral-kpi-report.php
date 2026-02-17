@@ -76,7 +76,7 @@ $refreshTime = $_GET['refresh_time'] ?? '08:00';
 
 function formatExcelTime($value) {
     if (is_numeric($value)) {
-        $seconds = $value * 86400;
+        $seconds = (int)round($value * 86400);
         $hours = floor($seconds / 3600);
         $minutes = floor(($seconds % 3600) / 60);
         $secs = floor($seconds % 60);
