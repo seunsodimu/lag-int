@@ -1298,6 +1298,7 @@ class NetSuiteService {
                 'phone' => $this->validateAndTruncateField($customerData['phone'] ?? null, 22, 'phone'),
                 'isPerson' => $customerData['isPerson'] ?? true,
                 'subsidiary' => ['id' => $this->config['netsuite']['default_subsidiary_id']],
+                'terms' =>['id' =>2]
             ];
 
             // Add parent customer if provided
