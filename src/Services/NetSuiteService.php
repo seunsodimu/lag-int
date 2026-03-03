@@ -343,7 +343,7 @@ class NetSuiteService {
             // Strategy 1: Direct email match using SuiteQL (case-insensitive)
             $this->logger->info('Searching for customer by email (case-insensitive)', ['email' => $email]);
             
-            $suiteQLQuery = "SELECT id, firstName, lastName, email, companyName, phone, isperson FROM customer WHERE LOWER(email) = LOWER('" . $email . "')";
+            $suiteQLQuery = "SELECT id, firstName, lastName, email, companyName, phone, isperson, terms FROM customer WHERE LOWER(email) = LOWER('" . $email . "')";
             $result = $this->executeSuiteQLQuery($suiteQLQuery);
             
             if (isset($result['items']) && count($result['items']) > 0) {
@@ -367,7 +367,7 @@ class NetSuiteService {
             // Strategy 2: Alternative case-insensitive email match (fallback)
             $this->logger->info('Searching for customer by email (alternative case-insensitive)', ['email' => $email]);
             
-            $suiteQLQuery2 = "SELECT id, firstName, lastName, email, companyName, phone, isperson FROM customer WHERE LOWER(email) = '" . strtolower($email) . "'";
+            $suiteQLQuery2 = "SELECT id, firstName, lastName, email, companyName, phone, isperson, terms FROM customer WHERE LOWER(email) = '" . strtolower($email) . "'";
             $result2 = $this->executeSuiteQLQuery($suiteQLQuery2);
             
             if (isset($result2['items']) && count($result2['items']) > 0) {
@@ -398,7 +398,7 @@ class NetSuiteService {
                 $companyKeyword = $domainParts[0]; // e.g., "buffalowoodturningproducts"
                 
                 // Search for customers with company names containing this keyword (case-insensitive)
-                $suiteQLQuery3 = "SELECT id, firstName, lastName, email, companyName, phone, isperson FROM customer WHERE LOWER(companyName) LIKE '%" . strtolower($companyKeyword) . "%' AND LOWER(email) = LOWER('" . $email . "')";
+                $suiteQLQuery3 = "SELECT id, firstName, lastName, email, companyName, phone, isperson, terms FROM customer WHERE LOWER(companyName) LIKE '%" . strtolower($companyKeyword) . "%' AND LOWER(email) = LOWER('" . $email . "')";
                 $result3 = $this->executeSuiteQLQuery($suiteQLQuery3);
                 
                 if (isset($result3['items']) && count($result3['items']) > 0) {
@@ -508,6 +508,7 @@ class NetSuiteService {
             // Extract names from order data
             $firstName = $orderData['BillingFirstName'] ?? $orderData['firstName'] ?? '';
             $lastName = $orderData['BillingLastName'] ?? $orderData['lastName'] ?? '';
+            $billingEmail = $orderData['BillingEmail'];
             
             if (empty($firstName) && empty($lastName)) {
                 $this->logger->warning('No first/last name available for person customer search', [
@@ -527,7 +528,8 @@ class NetSuiteService {
                 'parent_id' => $companyId
             ]);
             
-            $suiteQLQuery = "SELECT id, firstName, lastName, email, companyName, phone, isperson FROM customer WHERE LOWER(entityid) = LOWER('" . $entityId . "') AND parent = " . $companyId;
+            // $suiteQLQuery = "SELECT id, firstName, lastName, email, companyName, phone, isperson FROM customer WHERE LOWER(entityid) = LOWER('" . $entityId . "') AND parent = " . $companyId;
+            $suiteQLQuery = "SELECT id, firstName, lastName, email, companyName, phone, terms FROM customer WHERE LOWER(email) = LOWER('" . $billingEmail . "') AND parent = " . $companyId;
             $result = $this->executeSuiteQLQuery($suiteQLQuery);
             
             if (isset($result['items']) && count($result['items']) > 0) {
@@ -568,7 +570,8 @@ class NetSuiteService {
                 'lastName' => $shipmentLastName,
                 'email' => $customerEmail,
                 'phone' => $customer['phone'] ?? ($orderData['BillingPhoneNumber'] ?? ''),
-                'isPerson' => true
+                'isPerson' => true,
+                'terms' => $customer['terms'] ?? 2
             ];
             
             $this->logger->info('Extracted person customer details from ShipmentList', [
@@ -734,6 +737,7 @@ class NetSuiteService {
      */
     private function handleStoreShipmentCustomer($orderData, $customerEmail, $isValidEmail) {
         $orderId = $orderData['OrderID'] ?? 'N/A';
+        $customerEmail = $orderData['BillingEmail']; //using billing email instead of Q1 answer
         
         $this->logger->info('Processing Store Shipment customer', [
             'order_id' => $orderId,
@@ -855,7 +859,7 @@ class NetSuiteService {
                 $conditions[] = "phone = '" . $escapedPhone . "'";
             }
 
-            $query = "SELECT id, firstName, lastName, email, companyName, phone, isperson FROM customer WHERE (" . 
+            $query = "SELECT id, firstName, lastName, email, companyName, phone, isperson, terms FROM customer WHERE (" . 
                      implode(' OR ', $conditions) . ") AND isperson = 'F'";
 
             $result = $this->executeSuiteQLQuery($query);
@@ -893,7 +897,8 @@ class NetSuiteService {
 
             // Escape single quotes in email for SQL safety (case-insensitive)
             $escapedEmail = str_replace("'", "''", $email);
-            $query = "SELECT id, firstName, lastName, email, companyName, phone, isperson FROM customer WHERE LOWER(email) = LOWER('" . $escapedEmail . "') AND isperson = 'F'";
+            // $query = "SELECT id, firstName, lastName, email, companyName, phone, isperson FROM customer WHERE LOWER(email) = LOWER('" . $escapedEmail . "') AND isperson = 'F'";
+             $query = "SELECT id, firstName, lastName, email, companyName, phone, isperson, terms FROM customer WHERE LOWER(email) = LOWER('" . $escapedEmail . "')"; //using query to select customer regardless if they are individual or company
             $result = $this->executeSuiteQLQuery($query);
 
             if (isset($result['items']) && count($result['items']) > 0) {
@@ -943,7 +948,7 @@ class NetSuiteService {
 
             // Escape single quotes in company name for SQL safety (case-insensitive)
             $escapedCompanyName = str_replace("'", "''", $companyName);
-            $query = "SELECT id, firstName, lastName, email, companyName, phone, isperson FROM customer WHERE LOWER(companyName) = LOWER('" . $escapedCompanyName . "') AND parent = " . intval($parentCustomerId);
+            $query = "SELECT id, firstName, lastName, email, companyName, phone, isperson, terms FROM customer WHERE LOWER(companyName) = LOWER('" . $escapedCompanyName . "') AND parent = " . intval($parentCustomerId);
             $result = $this->executeSuiteQLQuery($query);
 
             if (isset($result['items']) && count($result['items']) > 0) {
@@ -1010,7 +1015,7 @@ class NetSuiteService {
             }
 
             // Search for person customers (dropship customers are always persons)
-            $query = "SELECT id, firstName, lastName, email, companyName, phone, isperson, parent FROM customer WHERE " . 
+            $query = "SELECT id, firstName, lastName, email, companyName, phone, isperson, terms, parent FROM customer WHERE " . 
                      implode(' AND ', $conditions) . " AND isperson = 'T'" . $parentCondition;
 
             $result = $this->executeSuiteQLQuery($query);
@@ -1298,7 +1303,7 @@ class NetSuiteService {
                 'phone' => $this->validateAndTruncateField($customerData['phone'] ?? null, 22, 'phone'),
                 'isPerson' => $customerData['isPerson'] ?? true,
                 'subsidiary' => ['id' => $this->config['netsuite']['default_subsidiary_id']],
-                'terms' =>['id' =>2]
+                'terms' => ['id' => (int)($customerData['terms'] ?? 2)]
             ];
 
             // Add parent customer if provided
@@ -1477,7 +1482,7 @@ class NetSuiteService {
             ]);
             
             // Use SuiteQL to check if customer exists
-            $query = "SELECT id, firstName, lastName, email, companyName, isperson FROM customer WHERE id = " . (int)$customerId;
+            $query = "SELECT id, firstName, lastName, email, companyName, isperson, terms FROM customer WHERE id = " . (int)$customerId;
             
             $startTime = microtime(true);
             $result = $this->executeSuiteQLQuery($query);
@@ -1685,7 +1690,7 @@ class NetSuiteService {
             ]);
             
             // Get customer details to check isPerson status
-            $customerQuery = "SELECT id, firstName, lastName, email, companyName, phone, isperson FROM customer WHERE id = " . (int)$customerId;
+            $customerQuery = "SELECT id, firstName, lastName, email, companyName, phone, isperson, terms FROM customer WHERE id = " . (int)$customerId;
             $customerResult = $this->executeSuiteQLQuery($customerQuery);
             
             if (empty($customerResult['items'])) {
@@ -1708,10 +1713,21 @@ class NetSuiteService {
             }
             
             // Step 2: Start with minimal required fields for NetSuite sales order
+            // Extract terms from customer or default to 2
+            $termsId = 2;
+            if (!empty($validatedCustomer['terms'])) {
+                if (is_array($validatedCustomer['terms']) && isset($validatedCustomer['terms']['id'])) {
+                    $termsId = (int)$validatedCustomer['terms']['id'];
+                } else {
+                    $termsId = (int)$validatedCustomer['terms'];
+                }
+            }
+
             $salesOrder = [
                 'entity' => ['id' => (int)$validatedCustomerId],
                 'subsidiary' => ['id' => $this->config['netsuite']['default_subsidiary_id']],
-                'department' => ['id' => $this->config['netsuite']['default_department_id'] ?? 1]
+                'department' => ['id' => $this->config['netsuite']['default_department_id'] ?? 1],
+                'terms' => ['id' => $termsId]
             ];
             
             // Set tax option based on configuration or parameter
