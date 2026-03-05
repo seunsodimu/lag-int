@@ -737,7 +737,7 @@ class NetSuiteService {
      */
     private function handleStoreShipmentCustomer($orderData, $customerEmail, $isValidEmail) {
         $orderId = $orderData['OrderID'] ?? 'N/A';
-        $customerEmail = $orderData['BillingEmail']; //using billing email instead of Q1 answer
+        // $customerEmail = $orderData['BillingEmail']; //using billing email instead of Q1 answer //disabled to go back to using Q1 email
         
         $this->logger->info('Processing Store Shipment customer', [
             'order_id' => $orderId,
