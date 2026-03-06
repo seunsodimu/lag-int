@@ -23,9 +23,11 @@ class WebhookController {
     private $dbService;
     private $logger;
     private $config;
+    private $storeKey;
     
-    public function __construct() {
-        $this->threeDCartService = new ThreeDCartService();
+    public function __construct($storeKey = '3dcart') {
+        $this->storeKey = $storeKey;
+        $this->threeDCartService = new ThreeDCartService($storeKey);
         $this->netSuiteService = new NetSuiteService();
         $this->emailService = new EnhancedEmailService(true); // true = webhook context
         $this->dbService = DatabaseService::getInstance();

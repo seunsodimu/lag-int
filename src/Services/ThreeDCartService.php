@@ -17,10 +17,17 @@ class ThreeDCartService {
     private $credentials;
     private $logger;
     private $baseUrl;
+    private $storeKey;
     
-    public function __construct() {
+    public function __construct($storeKey = '3dcart') {
         $credentials = require __DIR__ . '/../../config/credentials.php';
-        $this->credentials = $credentials['3dcart'];
+        
+        if (!isset($credentials[$storeKey])) {
+            throw new \Exception("Credentials not found for store key: {$storeKey}");
+        }
+        
+        $this->storeKey = $storeKey;
+        $this->credentials = $credentials[$storeKey];
         $this->logger = Logger::getInstance();
         
         // Use the correct 3DCart API base URL

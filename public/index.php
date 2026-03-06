@@ -203,16 +203,26 @@ if (!$currentUser) {
                 <div class="feature-card" style="border-left: 4px solid #667eea;">
                     <div class="feature-icon">🛒</div>
                     <h3>3DCart → NetSuite</h3>
-                    <p>Automated order processing from 3DCart to NetSuite. Real-time webhook integration for orders, customer management, and sales order creation.</p>
+                    <p>Automated order processing from 3DCart (US and Canada) to NetSuite. Real-time webhook integration for orders, customer management, and sales order creation.</p>
                     <div style="margin-top: 15px;">
-                        <ul style="text-align: left; list-style: none; text-decoration: none;">
-                            <li>📊<a href="<?php echo UrlHelper::url('status.php'); ?>" > Status</a></li>
-                            <li>🔄<a href="<?php echo UrlHelper::url('order-sync.php'); ?>"> Sync Orders</a></li>
-                            <li>📤<a href="<?php echo UrlHelper::url('upload.php'); ?>" > Upload</a></li>
-                        </ul>
-                        
-                        
-                        
+                        <div style="margin-bottom: 15px;">
+                            <strong>🇺🇸 US Store:</strong>
+                            <ul style="text-align: left; list-style: none; padding-left: 0;">
+                                <li>📊 <a href="<?php echo UrlHelper::url('status.php'); ?>">Status</a></li>
+                                <li>🔄 <a href="<?php echo UrlHelper::url('order-sync.php'); ?>">Sync Orders</a></li>
+                                <li>🛠️ <a href="<?php echo UrlHelper::url('order-status-manager.php'); ?>">Order Manager</a></li>
+                                <li>📤 <a href="<?php echo UrlHelper::url('upload.php'); ?>">Upload</a></li>
+                            </ul>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <strong>🇨🇦 Canada Store:</strong>
+                            <ul style="text-align: left; list-style: none; padding-left: 0;">
+                                <li>📊 <a href="<?php echo UrlHelper::url('status.php'); ?>">Status</a></li>
+                                <li>🔄 <a href="<?php echo UrlHelper::url('order-sync-canada.php'); ?>">Sync Orders</a></li>
+                                <li>🛠️ <a href="<?php echo UrlHelper::url('order-status-manager-canada.php'); ?>">Order Manager</a></li>
+                                <li>🔗 <a href="<?php echo UrlHelper::url('webhook-canada.php'); ?>">Webhook Info</a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
                 

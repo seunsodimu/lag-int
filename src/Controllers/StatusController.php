@@ -16,6 +16,7 @@ use Laguna\Integration\Utils\NetSuiteEnvironmentManager;
  */
 class StatusController {
     private $threeDCartService;
+    private $threeDCartCanadaService;
     private $netSuiteService;
     private $hubSpotService;
     private $emailService;
@@ -24,6 +25,7 @@ class StatusController {
     
     public function __construct() {
         $this->threeDCartService = new ThreeDCartService();
+        $this->threeDCartCanadaService = new ThreeDCartService('3dcart_canada');
         $this->netSuiteService = new NetSuiteService();
         $this->hubSpotService = new HubSpotService();
         $this->emailService = new EnhancedEmailService();
@@ -49,7 +51,8 @@ class StatusController {
         $emailProviderName = $emailProviderInfo['name'] ?? 'Email Service';
         
         $services = [
-            '3DCart' => [$this->threeDCartService, 'testConnection'],
+            '3DCart (US)' => [$this->threeDCartService, 'testConnection'],
+            '3DCart (Canada)' => [$this->threeDCartCanadaService, 'testConnection'],
             'NetSuite' => [$this->netSuiteService, 'testConnection'],
             'HubSpot' => [$this->hubSpotService, 'testConnection'],
             $emailProviderName => [$this->emailService, 'testConnection']

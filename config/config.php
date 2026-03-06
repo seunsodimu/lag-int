@@ -36,6 +36,13 @@ return [
             'webhook_endpoint' => 'webhook.php',
             'status_page' => 'status.php'
         ],
+        '3dcart_canada_netsuite' => [
+            'enabled' => true,
+            'name' => '3DCart Canada to NetSuite',
+            'description' => 'Automated order processing from Canada 3DCart to NetSuite',
+            'webhook_endpoint' => 'webhook-canada.php',
+            'status_page' => 'status.php'
+        ],
         'hubspot_netsuite' => [
             'enabled' => true,
             'name' => 'HubSpot to NetSuite',

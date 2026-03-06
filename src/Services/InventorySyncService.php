@@ -24,12 +24,18 @@ class InventorySyncService {
     private $threeDCartV1BaseUrl = 'https://apirest.3dcart.com/3dCartWebAPI/v1/';
     private $threeDCartV2BaseUrl = 'https://apirest.3dcart.com/3dCartWebAPI/v2/';
     private $netSuiteInventoryCache = null;
+    private $storeKey;
     
-    public function __construct() {
+    public function __construct($storeKey = '3dcart') {
         $this->credentials = require __DIR__ . '/../../config/credentials.php';
         $this->config = require __DIR__ . '/../../config/config.php';
         $this->logger = Logger::getInstance();
         $this->netSuiteService = new NetSuiteService();
+        $this->storeKey = $storeKey;
+        
+        if (!isset($this->credentials[$storeKey])) {
+            throw new \Exception("Credentials not found for store key: {$storeKey}");
+        }
         
         // Initialize Guzzle client for 3DCart v1 API
         $this->threeDCartClient = new Client([
@@ -39,9 +45,9 @@ class InventorySyncService {
             'headers' => [
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
-                'SecureURL' => $this->credentials['3dcart']['secure_url'],
-                'PrivateKey' => $this->credentials['3dcart']['private_key'],
-                'Token' => $this->credentials['3dcart']['token'],
+                'SecureURL' => $this->credentials[$storeKey]['secure_url'],
+                'PrivateKey' => $this->credentials[$storeKey]['private_key'],
+                'Token' => $this->credentials[$storeKey]['token'],
             ]
         ]);
         
@@ -53,9 +59,9 @@ class InventorySyncService {
             'headers' => [
                 'Content-Type' => 'application/json',
                 'Accept' => 'application/json',
-                'SecureURL' => $this->credentials['3dcart']['secure_url'],
-                'PrivateKey' => $this->credentials['3dcart']['private_key'],
-                'Token' => $this->credentials['3dcart']['token'],
+                'SecureURL' => $this->credentials[$storeKey]['secure_url'],
+                'PrivateKey' => $this->credentials[$storeKey]['private_key'],
+                'Token' => $this->credentials[$storeKey]['token'],
             ]
         ]);
     }

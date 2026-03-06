@@ -22,9 +22,11 @@ class OrderController {
     private $emailService;
     private $logger;
     private $config;
+    private $storeKey;
     
-    public function __construct() {
-        $this->threeDCartService = new ThreeDCartService();
+    public function __construct($storeKey = '3dcart') {
+        $this->storeKey = $storeKey;
+        $this->threeDCartService = new ThreeDCartService($storeKey);
         $this->netSuiteService = new NetSuiteService();
         $this->emailService = new EnhancedEmailService(false); // false = manual context
         $this->logger = Logger::getInstance();
