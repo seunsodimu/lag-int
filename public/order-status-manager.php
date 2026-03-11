@@ -92,33 +92,86 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     throw new Exception('Invalid service response received');
                 }
                 
-                if ($result['success'] && !$result['is_synced'] && isset($result['threedcart_order']['ShipmentList'][0])) {
-                    $shipment = $result['threedcart_order']['ShipmentList'][0];
+                if ($result['success'] && !$result['is_synced']) {
+                    $orderData = $result['threedcart_order'] ?? [];
+                    $shipment = $orderData['ShipmentList'][0] ?? [];
+                    
                     $firstName = trim($shipment['ShipmentFirstName'] ?? '');
                     $lastName = trim($shipment['ShipmentLastName'] ?? '');
+                    $companyName = trim($firstName . ' ' . $lastName);
                     
-                    if (!empty($firstName) && !empty($lastName)) {
-                        $companyName = $firstName . ' ' . $lastName;
-                        $escapedCompanyName = str_replace("'", "''", $companyName);
+                    $billingEmail = trim($orderData['BillingEmailAddress'] ?? '');
+                    $billingPhone = trim($orderData['BillingPhoneNumber'] ?? '');
+                    
+                    $checkoutQuestionEmail = '';
+                    if (isset($orderData['QuestionList']) && is_array($orderData['QuestionList'])) {
+                        foreach ($orderData['QuestionList'] as $question) {
+                            if (isset($question['QuestionID']) && $question['QuestionID'] == 1) {
+                                $ans = trim($question['QuestionAnswer'] ?? '');
+                                if (filter_var($ans, FILTER_VALIDATE_EMAIL)) {
+                                    $checkoutQuestionEmail = $ans;
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    
+                    $searchSummary = [];
+                    $matchingCustomers = [];
+                    $foundCustomerIds = [];
+                    
+                    $searchCriteria = [
+                        ['type' => 'Company name', 'term' => $companyName, 'field' => 'companyname'],
+                        ['type' => 'Billing email', 'term' => $billingEmail, 'field' => 'email'],
+                        ['type' => 'Checkout Question', 'term' => $checkoutQuestionEmail, 'field' => 'email'],
+                        ['type' => 'Billing phone', 'term' => $billingPhone, 'field' => 'phone', 'is_phone' => true]
+                    ];
+                    
+                    foreach ($searchCriteria as $criteria) {
+                        $term = $criteria['term'];
+                        if (empty($term)) continue;
                         
-                        $query = "SELECT id, firstName, lastName, email, companyName, phone, isperson FROM customer WHERE companyname = '" . $escapedCompanyName . "' AND isperson = 'F'";
+                        $type = $criteria['type'];
+                        $field = $criteria['field'];
                         
                         try {
+                            if (!empty($criteria['is_phone'])) {
+                                $cleanPhone = preg_replace('/[^0-9]/', '', $term);
+                                $query = "SELECT id, firstName, lastName, email, companyName, phone, isperson FROM customer WHERE REGEXP_REPLACE(phone, '[^0-9]', '') = '" . $cleanPhone . "' ";
+                            } else {
+                                $escapedTerm = str_replace("'", "''", $term);
+                                $query = "SELECT id, firstName, lastName, email, companyName, phone, isperson FROM customer WHERE $field = '" . $escapedTerm . "' ";
+                            }
+                            
                             $customerResult = $netSuiteService->executeSuiteQLQuery($query);
-                            $result['matching_customers'] = $customerResult['items'] ?? [];
+                            $items = $customerResult['items'] ?? [];
+                            $count = count($items);
+                            
+                            $searchSummary[] = [
+                                'type' => $type,
+                                'term' => $term,
+                                'count' => $count
+                            ];
+                            
+                            foreach ($items as $customer) {
+                                if (!in_array($customer['id'], $foundCustomerIds)) {
+                                    $matchingCustomers[] = $customer;
+                                    $foundCustomerIds[] = $customer['id'];
+                                }
+                            }
                         } catch (\Exception $e) {
-                            $logger->warning('Failed to search for matching customers', [
-                                'order_id' => $orderId,
-                                'company_name' => $companyName,
+                            $logger->warning("Failed to search for customers via $type", [
+                                'term' => $term,
                                 'error' => $e->getMessage()
                             ]);
-                            $result['matching_customers'] = [];
                         }
-                    } else {
-                        $result['matching_customers'] = [];
                     }
+                    
+                    $result['matching_customers'] = $matchingCustomers;
+                    $result['search_summary'] = $searchSummary;
                 } else {
                     $result['matching_customers'] = [];
+                    $result['search_summary'] = [];
                 }
                 
                 ob_clean();
@@ -680,7 +733,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 syncStatusBadge.className = 'status-badge status-not-synced';
             }
             
-            display3DCartOrder(threeDCartContent, data.threedcart_order, data.can_edit_threedcart, data.matching_customers || []);
+            display3DCartOrder(threeDCartContent, data.threedcart_order, data.can_edit_threedcart, data.matching_customers || [], data.search_summary || []);
             
             displayNetSuiteOrder(netSuiteContent, data.netsuite_order);
             
@@ -689,7 +742,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             resultsDiv.classList.remove('hidden');
         }
         
-        function display3DCartOrder(container, order, canEdit, matchingCustomers) {
+        function display3DCartOrder(container, order, canEdit, matchingCustomers, searchSummary) {
             if (!order) {
                 container.innerHTML = '<p>Order not found in 3DCart</p>';
                 return;
@@ -849,37 +902,53 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <h4 style="margin-top: 0; color: #667eea;">NetSuite Customer Options</h4>
                 `;
                 
-                if (matchingCustomers.length > 0) {
+                if (matchingCustomers.length > 0 || (searchSummary && searchSummary.length > 0)) {
                     html += `
                         <div style="margin-bottom: 15px; padding: 10px; background: #e7f3ff; border-left: 4px solid #667eea; border-radius: 4px;">
-                            <strong style="color: #667eea;">Found ${matchingCustomers.length} matching customer(s) for "${shipFirstName} ${shipLastName}"</strong>
-                        </div>
-                        <div style="margin-bottom: 15px;">
-                            <label class="field-label" style="margin-bottom: 10px; display: block;">Select Customer:</label>
-                            <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white;">
                     `;
                     
-                    matchingCustomers.forEach(customer => {
+                    if (searchSummary && searchSummary.length > 0) {
+                        searchSummary.forEach(s => {
+                            html += `<div style="margin-bottom: 4px; color: #667eea;"><strong>Found ${s.count} matching customer(s) for ${s.term} via ${s.type}</strong></div>`;
+                        });
+                    } else {
                         html += `
-                            <div style="padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s;"
-                                 onmouseover="this.style.background='#f8f9fa'" 
-                                 onmouseout="this.style.background='white'"
-                                 onclick="selectCustomer(${customer.id}, '${(customer.companyname || '').replace(/'/g, "\\'")}', '${(customer.email || '').replace(/'/g, "\\'")}')">
-                                <div style="font-weight: 500; color: #333;">
-                                    <strong>ID:</strong> ${customer.id} - ${customer.companyname || 'N/A'}
+                            <strong style="color: #667eea;">Found ${matchingCustomers.length} matching customer(s) for "${shipFirstName} ${shipLastName}"</strong>
+                        `;
+                    }
+                    
+                    html += `</div>`;
+                    
+                    if (matchingCustomers.length > 0) {
+                        html += `
+                            <div style="margin-bottom: 15px;">
+                                <label class="field-label" style="margin-bottom: 10px; display: block;">Select Customer:</label>
+                                <div style="max-height: 200px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; background: white;">
+                        `;
+                        
+                        matchingCustomers.forEach(customer => {
+                            html += `
+                                <div style="padding: 12px; border-bottom: 1px solid #eee; cursor: pointer; transition: background 0.2s;"
+                                     onmouseover="this.style.background='#f8f9fa'" 
+                                     onmouseout="this.style.background='white'"
+                                     onclick="selectCustomer(${customer.id}, '${(customer.companyname || '').replace(/'/g, "\\'")}', '${(customer.email || '').replace(/'/g, "\\'")}')">
+                                    <div style="font-weight: 500; color: #333;">
+                                        <strong>ID:</strong> ${customer.id} - ${customer.companyname || 'N/A'}
+                                    </div>
+                                    <div style="font-size: 0.9em; color: #666; margin-top: 4px;">
+                                        <strong>Email:</strong> ${customer.email || 'N/A'} | 
+                                        <strong>Phone:</strong> ${customer.phone || 'N/A'} | 
+                                        <strong>Customer Type:</strong> ${customer.isperson=='F' ? 'Company': 'Individual'}
+                                    </div>
                                 </div>
-                                <div style="font-size: 0.9em; color: #666; margin-top: 4px;">
-                                    <strong>Email:</strong> ${customer.email || 'N/A'} | 
-                                    <strong>Phone:</strong> ${customer.phone || 'N/A'}
+                            `;
+                        });
+                        
+                        html += `
                                 </div>
                             </div>
                         `;
-                    });
-                    
-                    html += `
-                            </div>
-                        </div>
-                    `;
+                    }
                 }
                 
                 html += `

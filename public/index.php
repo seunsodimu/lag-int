@@ -200,6 +200,29 @@ if (!$currentUser) {
             
             <div class="features">
                 <!-- 3DCart to NetSuite Integration -->
+<?php if ($currentUser['role'] === 'user'): ?>
+<div class="feature-card" style="border-left: 4px solid #667eea;">
+                    <div class="feature-icon">🛒</div>
+                    <h3>3DCart → NetSuite</h3>
+                    <p>Automated order processing from 3DCart (US and Canada) to NetSuite. Real-time webhook integration for orders, customer management, and sales order creation.</p>
+                    <div style="margin-top: 15px;">
+                        <div style="margin-bottom: 15px;">
+                            <strong>🇺🇸 US Store:</strong>
+                            <ul style="text-align: left; list-style: none; padding-left: 0;">
+                                <li>📊 <a href="<?php echo UrlHelper::url('order-sync.php'); ?>">Order Manager</a></li>
+                            </ul>
+                        </div>
+                        <div style="margin-bottom: 15px;">
+                            <strong>🇨🇦 Canada Store:</strong>
+                            <ul style="text-align: left; list-style: none; padding-left: 0;">
+                                <li>📊 <a href="<?php echo UrlHelper::url('order-sync-canada.php'); ?>">Order Manager</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+    <?php endif; ?>
+
+                  <?php if ($currentUser['role'] === 'admin'): ?>
                 <div class="feature-card" style="border-left: 4px solid #667eea;">
                     <div class="feature-icon">🛒</div>
                     <h3>3DCart → NetSuite</h3>
@@ -282,7 +305,7 @@ if (!$currentUser) {
                     </div>
                 </div>
                 
-                <?php if ($currentUser['role'] === 'admin'): ?>
+               
                 <!-- Pulse Display System -->
                 <div class="feature-card" style="border-left: 4px solid #9c27b0;">
                     <div class="feature-icon">📺</div>
@@ -297,7 +320,7 @@ if (!$currentUser) {
                 </div>
                 <?php endif; ?>
             </div>
-            
+            <?php if ($currentUser['role'] === 'admin'): ?>
             <div class="info-box">
                 <h4>🚀 Getting Started</h4>
                 <p>
@@ -338,6 +361,7 @@ if (!$currentUser) {
                     <li><strong>Webhook Processing:</strong> <?php echo $config['webhook']['enabled'] ? '✅ Enabled' : '⚠️ Disabled'; ?></li>
                 </ul>
             </div>
+            <?php endif; ?>
         </div>
         
         <div class="footer">

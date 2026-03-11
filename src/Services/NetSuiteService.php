@@ -258,6 +258,43 @@ class NetSuiteService {
     }
 
     /**
+     * Get Sales Order record by ID including sub-resources
+     */
+    public function getSalesOrderById($salesOrderId) {
+        try {
+            $this->logger->info('Retrieving full Sales Order record by ID', ['sales_order_id' => $salesOrderId]);
+            
+            $response = $this->makeRequest('GET', "/salesOrder/{$salesOrderId}", null, ['expandSubResources' => 'true']);
+            $statusCode = $response->getStatusCode();
+            $responseBody = $response->getBody()->getContents();
+            
+            if ($statusCode === 200) {
+                $salesOrder = json_decode($responseBody, true);
+                
+                $this->logger->info('Retrieved full Sales Order record', [
+                    'sales_order_id' => $salesOrderId,
+                    'transaction_id' => $salesOrder['tranId'] ?? 'N/A'
+                ]);
+                
+                return $salesOrder;
+            } else {
+                $this->logger->warning('Failed to retrieve Sales Order by ID', [
+                    'sales_order_id' => $salesOrderId,
+                    'status_code' => $statusCode,
+                    'response' => $responseBody
+                ]);
+                return null;
+            }
+        } catch (\Exception $e) {
+            $this->logger->error('Error retrieving Sales Order by ID', [
+                'sales_order_id' => $salesOrderId,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
      * Get full customer record by ID including addresses
      */
     public function getCustomerById($customerId) {
@@ -1251,44 +1288,6 @@ class NetSuiteService {
         }
     }
     
-    /**
-     * Get sales order by internal ID
-     */
-    public function getSalesOrderById($orderId) {
-        try {
-            $startTime = microtime(true);
-            
-            $response = $this->makeRequest('GET', '/salesOrder/' . $orderId);
-            
-            $duration = (microtime(true) - $startTime) * 1000;
-            $this->logger->logApiCall('NetSuite', '/salesOrder/' . $orderId, 'GET', $response->getStatusCode(), $duration);
-            
-            $data = json_decode($response->getBody()->getContents(), true);
-            
-            if ($data) {
-                $this->logger->info('Found sales order by internal ID', [
-                    'internal_id' => $orderId,
-                    'tranid' => $data['tranid'] ?? 'N/A'
-                ]);
-                return $data;
-            }
-            
-            return null;
-            
-        } catch (RequestException $e) {
-            if ($e->getResponse() && $e->getResponse()->getStatusCode() === 404) {
-                $this->logger->info('Sales order not found by internal ID', ['internal_id' => $orderId]);
-                return null;
-            }
-            
-            $this->logger->error('Failed to get sales order by internal ID', [
-                'internal_id' => $orderId,
-                'error' => $e->getMessage()
-            ]);
-            throw new \Exception("Failed to get sales order by internal ID: " . $e->getMessage());
-        }
-    }
-
     /**
      * Create customer in NetSuite with enhanced 3DCart integration support
      */

@@ -43,6 +43,126 @@ class PayPalController {
     }
 
     /**
+     * Handle the request to create PayPal Invoices from Sales Orders
+     */
+    public function createInvoicesForSalesOrders() {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $orderIds = $input['order_ids'] ?? null;
+        $environment = $input['environment'] ?? null; // 'sandbox' or 'production'
+        $sendToInvoicer = $input['send_to_invoicer'] ?? false;
+        $sendToRecipient = $input['send_to_recipient'] ?? true;
+
+        if (!$orderIds) {
+            $this->sendResponse(false, 'Missing order_ids in request body', [], 400);
+            return;
+        }
+
+        // Convert single ID to array
+        if (!is_array($orderIds)) {
+            $orderIds = [$orderIds];
+        }
+
+        // If environment is provided, re-initialize PayPalService with that environment
+        if ($environment) {
+            $this->paypalService = new PayPalService($environment);
+        }
+
+        $results = [];
+        foreach ($orderIds as $orderId) {
+            $results[] = $this->processInvoice($orderId, $sendToInvoicer, $sendToRecipient);
+        }
+
+        $this->sendResponse(true, 'Processing complete', $results);
+    }
+
+    /**
+     * Process a single Sales Order for Invoice creation
+     */
+    private function processInvoice($orderId, $sendToInvoicer = false, $sendToRecipient = true) {
+        $this->logger->info("Processing PayPal invoice for Sales Order: $orderId");
+
+        try {
+            // 1. Get Sales Order from NetSuite
+            $order = $this->netsuiteService->getSalesOrderById($orderId);
+            
+            if (!$order) {
+                return [
+                    'order_id' => $orderId,
+                    'success' => false,
+                    'error' => 'Sales Order not found in NetSuite'
+                ];
+            }
+
+            // 2. Create PayPal invoice
+            $invoice = $this->paypalService->createInvoice($order);
+
+            if (!$invoice) {
+                return [
+                    'order_id' => $orderId,
+                    'success' => false,
+                    'error' => 'Failed to create PayPal invoice'
+                ];
+            }
+
+            $invoiceId = $invoice['id'] ?? 'N/A';
+
+            if ($invoiceId === 'N/A') {
+                return [
+                    'order_id' => $orderId,
+                    'success' => false,
+                    'error' => 'Invoice created but ID missing in response'
+                ];
+            }
+
+            // 3. Send PayPal invoice
+            $sendResult = $this->paypalService->sendInvoice($invoiceId, $sendToInvoicer, $sendToRecipient);
+            
+            if (!$sendResult) {
+                $this->logger->warning("Failed to send PayPal invoice $invoiceId, but will still update NetSuite", [
+                    'order_id' => $orderId
+                ]);
+            }
+
+            // 4. Update NetSuite Sales Order
+            $invoiceUrl = "https://www.paypal.com/invoice/p/#" . $invoiceId;
+            $updateData = [
+                'custbody_paypal_invoice_url' => $invoiceUrl
+            ];
+
+            $nsUpdateResult = $this->netsuiteService->updateSalesOrder($orderId, $updateData);
+
+            if (!$nsUpdateResult['success']) {
+                $this->logger->error("Failed to update NetSuite Sales Order $orderId with invoice URL", [
+                    'error' => $nsUpdateResult['error'] ?? 'Unknown error'
+                ]);
+            }
+
+            return [
+                'order_id' => $orderId,
+                'tran_id' => $order['tranId'] ?? 'N/A',
+                'success' => true,
+                'invoice_id' => $invoiceId,
+                'invoice_number' => $invoice['detail']['invoice_number'] ?? 'N/A',
+                'invoice_url' => $invoiceUrl,
+                'sent' => $sendResult,
+                'send_to_invoicer' => $sendToInvoicer,
+                'send_to_recipient' => $sendToRecipient,
+                'netsuite_updated' => $nsUpdateResult['success']
+            ];
+
+        } catch (\Exception $e) {
+            $this->logger->error("Error processing PayPal invoice for Order $orderId", [
+                'error' => $e->getMessage()
+            ]);
+            return [
+                'order_id' => $orderId,
+                'success' => false,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    /**
      * Process a single Sales Order
      */
     private function processOrder($orderId) {

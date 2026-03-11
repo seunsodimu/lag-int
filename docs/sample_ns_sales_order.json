@@ -1,0 +1,2632 @@
+{
+    "links": [
+        {
+            "rel": "self",
+            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesOrder/766966?expandSubResources=true"
+        }
+    ],
+    "altHandlingCost": 0.0,
+    "altShippingCost": 0.0,
+    "billAddress": "Woodcraft Birmingham 511\n5030 Champion Blvd\nSuite G11425\nBoca Raton FL 33496\nUnited States\n(561) 342-1828",
+    "billAddressList": {
+        "links": [],
+        "id": "3987",
+        "refName": "Billing"
+    },
+    "billingAddress": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/billingAddress"
+            }
+        ],
+        "addr1": "5030 Champion Blvd",
+        "addr2": "Suite G11425",
+        "addressee": "Woodcraft Birmingham 511",
+        "addrPhone": "5613421828",
+        "addrText": "Woodcraft Birmingham 511\n5030 Champion Blvd\nSuite G11425\nBoca Raton FL 33496\nUnited States\n(561) 342-1828",
+        "city": "Boca Raton",
+        "country": {
+            "id": "US",
+            "refName": "United States"
+        },
+        "override": false,
+        "state": "FL",
+        "zip": "33496"
+    },
+    "billingAddress_text": "Woodcraft Birmingham 511\n5030 Champion Blvd\nSuite G11425\nBoca Raton FL 33496\nUnited States\n(561) 342-1828",
+    "canBeUnapproved": true,
+    "canHaveStackable": true,
+    "createdDate": "2026-03-09T12:56:00Z",
+    "currency": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/currency/1"
+            }
+        ],
+        "id": "1",
+        "refName": "US Dollar"
+    },
+    "custbody2": "excess stock sale, 7%",
+    "custbody21": false,
+    "custbody27": false,
+    "custbody30": false,
+    "custbody_15699_exclude_from_ep_process": false,
+    "custbody_atlas_exist_cust_hdn": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/customlist_atlas_cust_type/2"
+            }
+        ],
+        "id": "2",
+        "refName": "Existing Customer"
+    },
+    "custbody_atlas_new_cust_hdn": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/customlist_atlas_cust_type/1"
+            }
+        ],
+        "id": "1",
+        "refName": "New Customer"
+    },
+    "custbody_atlas_no_hdn": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/customlist_atlas_appr_by_creator/2"
+            }
+        ],
+        "id": "2",
+        "refName": "No"
+    },
+    "custbody_atlas_yes_hdn": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/customlist_atlas_appr_by_creator/1"
+            }
+        ],
+        "id": "1",
+        "refName": "Yes"
+    },
+    "custbody_ava_customduty": 0.0,
+    "custbody_ava_customercompanyname": "Woodcraft Birmingham 511",
+    "custbody_ava_customerentityid": "Woodcraft Birmingham 511",
+    "custbody_ava_customerisperson": false,
+    "custbody_ava_customertaxable": false,
+    "custbody_ava_disable_tax_calculation": false,
+    "custbody_ava_entity_type": "Customer",
+    "custbody_ava_is_sellerimporter": false,
+    "custbody_ava_partnerisperson": false,
+    "custbody_ava_pickup": false,
+    "custbody_ava_salesresp": "Benjamin Helshoj",
+    "custbody_ava_scis_trans_flag": false,
+    "custbody_ava_shippingtaxinclude": false,
+    "custbody_ava_subsidiaryaddress1": "744 Refuge Way Suite 200",
+    "custbody_ava_subsidiaryaddressee": "Laguna Tools, Inc",
+    "custbody_ava_subsidiarycity": "Grand Prairie",
+    "custbody_ava_subsidiarycountry": "United States",
+    "custbody_ava_subsidiarycurrency": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/currency/1"
+            }
+        ],
+        "id": "1",
+        "refName": "US Dollar"
+    },
+    "custbody_ava_subsidiarycurrencycode": "USD",
+    "custbody_ava_subsidiaryobj": "[{\"recordType\":\"customrecord_avasubsidiaries\",\"id\":\"1\",\"values\":{\"custrecord_ava_subsidiary\":[{\"value\":\"1\",\"text\":\"Laguna Tools, Inc\"}],\"custrecord_ava_subdeftaxcode\":\"AVATAX+53\",\"custrecord_ava_iscompanyaddr\":true,\"custrecord_ava_defcompanycode\":\"DEFAULT\"}}]",
+    "custbody_ava_subsidiaryshipaddress1": "744 Refuge Way Suite 200",
+    "custbody_ava_subsidiaryshipcity": "Grand Prairie",
+    "custbody_ava_subsidiaryshipcountry": "United States",
+    "custbody_ava_subsidiaryshipstate": "TX",
+    "custbody_ava_subsidiaryshipzip": "75050",
+    "custbody_ava_subsidiarystate": "TX",
+    "custbody_ava_subsidiaryzip": "75050",
+    "custbody_ava_suspendtaxcall": false,
+    "custbody_ava_taxcredit": 0.0,
+    "custbody_ava_taxdateoverride": false,
+    "custbody_ava_taxinclude": false,
+    "custbody_ava_taxoverride": false,
+    "custbody_ava_usebilltoaddress": false,
+    "custbody_avalara_status": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/customlist_ava_statuslist/2"
+            }
+        ],
+        "id": "2",
+        "refName": "Processed"
+    },
+    "custbody_br_handlingmode_rec_ext_event": false,
+    "custbody_bt_es_bypass_pi_address": false,
+    "custbody_bt_es_decline_fpa": false,
+    "custbody_bt_es_gen_pay_link": false,
+    "custbody_completion": false,
+    "custbody_country_of_transship": "Country of Transshipment \r\nUnited States/Irvine CA",
+    "custbody_customer_category": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/customercategory/4"
+            }
+        ],
+        "id": "4",
+        "refName": "Dealer US"
+    },
+    "custbody_es_bt_auth_by_external_pnref": false,
+    "custbody_es_bt_reauthorization": false,
+    "custbody_fa_recalc_taxes": false,
+    "custbody_has_flat_rate_item_tt": false,
+    "custbody_is_91_days": false,
+    "custbody_link_so": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/custbody_link_so"
+            }
+        ],
+        "count": 0,
+        "hasMore": false,
+        "items": [],
+        "offset": 0,
+        "totalResults": 0
+    },
+    "custbody_lt_call_before_delivery": false,
+    "custbody_lt_delivery_appt": false,
+    "custbody_lt_inside_delivery": false,
+    "custbody_lt_liftgate_svc": false,
+    "custbody_lt_none": false,
+    "custbody_lt_residential_addrs": false,
+    "custbody_nondeductible_ref_tran": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/custbody_nondeductible_ref_tran"
+            }
+        ],
+        "count": 0,
+        "hasMore": false,
+        "items": [],
+        "offset": 0,
+        "totalResults": 0
+    },
+    "custbody_nst_swms_v3_package_boxes": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/custbody_nst_swms_v3_package_boxes"
+            }
+        ],
+        "count": 0,
+        "hasMore": false,
+        "items": [],
+        "offset": 0,
+        "totalResults": 0
+    },
+    "custbody_nst_wms_updated_line_unique": false,
+    "custbody_packship_process_on_if": false,
+    "custbody_print_address": "Woodcraft Birmingham 511\r\n5030 Champion Blvd\r\nSuite G11425\r\nBoca Raton FL 33496\r\nUnited States\r\n(561) 342-1828",
+    "custbody_report_timestamp": "9/3/2026 5:47:1",
+    "custbody_requested_parts_id": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/custbody_requested_parts_id"
+            }
+        ],
+        "count": 0,
+        "hasMore": false,
+        "items": [],
+        "offset": 0,
+        "totalResults": 0
+    },
+    "custbody_requestor": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/custbody_requestor"
+            }
+        ],
+        "count": 0,
+        "hasMore": false,
+        "items": [],
+        "offset": 0,
+        "totalResults": 0
+    },
+    "custbody_sales_order_region": "Southeast",
+    "custbody_shipcentral_rma_tobeemail": false,
+    "custbody_shipcentral_sat_del": false,
+    "custbody_sii_article_61d": false,
+    "custbody_sii_article_72_73": false,
+    "custbody_sii_is_third_party": false,
+    "custbody_sii_not_reported_in_time": false,
+    "custbody_slscomcalc": 0.44987829,
+    "custbody_so_type": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/customlist_sales_order_type/1"
+            }
+        ],
+        "id": "1",
+        "refName": "NORMAL"
+    },
+    "custbody_sototweight": 1131.0,
+    "custbody_sps_package_validation_bypass": false,
+    "custbody_sps_test_transaction_flag": false,
+    "custbody_sps_trans_carton_ct": 0,
+    "custbody_sps_xref_queued": false,
+    "custbody_stc_amount_after_discount": 5636.28,
+    "custbody_stc_tax_after_discount": 0.0,
+    "custbody_stc_total_after_discount": 5636.28,
+    "custbodyaccounting_approval": false,
+    "custbodybt_es_reauth_pi_indicator": false,
+    "custbodydeposit_received": false,
+    "custbodypaid_in_full": false,
+    "custbodyship_immediate": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/customlistship_immediate_yes_no/2"
+            }
+        ],
+        "id": "2",
+        "refName": "SPLIT SHIP "
+    },
+    "custbodytelephone": "2059883600",
+    "customForm": {
+        "id": "233",
+        "refName": "Laguna Tools - Sales Order - Invoice"
+    },
+    "department": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/department/3"
+            }
+        ],
+        "id": "3",
+        "refName": "Sales: Wholesale"
+    },
+    "discountTotal": 0.0,
+    "email": "birmingham@mywoodcraft.com",
+    "entity": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/customer/3536"
+            }
+        ],
+        "id": "3536",
+        "refName": "Woodcraft Birmingham 511"
+    },
+    "estGrossProfit": 2535.64,
+    "estGrossProfitPercent": 44.9878,
+    "exchangeRate": 1.0,
+    "giftCertApplied": 0.0,
+    "giftCertRedemption": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/giftCertRedemption"
+            }
+        ],
+        "items": [],
+        "totalResults": 0
+    },
+    "handlingCost": 0.0,
+    "id": "766966",
+    "item": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item"
+            }
+        ],
+        "items": [
+            {
+                "links": [
+                    {
+                        "rel": "self",
+                        "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/1"
+                    }
+                ],
+                "amount": 132.48,
+                "class": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/classification/39"
+                        }
+                    ],
+                    "id": "39",
+                    "refName": "Parts & Accessories : Accessory : Other"
+                },
+                "commitInventory": {
+                    "id": "1",
+                    "refName": "Available Qty"
+                },
+                "commitmentFirm": false,
+                "costEstimate": 58.13,
+                "costEstimateRate": 58.13,
+                "costEstimateType": {
+                    "id": "ITEMDEFINED",
+                    "refName": "Item Defined Cost"
+                },
+                "custcol25": false,
+                "custcol26": "LED  Double Arm adjustable Brightness & Color 110v w/ Laguna LED Adapter Black",
+                "custcol28": "ALEDLATHE",
+                "custcol_2663_isperson": false,
+                "custcol_ava_assetaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/357"
+                        }
+                    ],
+                    "id": "357",
+                    "refName": "Parts - Lathes"
+                },
+                "custcol_ava_ewaste_containsmercury": "false",
+                "custcol_ava_ewaste_firstuse": "false",
+                "custcol_ava_ewaste_studded": "false",
+                "custcol_ava_expenseaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/397"
+                        }
+                    ],
+                    "id": "397",
+                    "refName": "COGS - Parts & Accessories"
+                },
+                "custcol_ava_incomeaccount": "Revenue - Parts & Accessories",
+                "custcol_ava_is_taxable_service": "false",
+                "custcol_ava_isacceleratedtaxpaid": "false",
+                "custcol_ava_iscoloradosmmregistered": "false",
+                "custcol_ava_iselectricvehicle": "false",
+                "custcol_ava_isheavymachinery": "false",
+                "custcol_ava_isindeterminatelength": "false",
+                "custcol_ava_isintercompany": "false",
+                "custcol_ava_isoperatorprovided": "false",
+                "custcol_ava_issusedvehicle": "false",
+                "custcol_ava_istexasterpeligible": "false",
+                "custcol_ava_item": "ALEDLATHE",
+                "custcol_ava_pickup": false,
+                "custcol_ava_taxamount": 0.0,
+                "custcol_ava_taxcodemapping": "P0000000",
+                "custcol_ava_upccode": "650434698061",
+                "custcol_country_of_origin": "Taiwan (Province of China)",
+                "custcol_is_wo_machine": false,
+                "custcol_lt_calc_unit_price": 132.48,
+                "custcol_lt_preferred_location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "custcol_nst_wms_nestcoreid": "2061116",
+                "custcol_retail_price": 185.0,
+                "custcol_statistical_value_base_curr": 0.0,
+                "custcol_total_weight": 6,
+                "custcolweight": 6.2,
+                "department": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/department/3"
+                        }
+                    ],
+                    "id": "3",
+                    "refName": "Sales: Wholesale"
+                },
+                "description": "LED  Double Arm adjustable Brightness & Color 110v w/ Laguna LED Adapter Black",
+                "excludeFromPredictiveRisk": false,
+                "inventoryDetail": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/1/inventoryDetail"
+                        }
+                    ],
+                    "inventoryAssignment": {
+                        "links": [
+                            {
+                                "rel": "self",
+                                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/1/inventoryDetail/inventoryAssignment"
+                            }
+                        ],
+                        "items": [],
+                        "totalResults": 0
+                    }
+                },
+                "isClosed": false,
+                "isOpen": true,
+                "item": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/inventoryitem/14660"
+                        }
+                    ],
+                    "id": "14660",
+                    "refName": "Accessory : ALEDLATHE LED Double Arm adjustable Brightness & Color 110v w/ Laguna LED Adapter Black"
+                },
+                "itemType": {
+                    "id": "InvtPart",
+                    "refName": "InvtPart"
+                },
+                "line": 1,
+                "linked": false,
+                "location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "marginal": false,
+                "minQty": 1.0,
+                "poRate": 52.51,
+                "poVendor": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/vendor/1907"
+                        }
+                    ],
+                    "id": "1907",
+                    "refName": "1907"
+                },
+                "price": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/pricelevel/10"
+                        }
+                    ],
+                    "id": "10",
+                    "refName": "23% Discount"
+                },
+                "printItems": false,
+                "quantity": 1.0,
+                "quantityAvailable": 500.0,
+                "quantityBilled": 0.0,
+                "quantityCommitted": 0.0,
+                "quantityFulfilled": 0.0,
+                "quantityOnHand": 524.0,
+                "rate": 142.45,
+                "rateSchedule":"0142.45",
+                "units": "18"
+            },
+            {
+                "links": [
+                    {
+                        "rel": "self",
+                        "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/2"
+                    }
+                ],
+                "amount": 153.97,
+                "class": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/classification/39"
+                        }
+                    ],
+                    "id": "39",
+                    "refName": "Parts & Accessories : Accessory : Other"
+                },
+                "commitInventory": {
+                    "id": "1",
+                    "refName": "Available Qty"
+                },
+                "commitmentFirm": false,
+                "costEstimate": 92.84,
+                "costEstimateRate": 92.84,
+                "costEstimateType": {
+                    "id": "ITEMDEFINED",
+                    "refName": "Item Defined Cost"
+                },
+                "custcol25": false,
+                "custcol26": "20 Inch Bed Extension for Revo1216",
+                "custcol28": "ALAREVO1216 Extension 20",
+                "custcol_2663_isperson": false,
+                "custcol_ava_assetaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/357"
+                        }
+                    ],
+                    "id": "357",
+                    "refName": "Parts - Lathes"
+                },
+                "custcol_ava_ewaste_containsmercury": "false",
+                "custcol_ava_ewaste_firstuse": "false",
+                "custcol_ava_ewaste_studded": "false",
+                "custcol_ava_expenseaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/397"
+                        }
+                    ],
+                    "id": "397",
+                    "refName": "COGS - Parts & Accessories"
+                },
+                "custcol_ava_incomeaccount": "Revenue - Parts & Accessories",
+                "custcol_ava_is_taxable_service": "false",
+                "custcol_ava_isacceleratedtaxpaid": "false",
+                "custcol_ava_iscoloradosmmregistered": "false",
+                "custcol_ava_iselectricvehicle": "false",
+                "custcol_ava_isheavymachinery": "false",
+                "custcol_ava_isindeterminatelength": "false",
+                "custcol_ava_isintercompany": "false",
+                "custcol_ava_isoperatorprovided": "false",
+                "custcol_ava_issusedvehicle": "false",
+                "custcol_ava_istexasterpeligible": "false",
+                "custcol_ava_item": "ALAREVO1216 Extension 20",
+                "custcol_ava_pickup": false,
+                "custcol_ava_taxamount": 0.0,
+                "custcol_ava_taxcodemapping": "P0000000",
+                "custcol_ava_upccode": "195444297885",
+                "custcol_country_of_origin": "Taiwan (Province of China)",
+                "custcol_is_wo_machine": false,
+                "custcol_lt_calc_unit_price": 153.97,
+                "custcol_lt_preferred_location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "custcol_nst_wms_nestcoreid": "2061117",
+                "custcol_retail_price": 215.0,
+                "custcol_statistical_value_base_curr": 0.0,
+                "custcol_total_weight": 30,
+                "custcolweight": 30.0,
+                "department": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/department/3"
+                        }
+                    ],
+                    "id": "3",
+                    "refName": "Sales: Wholesale"
+                },
+                "description": "20 Inch Bed Extension for Revo1216",
+                "excludeFromPredictiveRisk": false,
+                "inventoryDetail": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/2/inventoryDetail"
+                        }
+                    ],
+                    "inventoryAssignment": {
+                        "links": [
+                            {
+                                "rel": "self",
+                                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/2/inventoryDetail/inventoryAssignment"
+                            }
+                        ],
+                        "items": [],
+                        "totalResults": 0
+                    }
+                },
+                "isClosed": false,
+                "isOpen": true,
+                "item": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/inventoryitem/14648"
+                        }
+                    ],
+                    "id": "14648",
+                    "refName": "Accessory : Lathe : ALAREVO1216 Extension 20 20'' Bed Extension"
+                },
+                "itemType": {
+                    "id": "InvtPart",
+                    "refName": "InvtPart"
+                },
+                "line": 2,
+                "linked": false,
+                "location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "marginal": false,
+                "minQty": 1.0,
+                "poRate": 84.4,
+                "poVendor": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/vendor/1697"
+                        }
+                    ],
+                    "id": "1697",
+                    "refName": "1697"
+                },
+                "price": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/pricelevel/10"
+                        }
+                    ],
+                    "id": "10",
+                    "refName": "23% Discount"
+                },
+                "printItems": false,
+                "quantity": 1.0,
+                "quantityAvailable": 138.0,
+                "quantityBilled": 0.0,
+                "quantityCommitted": 0.0,
+                "quantityFulfilled": 0.0,
+                "quantityOnHand": 144.0,
+                "rate": 165.55,
+                "rateSchedule":"0165.55",
+                "units": "18"
+            },
+            {
+                "links": [
+                    {
+                        "rel": "self",
+                        "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/3"
+                    }
+                ],
+                "amount": 297.19,
+                "class": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/classification/34"
+                        }
+                    ],
+                    "id": "34",
+                    "refName": "Parts & Accessories : Accessory"
+                },
+                "commitInventory": {
+                    "id": "1",
+                    "refName": "Available Qty"
+                },
+                "commitmentFirm": false,
+                "costEstimate": 155.15,
+                "costEstimateRate": 155.15,
+                "costEstimateType": {
+                    "id": "ITEMDEFINED",
+                    "refName": "Item Defined Cost"
+                },
+                "custcol25": false,
+                "custcol26": "DXIII Driftmaster Fence",
+                "custcol28": "110363",
+                "custcol_2663_isperson": false,
+                "custcol_ava_assetaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/338"
+                        }
+                    ],
+                    "id": "338",
+                    "refName": "Parts"
+                },
+                "custcol_ava_ewaste_containsmercury": "false",
+                "custcol_ava_ewaste_firstuse": "false",
+                "custcol_ava_ewaste_studded": "false",
+                "custcol_ava_expenseaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/397"
+                        }
+                    ],
+                    "id": "397",
+                    "refName": "COGS - Parts & Accessories"
+                },
+                "custcol_ava_incomeaccount": "Revenue - Parts & Accessories",
+                "custcol_ava_is_taxable_service": "false",
+                "custcol_ava_isacceleratedtaxpaid": "false",
+                "custcol_ava_iscoloradosmmregistered": "false",
+                "custcol_ava_iselectricvehicle": "false",
+                "custcol_ava_isheavymachinery": "false",
+                "custcol_ava_isindeterminatelength": "false",
+                "custcol_ava_isintercompany": "false",
+                "custcol_ava_isoperatorprovided": "false",
+                "custcol_ava_issusedvehicle": "false",
+                "custcol_ava_istexasterpeligible": "false",
+                "custcol_ava_item": "110363",
+                "custcol_ava_pickup": false,
+                "custcol_ava_taxamount": 0.0,
+                "custcol_ava_taxcodemapping": "P0000000",
+                "custcol_ava_upccode": "195444294938",
+                "custcol_country_of_origin": "Taiwan (Province of China)",
+                "custcol_is_wo_machine": false,
+                "custcol_lt_calc_unit_price": 297.19,
+                "custcol_lt_preferred_location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "custcol_nst_wms_nestcoreid": "2061118",
+                "custcol_retail_price": 415.0,
+                "custcol_statistical_value_base_curr": 0.0,
+                "custcol_total_weight": 28,
+                "custcolweight": 28.0,
+                "department": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/department/3"
+                        }
+                    ],
+                    "id": "3",
+                    "refName": "Sales: Wholesale"
+                },
+                "description": "DXIII Driftmaster Fence",
+                "excludeFromPredictiveRisk": false,
+                "inventoryDetail": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/3/inventoryDetail"
+                        }
+                    ],
+                    "inventoryAssignment": {
+                        "links": [
+                            {
+                                "rel": "self",
+                                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/3/inventoryDetail/inventoryAssignment"
+                            }
+                        ],
+                        "items": [],
+                        "totalResults": 0
+                    }
+                },
+                "isClosed": false,
+                "isOpen": true,
+                "item": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/inventoryitem/17037"
+                        }
+                    ],
+                    "id": "17037",
+                    "refName": "Accessory : Bandsaw : 110363 DXIII Driftmaster Fence"
+                },
+                "itemType": {
+                    "id": "InvtPart",
+                    "refName": "InvtPart"
+                },
+                "line": 3,
+                "linked": false,
+                "location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "marginal": false,
+                "poRate": 145.0,
+                "price": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/pricelevel/10"
+                        }
+                    ],
+                    "id": "10",
+                    "refName": "23% Discount"
+                },
+                "printItems": false,
+                "quantity": 1.0,
+                "quantityAvailable": 148.0,
+                "quantityBilled": 0.0,
+                "quantityCommitted": 0.0,
+                "quantityFulfilled": 0.0,
+                "quantityOnHand": 156.0,
+                "rate": 319.55,
+                "rateSchedule":"0319.55"
+            },
+            {
+                "links": [
+                    {
+                        "rel": "self",
+                        "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/4"
+                    }
+                ],
+                "amount": 30.0,
+                "class": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/classification/35"
+                        }
+                    ],
+                    "id": "35",
+                    "refName": "Parts & Accessories : Accessory : Bandsaw Blade"
+                },
+                "commitInventory": {
+                    "id": "1",
+                    "refName": "Available Qty"
+                },
+                "commitmentFirm": false,
+                "costEstimate": 6.78,
+                "costEstimateRate": 6.78,
+                "costEstimateType": {
+                    "id": "AVGCOST",
+                    "refName": "Average Cost"
+                },
+                "custcol25": false,
+                "custcol26": "Proforce 1/4\" X 14TPI X 145\"",
+                "custcol28": "BBPF-14-14-145",
+                "custcol_2663_isperson": false,
+                "custcol_ava_assetaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/673"
+                        }
+                    ],
+                    "id": "673",
+                    "refName": "Parts - Blades"
+                },
+                "custcol_ava_ewaste_containsmercury": "false",
+                "custcol_ava_ewaste_firstuse": "false",
+                "custcol_ava_ewaste_studded": "false",
+                "custcol_ava_expenseaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/398"
+                        }
+                    ],
+                    "id": "398",
+                    "refName": "COGS - Blades"
+                },
+                "custcol_ava_incomeaccount": "Revenue - Blades",
+                "custcol_ava_is_taxable_service": "false",
+                "custcol_ava_isacceleratedtaxpaid": "false",
+                "custcol_ava_iscoloradosmmregistered": "false",
+                "custcol_ava_iselectricvehicle": "false",
+                "custcol_ava_isheavymachinery": "false",
+                "custcol_ava_isindeterminatelength": "false",
+                "custcol_ava_isintercompany": "false",
+                "custcol_ava_isoperatorprovided": "false",
+                "custcol_ava_issusedvehicle": "false",
+                "custcol_ava_istexasterpeligible": "false",
+                "custcol_ava_item": "BBPF-14-14-145",
+                "custcol_ava_pickup": false,
+                "custcol_ava_taxamount": 0.0,
+                "custcol_ava_taxcodemapping": "P0000000",
+                "custcol_ava_upccode": "640213052559",
+                "custcol_country_of_origin": "United States",
+                "custcol_is_wo_machine": false,
+                "custcol_lt_calc_unit_price": 30.0,
+                "custcol_lt_preferred_location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "custcol_nst_wms_nestcoreid": "2061119",
+                "custcol_retail_price": 59.99,
+                "custcol_statistical_value_base_curr": 0.0,
+                "custcol_total_weight": 2,
+                "custcolweight": 1.8,
+                "department": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/department/3"
+                        }
+                    ],
+                    "id": "3",
+                    "refName": "Sales: Wholesale"
+                },
+                "description": "Proforce 1/4\" X 14TPI X 145\"",
+                "excludeFromPredictiveRisk": false,
+                "inventoryDetail": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/4/inventoryDetail"
+                        }
+                    ],
+                    "inventoryAssignment": {
+                        "links": [
+                            {
+                                "rel": "self",
+                                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/4/inventoryDetail/inventoryAssignment"
+                            }
+                        ],
+                        "items": [],
+                        "totalResults": 0
+                    }
+                },
+                "isClosed": false,
+                "isOpen": true,
+                "item": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/inventoryitem/26493"
+                        }
+                    ],
+                    "id": "26493",
+                    "refName": "Accessory : Bandsaw Blade : BBPF-14-14-145 1/4\" X 14TPI X 145\""
+                },
+                "itemType": {
+                    "id": "InvtPart",
+                    "refName": "InvtPart"
+                },
+                "line": 4,
+                "linked": false,
+                "location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "marginal": false,
+                "price": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/pricelevel/16"
+                        }
+                    ],
+                    "id": "16",
+                    "refName": "50% Discount"
+                },
+                "printItems": false,
+                "quantity": 1.0,
+                "quantityAvailable": 2.0,
+                "quantityBilled": 0.0,
+                "quantityCommitted": 0.0,
+                "quantityFulfilled": 0.0,
+                "quantityOnHand": 2.0,
+                "rate": 30.0,
+                "rateSchedule":"030.00"
+            },
+            {
+                "links": [
+                    {
+                        "rel": "self",
+                        "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/5"
+                    }
+                ],
+                "amount": 116.99,
+                "class": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/classification/35"
+                        }
+                    ],
+                    "id": "35",
+                    "refName": "Parts & Accessories : Accessory : Bandsaw Blade"
+                },
+                "commitInventory": {
+                    "id": "1",
+                    "refName": "Available Qty"
+                },
+                "commitmentFirm": false,
+                "costEstimate": 35.42,
+                "costEstimateRate": 35.42,
+                "costEstimateType": {
+                    "id": "AVGCOST",
+                    "refName": "Average Cost"
+                },
+                "custcol25": false,
+                "custcol26": "ResawKing 3/4\" x 115\"",
+                "custcol28": "BBRK-34-115",
+                "custcol_2663_isperson": false,
+                "custcol_ava_assetaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/673"
+                        }
+                    ],
+                    "id": "673",
+                    "refName": "Parts - Blades"
+                },
+                "custcol_ava_ewaste_containsmercury": "false",
+                "custcol_ava_ewaste_firstuse": "false",
+                "custcol_ava_ewaste_studded": "false",
+                "custcol_ava_expenseaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/398"
+                        }
+                    ],
+                    "id": "398",
+                    "refName": "COGS - Blades"
+                },
+                "custcol_ava_incomeaccount": "Revenue - Blades",
+                "custcol_ava_is_taxable_service": "false",
+                "custcol_ava_isacceleratedtaxpaid": "false",
+                "custcol_ava_iscoloradosmmregistered": "false",
+                "custcol_ava_iselectricvehicle": "false",
+                "custcol_ava_isheavymachinery": "false",
+                "custcol_ava_isindeterminatelength": "false",
+                "custcol_ava_isintercompany": "false",
+                "custcol_ava_isoperatorprovided": "false",
+                "custcol_ava_issusedvehicle": "false",
+                "custcol_ava_istexasterpeligible": "false",
+                "custcol_ava_item": "BBRK-34-115",
+                "custcol_ava_pickup": false,
+                "custcol_ava_taxamount": 0.0,
+                "custcol_ava_taxcodemapping": "P0000000",
+                "custcol_ava_upccode": "195444024689",
+                "custcol_country_of_origin": "Germany",
+                "custcol_is_wo_machine": false,
+                "custcol_lt_calc_unit_price": 116.99,
+                "custcol_lt_preferred_location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "custcol_nst_wms_nestcoreid": "2061120",
+                "custcol_retail_price": 179.99,
+                "custcol_statistical_value_base_curr": 0.0,
+                "custcol_total_weight": 2,
+                "custcolweight": 2.0,
+                "department": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/department/3"
+                        }
+                    ],
+                    "id": "3",
+                    "refName": "Sales: Wholesale"
+                },
+                "description": "ResawKing 3/4\" x 115\"",
+                "excludeFromPredictiveRisk": false,
+                "inventoryDetail": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/5/inventoryDetail"
+                        }
+                    ],
+                    "inventoryAssignment": {
+                        "links": [
+                            {
+                                "rel": "self",
+                                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/5/inventoryDetail/inventoryAssignment"
+                            }
+                        ],
+                        "items": [],
+                        "totalResults": 0
+                    }
+                },
+                "isClosed": false,
+                "isOpen": true,
+                "item": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/inventoryitem/27523"
+                        }
+                    ],
+                    "id": "27523",
+                    "refName": "Accessory : Bandsaw Blade : BBRK-34-115 ResawKing 3/4\" x 115\""
+                },
+                "itemType": {
+                    "id": "InvtPart",
+                    "refName": "InvtPart"
+                },
+                "line": 5,
+                "linked": false,
+                "location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "marginal": false,
+                "price": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/pricelevel/14"
+                        }
+                    ],
+                    "id": "14",
+                    "refName": "35% Discount"
+                },
+                "printItems": false,
+                "quantity": 1.0,
+                "quantityAvailable": 0.0,
+                "quantityBilled": 0.0,
+                "quantityCommitted": 0.0,
+                "quantityFulfilled": 0.0,
+                "quantityOnHand": 80.0,
+                "rate": 116.99,
+                "rateSchedule":"0116.99"
+            },
+            {
+                "links": [
+                    {
+                        "rel": "self",
+                        "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/6"
+                    }
+                ],
+                "amount": 55.0,
+                "class": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/classification/34"
+                        }
+                    ],
+                    "id": "34",
+                    "refName": "Parts & Accessories : Accessory"
+                },
+                "commitInventory": {
+                    "id": "1",
+                    "refName": "Available Qty"
+                },
+                "commitmentFirm": false,
+                "costEstimate": 23.74,
+                "costEstimateRate": 11.87,
+                "costEstimateType": {
+                    "id": "ITEMDEFINED",
+                    "refName": "Item Defined Cost"
+                },
+                "custcol25": false,
+                "custcol26": "PRE-CUT 19\"-150G  3-Wraps",
+                "custcol28": "SUPMX-60-19-150",
+                "custcol_2663_isperson": false,
+                "custcol_ava_assetaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/364"
+                        }
+                    ],
+                    "id": "364",
+                    "refName": "Parts - Sanders"
+                },
+                "custcol_ava_ewaste_containsmercury": "false",
+                "custcol_ava_ewaste_firstuse": "false",
+                "custcol_ava_ewaste_studded": "false",
+                "custcol_ava_expenseaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/397"
+                        }
+                    ],
+                    "id": "397",
+                    "refName": "COGS - Parts & Accessories"
+                },
+                "custcol_ava_incomeaccount": "Revenue - Parts & Accessories",
+                "custcol_ava_is_taxable_service": "false",
+                "custcol_ava_isacceleratedtaxpaid": "false",
+                "custcol_ava_iscoloradosmmregistered": "false",
+                "custcol_ava_iselectricvehicle": "false",
+                "custcol_ava_isheavymachinery": "false",
+                "custcol_ava_isindeterminatelength": "false",
+                "custcol_ava_isintercompany": "false",
+                "custcol_ava_isoperatorprovided": "false",
+                "custcol_ava_issusedvehicle": "false",
+                "custcol_ava_istexasterpeligible": "false",
+                "custcol_ava_item": "SUPMX-60-19-150",
+                "custcol_ava_pickup": false,
+                "custcol_ava_taxamount": 0.0,
+                "custcol_ava_taxcodemapping": "P0000000",
+                "custcol_ava_upccode": "818047011503",
+                "custcol_country_of_origin": "United States",
+                "custcol_is_wo_machine": false,
+                "custcol_lt_calc_unit_price": 27.5,
+                "custcol_lt_preferred_location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "custcol_nst_wms_nestcoreid": "2061121",
+                "custcol_retail_price": 54.99,
+                "custcol_statistical_value_base_curr": 0.0,
+                "custcol_total_weight": 2,
+                "custcolweight": 0.8,
+                "department": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/department/3"
+                        }
+                    ],
+                    "id": "3",
+                    "refName": "Sales: Wholesale"
+                },
+                "description": "PRE-CUT 19\"-150G  3-Wraps",
+                "excludeFromPredictiveRisk": false,
+                "inventoryDetail": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/6/inventoryDetail"
+                        }
+                    ],
+                    "inventoryAssignment": {
+                        "links": [
+                            {
+                                "rel": "self",
+                                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/6/inventoryDetail/inventoryAssignment"
+                            }
+                        ],
+                        "items": [],
+                        "totalResults": 0
+                    }
+                },
+                "isClosed": false,
+                "isOpen": true,
+                "item": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/inventoryitem/15189"
+                        }
+                    ],
+                    "id": "15189",
+                    "refName": "Accessory : Sander : SUPMX-60-19-150 PRE-CUT 19\"-150G 3-Wraps"
+                },
+                "itemType": {
+                    "id": "InvtPart",
+                    "refName": "InvtPart"
+                },
+                "line": 6,
+                "linked": false,
+                "location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "marginal": false,
+                "poRate": 12.40552375,
+                "poVendor": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/vendor/1967"
+                        }
+                    ],
+                    "id": "1967",
+                    "refName": "1967"
+                },
+                "price": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/pricelevel/16"
+                        }
+                    ],
+                    "id": "16",
+                    "refName": "50% Discount"
+                },
+                "printItems": false,
+                "quantity": 2.0,
+                "quantityAvailable": 0.0,
+                "quantityBilled": 0.0,
+                "quantityCommitted": 0.0,
+                "quantityFulfilled": 0.0,
+                "quantityOnHand": 3.0,
+                "rate": 27.5,
+                "rateSchedule":"027.50"
+            },
+            {
+                "links": [
+                    {
+                        "rel": "self",
+                        "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/7"
+                    }
+                ],
+                "amount": 128.9,
+                "class": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/classification/39"
+                        }
+                    ],
+                    "id": "39",
+                    "refName": "Parts & Accessories : Accessory : Other"
+                },
+                "commitInventory": {
+                    "id": "1",
+                    "refName": "Available Qty"
+                },
+                "commitmentFirm": false,
+                "costEstimate": 86.21,
+                "costEstimateRate": 86.21,
+                "costEstimateType": {
+                    "id": "ITEMDEFINED",
+                    "refName": "Item Defined Cost"
+                },
+                "custcol25": false,
+                "custcol26": "10 Inch Cast Ext. Banjo Arm & Adapter 12|16",
+                "custcol28": "ALAREVO1216 Extension 10",
+                "custcol_2663_isperson": false,
+                "custcol_ava_assetaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/357"
+                        }
+                    ],
+                    "id": "357",
+                    "refName": "Parts - Lathes"
+                },
+                "custcol_ava_ewaste_containsmercury": "false",
+                "custcol_ava_ewaste_firstuse": "false",
+                "custcol_ava_ewaste_studded": "false",
+                "custcol_ava_expenseaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/397"
+                        }
+                    ],
+                    "id": "397",
+                    "refName": "COGS - Parts & Accessories"
+                },
+                "custcol_ava_incomeaccount": "Revenue - Parts & Accessories",
+                "custcol_ava_is_taxable_service": "false",
+                "custcol_ava_isacceleratedtaxpaid": "false",
+                "custcol_ava_iscoloradosmmregistered": "false",
+                "custcol_ava_iselectricvehicle": "false",
+                "custcol_ava_isheavymachinery": "false",
+                "custcol_ava_isindeterminatelength": "false",
+                "custcol_ava_isintercompany": "false",
+                "custcol_ava_isoperatorprovided": "false",
+                "custcol_ava_issusedvehicle": "false",
+                "custcol_ava_istexasterpeligible": "false",
+                "custcol_ava_item": "ALAREVO1216 Extension 10",
+                "custcol_ava_pickup": false,
+                "custcol_ava_taxamount": 0.0,
+                "custcol_ava_taxcodemapping": "P0000000",
+                "custcol_ava_upccode": "650434696425",
+                "custcol_country_of_origin": "Taiwan (Province of China)",
+                "custcol_is_wo_machine": false,
+                "custcol_lt_calc_unit_price": 128.9,
+                "custcol_lt_preferred_location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "custcol_nst_wms_nestcoreid": "2061122",
+                "custcol_retail_price": 180.0,
+                "custcol_statistical_value_base_curr": 0.0,
+                "custcol_total_weight": 22,
+                "custcolweight": 22.0,
+                "department": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/department/3"
+                        }
+                    ],
+                    "id": "3",
+                    "refName": "Sales: Wholesale"
+                },
+                "description": "10 Inch Cast Ext. Banjo Arm & Adapter 12|16",
+                "excludeFromPredictiveRisk": false,
+                "inventoryDetail": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/7/inventoryDetail"
+                        }
+                    ],
+                    "inventoryAssignment": {
+                        "links": [
+                            {
+                                "rel": "self",
+                                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/7/inventoryDetail/inventoryAssignment"
+                            }
+                        ],
+                        "items": [],
+                        "totalResults": 0
+                    }
+                },
+                "isClosed": false,
+                "isOpen": true,
+                "item": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/inventoryitem/3922"
+                        }
+                    ],
+                    "id": "3922",
+                    "refName": "Accessory : Lathe : ALAREVO1216 Extension 10 10\" CAST EXT. BANJO ARM & ADAPTER 12│16"
+                },
+                "itemType": {
+                    "id": "InvtPart",
+                    "refName": "InvtPart"
+                },
+                "line": 7,
+                "linked": false,
+                "location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "marginal": false,
+                "minQty": 1.0,
+                "poRate": 78.37,
+                "poVendor": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/vendor/1697"
+                        }
+                    ],
+                    "id": "1697",
+                    "refName": "1697"
+                },
+                "price": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/pricelevel/10"
+                        }
+                    ],
+                    "id": "10",
+                    "refName": "23% Discount"
+                },
+                "printItems": false,
+                "quantity": 1.0,
+                "quantityAvailable": 162.0,
+                "quantityBilled": 0.0,
+                "quantityCommitted": 0.0,
+                "quantityFulfilled": 0.0,
+                "quantityOnHand": 166.0,
+                "rate": 138.6,
+                "rateSchedule":"0138.60",
+                "units": "18"
+            },
+            {
+                "links": [
+                    {
+                        "rel": "self",
+                        "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/8"
+                    }
+                ],
+                "amount": 2147.59,
+                "class": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/classification/29"
+                        }
+                    ],
+                    "id": "29",
+                    "refName": "Machine : Sander"
+                },
+                "commitInventory": {
+                    "id": "1",
+                    "refName": "Available Qty"
+                },
+                "commitmentFirm": false,
+                "costEstimate": 896.74,
+                "costEstimateRate": 896.74,
+                "costEstimateType": {
+                    "id": "ITEMDEFINED",
+                    "refName": "Item Defined Cost"
+                },
+                "custcol25": false,
+                "custcol26": "25-50 Drum Sander 110v",
+                "custcol28": "SUPMX-72550",
+                "custcol_2663_isperson": false,
+                "custcol_ava_assetaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/352"
+                        }
+                    ],
+                    "id": "352",
+                    "refName": "Sanders"
+                },
+                "custcol_ava_ewaste_containsmercury": "false",
+                "custcol_ava_ewaste_firstuse": "false",
+                "custcol_ava_ewaste_studded": "false",
+                "custcol_ava_expenseaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/389"
+                        }
+                    ],
+                    "id": "389",
+                    "refName": "COGS - Sanders"
+                },
+                "custcol_ava_incomeaccount": "Revenue - Sanders",
+                "custcol_ava_is_taxable_service": "false",
+                "custcol_ava_isacceleratedtaxpaid": "false",
+                "custcol_ava_iscoloradosmmregistered": "false",
+                "custcol_ava_iselectricvehicle": "false",
+                "custcol_ava_isheavymachinery": "false",
+                "custcol_ava_isindeterminatelength": "false",
+                "custcol_ava_isintercompany": "false",
+                "custcol_ava_isoperatorprovided": "false",
+                "custcol_ava_issusedvehicle": "false",
+                "custcol_ava_istexasterpeligible": "false",
+                "custcol_ava_item": "SUPMX-72550",
+                "custcol_ava_pickup": false,
+                "custcol_ava_taxamount": 0.0,
+                "custcol_ava_taxcodemapping": "P0000000",
+                "custcol_ava_upccode": "818047017253",
+                "custcol_country_of_origin": "Taiwan (Province of China)",
+                "custcol_is_wo_machine": false,
+                "custcol_lt_calc_unit_price": 2147.59,
+                "custcol_lt_preferred_location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "custcol_nst_wms_nestcoreid": "2061123",
+                "custcol_retail_price": 2999.0,
+                "custcol_statistical_value_base_curr": 0.0,
+                "custcol_total_weight": 277,
+                "custcolweight": 277.0,
+                "department": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/department/3"
+                        }
+                    ],
+                    "id": "3",
+                    "refName": "Sales: Wholesale"
+                },
+                "description": "25-50 Drum Sander 110v",
+                "excludeFromPredictiveRisk": false,
+                "inventoryDetail": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/8/inventoryDetail"
+                        }
+                    ],
+                    "inventoryAssignment": {
+                        "links": [
+                            {
+                                "rel": "self",
+                                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/8/inventoryDetail/inventoryAssignment"
+                            }
+                        ],
+                        "items": [],
+                        "totalResults": 0
+                    }
+                },
+                "isClosed": false,
+                "isOpen": true,
+                "item": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/inventoryitem/15250"
+                        }
+                    ],
+                    "id": "15250",
+                    "refName": "Machine : Sander : SUPMX-72550 25-50 Drum Sander 110v"
+                },
+                "itemType": {
+                    "id": "InvtPart",
+                    "refName": "InvtPart"
+                },
+                "line": 8,
+                "linked": false,
+                "location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "marginal": false,
+                "poRate": 815.22,
+                "poVendor": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/vendor/1697"
+                        }
+                    ],
+                    "id": "1697",
+                    "refName": "1697"
+                },
+                "price": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/pricelevel/10"
+                        }
+                    ],
+                    "id": "10",
+                    "refName": "23% Discount"
+                },
+                "printItems": false,
+                "quantity": 1.0,
+                "quantityAvailable": 310.0,
+                "quantityBilled": 0.0,
+                "quantityCommitted": 0.0,
+                "quantityFulfilled": 0.0,
+                "quantityOnHand": 316.0,
+                "rate": 2309.23,
+                "rateSchedule":"02309.23"
+            },
+            {
+                "links": [
+                    {
+                        "rel": "self",
+                        "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/9"
+                    }
+                ],
+                "amount": 0.0,
+                "class": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/classification/34"
+                        }
+                    ],
+                    "id": "34",
+                    "refName": "Parts & Accessories : Accessory"
+                },
+                "commitInventory": {
+                    "id": "1",
+                    "refName": "Available Qty"
+                },
+                "commitmentFirm": false,
+                "costEstimate": 223.36,
+                "costEstimateRate": 223.36,
+                "costEstimateType": {
+                    "id": "ITEMDEFINED",
+                    "refName": "Item Defined Cost"
+                },
+                "custcol25": false,
+                "custcol26": "Closed Stand with wheel",
+                "custcol28": "SUPMX-71938-cl-1",
+                "custcol_2663_isperson": false,
+                "custcol_ava_assetaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/364"
+                        }
+                    ],
+                    "id": "364",
+                    "refName": "Parts - Sanders"
+                },
+                "custcol_ava_ewaste_containsmercury": "false",
+                "custcol_ava_ewaste_firstuse": "false",
+                "custcol_ava_ewaste_studded": "false",
+                "custcol_ava_expenseaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/397"
+                        }
+                    ],
+                    "id": "397",
+                    "refName": "COGS - Parts & Accessories"
+                },
+                "custcol_ava_incomeaccount": "Revenue - Parts & Accessories",
+                "custcol_ava_is_taxable_service": "false",
+                "custcol_ava_isacceleratedtaxpaid": "false",
+                "custcol_ava_iscoloradosmmregistered": "false",
+                "custcol_ava_iselectricvehicle": "false",
+                "custcol_ava_isheavymachinery": "false",
+                "custcol_ava_isindeterminatelength": "false",
+                "custcol_ava_isintercompany": "false",
+                "custcol_ava_isoperatorprovided": "false",
+                "custcol_ava_issusedvehicle": "false",
+                "custcol_ava_istexasterpeligible": "false",
+                "custcol_ava_item": "SUPMX-71938-cl-1",
+                "custcol_ava_pickup": false,
+                "custcol_ava_taxamount": 0.0,
+                "custcol_ava_taxcodemapping": "P0000000",
+                "custcol_ava_upccode": "818047017192",
+                "custcol_country_of_origin": "Taiwan (Province of China)",
+                "custcol_is_wo_machine": false,
+                "custcol_lt_calc_unit_price": 0.0,
+                "custcol_lt_preferred_location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "custcol_nst_wms_nestcoreid": "2061124",
+                "custcol_retail_price": 725.0,
+                "custcol_statistical_value_base_curr": 0.0,
+                "custcol_total_weight": 93,
+                "custcolweight": 93.0,
+                "department": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/department/3"
+                        }
+                    ],
+                    "id": "3",
+                    "refName": "Sales: Wholesale"
+                },
+                "description": "Closed Stand with wheel",
+                "excludeFromPredictiveRisk": false,
+                "inventoryDetail": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/9/inventoryDetail"
+                        }
+                    ],
+                    "inventoryAssignment": {
+                        "links": [
+                            {
+                                "rel": "self",
+                                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/9/inventoryDetail/inventoryAssignment"
+                            }
+                        ],
+                        "items": [],
+                        "totalResults": 0
+                    }
+                },
+                "isClosed": false,
+                "isOpen": true,
+                "item": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/inventoryitem/20579"
+                        }
+                    ],
+                    "id": "20579",
+                    "refName": "Accessory : Sander : SUPMX-71938-cl-1 Closed Stand with wheel"
+                },
+                "itemType": {
+                    "id": "InvtPart",
+                    "refName": "InvtPart"
+                },
+                "line": 9,
+                "linked": false,
+                "location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "marginal": false,
+                "poRate": 203.05,
+                "poVendor": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/vendor/1697"
+                        }
+                    ],
+                    "id": "1697",
+                    "refName": "1697"
+                },
+                "price": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/pricelevel/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Retail Price"
+                },
+                "printItems": false,
+                "quantity": 1.0,
+                "quantityAvailable": 14.0,
+                "quantityBilled": 0.0,
+                "quantityCommitted": 0.0,
+                "quantityFulfilled": 0.0,
+                "quantityOnHand": 21.0,
+                "rate": 725.0,
+                "rateSchedule":"0725.00"
+            },
+            {
+                "links": [
+                    {
+                        "rel": "self",
+                        "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/10"
+                    }
+                ],
+                "amount": 1286.84,
+                "class": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/classification/25"
+                        }
+                    ],
+                    "id": "25",
+                    "refName": "Machine : Lathe"
+                },
+                "commitInventory": {
+                    "id": "1",
+                    "refName": "Available Qty"
+                },
+                "commitmentFirm": false,
+                "costEstimate": 836.07,
+                "costEstimateRate": 278.69,
+                "costEstimateType": {
+                    "id": "ITEMDEFINED",
+                    "refName": "Item Defined Cost"
+                },
+                "custcol25": false,
+                "custcol26": "10\" VS Revo Lathe 1HP 110V",
+                "custcol28": "MLAREVO10A",
+                "custcol_2663_isperson": false,
+                "custcol_ava_assetaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/345"
+                        }
+                    ],
+                    "id": "345",
+                    "refName": "Lathes"
+                },
+                "custcol_ava_ewaste_containsmercury": "false",
+                "custcol_ava_ewaste_firstuse": "false",
+                "custcol_ava_ewaste_studded": "false",
+                "custcol_ava_expenseaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/382"
+                        }
+                    ],
+                    "id": "382",
+                    "refName": "COGS - Lathe"
+                },
+                "custcol_ava_incomeaccount": "Revenue - Lathe",
+                "custcol_ava_is_taxable_service": "false",
+                "custcol_ava_isacceleratedtaxpaid": "false",
+                "custcol_ava_iscoloradosmmregistered": "false",
+                "custcol_ava_iselectricvehicle": "false",
+                "custcol_ava_isheavymachinery": "false",
+                "custcol_ava_isindeterminatelength": "false",
+                "custcol_ava_isintercompany": "false",
+                "custcol_ava_isoperatorprovided": "false",
+                "custcol_ava_issusedvehicle": "false",
+                "custcol_ava_istexasterpeligible": "false",
+                "custcol_ava_item": "MLAREVO10A",
+                "custcol_ava_pickup": false,
+                "custcol_ava_taxamount": 0.0,
+                "custcol_ava_taxcodemapping": "P0000000",
+                "custcol_ava_upccode": "195444297106",
+                "custcol_country_of_origin": "China",
+                "custcol_is_wo_machine": false,
+                "custcol_lt_calc_unit_price": 428.95,
+                "custcol_lt_preferred_location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "custcol_nst_wms_nestcoreid": "2061125",
+                "custcol_retail_price": 599.0,
+                "custcol_statistical_value_base_curr": 0.0,
+                "custcol_total_weight": 309,
+                "custcolweight": 103.0,
+                "department": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/department/3"
+                        }
+                    ],
+                    "id": "3",
+                    "refName": "Sales: Wholesale"
+                },
+                "description": "10\" VS Revo Lathe 1HP 110V",
+                "excludeFromPredictiveRisk": false,
+                "inventoryDetail": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/10/inventoryDetail"
+                        }
+                    ],
+                    "inventoryAssignment": {
+                        "links": [
+                            {
+                                "rel": "self",
+                                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/10/inventoryDetail/inventoryAssignment"
+                            }
+                        ],
+                        "items": [],
+                        "totalResults": 0
+                    }
+                },
+                "isClosed": false,
+                "isOpen": true,
+                "item": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/inventoryitem/13924"
+                        }
+                    ],
+                    "id": "13924",
+                    "refName": "Machine : Lathe : MLAREVO10A 10” VS Revo Lathe 1HP 110V"
+                },
+                "itemType": {
+                    "id": "InvtPart",
+                    "refName": "InvtPart"
+                },
+                "line": 10,
+                "linked": false,
+                "location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "marginal": false,
+                "minQty": 1.0,
+                "poRate": 1023.36,
+                "poVendor": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/vendor/2278"
+                        }
+                    ],
+                    "id": "2278",
+                    "refName": "2278"
+                },
+                "price": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/pricelevel/10"
+                        }
+                    ],
+                    "id": "10",
+                    "refName": "23% Discount"
+                },
+                "printItems": false,
+                "quantity": 3.0,
+                "quantityAvailable": 22.0,
+                "quantityBilled": 0.0,
+                "quantityCommitted": 0.0,
+                "quantityFulfilled": 0.0,
+                "quantityOnHand": 25.0,
+                "rate": 461.23,
+                "rateSchedule":"0461.23",
+                "units": "18"
+            },
+            {
+                "links": [
+                    {
+                        "rel": "self",
+                        "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/11"
+                    }
+                ],
+                "amount": 1072.5,
+                "class": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/classification/7"
+                        }
+                    ],
+                    "id": "7",
+                    "refName": "Machine"
+                },
+                "commitInventory": {
+                    "id": "1",
+                    "refName": "Available Qty"
+                },
+                "commitmentFirm": false,
+                "costEstimate": 616.2,
+                "costEstimateRate": 102.7,
+                "costEstimateType": {
+                    "id": "ITEMDEFINED",
+                    "refName": "Item Defined Cost"
+                },
+                "custcol25": false,
+                "custcol26": "G8 Dual Speed Bench Grinder",
+                "custcol28": "MBGG8-001",
+                "custcol_2663_isperson": false,
+                "custcol_ava_assetaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/341"
+                        }
+                    ],
+                    "id": "341",
+                    "refName": "Bandsaws"
+                },
+                "custcol_ava_ewaste_containsmercury": "false",
+                "custcol_ava_ewaste_firstuse": "false",
+                "custcol_ava_ewaste_studded": "false",
+                "custcol_ava_expenseaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/378"
+                        }
+                    ],
+                    "id": "378",
+                    "refName": "COGS - Bandsaws"
+                },
+                "custcol_ava_incomeaccount": "Revenue - Bandsaws",
+                "custcol_ava_is_taxable_service": "false",
+                "custcol_ava_isacceleratedtaxpaid": "false",
+                "custcol_ava_iscoloradosmmregistered": "false",
+                "custcol_ava_iselectricvehicle": "false",
+                "custcol_ava_isheavymachinery": "false",
+                "custcol_ava_isindeterminatelength": "false",
+                "custcol_ava_isintercompany": "false",
+                "custcol_ava_isoperatorprovided": "false",
+                "custcol_ava_issusedvehicle": "false",
+                "custcol_ava_istexasterpeligible": "false",
+                "custcol_ava_item": "MBGG8-001",
+                "custcol_ava_pickup": false,
+                "custcol_ava_taxamount": 0.0,
+                "custcol_ava_taxcodemapping": "P0000000",
+                "custcol_ava_upccode": "195444295157",
+                "custcol_country_of_origin": "China",
+                "custcol_is_wo_machine": false,
+                "custcol_lt_calc_unit_price": 178.75,
+                "custcol_lt_preferred_location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "custcol_nst_wms_nestcoreid": "2061126",
+                "custcol_retail_price": 275.0,
+                "custcol_statistical_value_base_curr": 0.0,
+                "custcol_total_weight": 300,
+                "custcolweight": 50.0,
+                "department": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/department/3"
+                        }
+                    ],
+                    "id": "3",
+                    "refName": "Sales: Wholesale"
+                },
+                "description": "G8 Dual Speed Bench Grinder",
+                "excludeFromPredictiveRisk": false,
+                "inventoryDetail": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/11/inventoryDetail"
+                        }
+                    ],
+                    "inventoryAssignment": {
+                        "links": [
+                            {
+                                "rel": "self",
+                                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/11/inventoryDetail/inventoryAssignment"
+                            }
+                        ],
+                        "items": [],
+                        "totalResults": 0
+                    }
+                },
+                "isClosed": false,
+                "isOpen": true,
+                "item": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/inventoryitem/14522"
+                        }
+                    ],
+                    "id": "14522",
+                    "refName": "Machine : MBGG8-001 G8 two speed bench grinder"
+                },
+                "itemType": {
+                    "id": "InvtPart",
+                    "refName": "InvtPart"
+                },
+                "line": 11,
+                "linked": false,
+                "location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "marginal": false,
+                "poRate": 79.0,
+                "poVendor": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/vendor/1348"
+                        }
+                    ],
+                    "id": "1348",
+                    "refName": "1348"
+                },
+                "price": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/pricelevel/14"
+                        }
+                    ],
+                    "id": "14",
+                    "refName": "35% Discount"
+                },
+                "printItems": false,
+                "quantity": 6.0,
+                "quantityAvailable": 663.0,
+                "quantityBilled": 0.0,
+                "quantityCommitted": 0.0,
+                "quantityFulfilled": 0.0,
+                "quantityOnHand": 667.0,
+                "rate": 178.75,
+                "rateSchedule":"0178.75",
+                "units": "18"
+            },
+            {
+                "links": [
+                    {
+                        "rel": "self",
+                        "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/17"
+                    }
+                ],
+                "amount": 214.82,
+                "class": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/classification/39"
+                        }
+                    ],
+                    "id": "39",
+                    "refName": "Parts & Accessories : Accessory : Other"
+                },
+                "commitInventory": {
+                    "id": "1",
+                    "refName": "Available Qty"
+                },
+                "commitmentFirm": false,
+                "costEstimate": 70.0,
+                "costEstimateRate": 35.0,
+                "costEstimateType": {
+                    "id": "ITEMDEFINED",
+                    "refName": "Item Defined Cost"
+                },
+                "custcol25": false,
+                "custcol26": "Adjustable Stand Fits REVO10",
+                "custcol28": "410001",
+                "custcol_2663_isperson": false,
+                "custcol_ava_assetaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/357"
+                        }
+                    ],
+                    "id": "357",
+                    "refName": "Parts - Lathes"
+                },
+                "custcol_ava_ewaste_containsmercury": "false",
+                "custcol_ava_ewaste_firstuse": "false",
+                "custcol_ava_ewaste_studded": "false",
+                "custcol_ava_expenseaccount": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/account/397"
+                        }
+                    ],
+                    "id": "397",
+                    "refName": "COGS - Parts & Accessories"
+                },
+                "custcol_ava_incomeaccount": "Revenue - Parts & Accessories",
+                "custcol_ava_is_taxable_service": "false",
+                "custcol_ava_isacceleratedtaxpaid": "false",
+                "custcol_ava_iscoloradosmmregistered": "false",
+                "custcol_ava_iselectricvehicle": "false",
+                "custcol_ava_isheavymachinery": "false",
+                "custcol_ava_isindeterminatelength": "false",
+                "custcol_ava_isintercompany": "false",
+                "custcol_ava_isoperatorprovided": "false",
+                "custcol_ava_issusedvehicle": "false",
+                "custcol_ava_istexasterpeligible": "false",
+                "custcol_ava_item": "410001",
+                "custcol_ava_pickup": false,
+                "custcol_ava_taxamount": 0.0,
+                "custcol_ava_taxcodemapping": "P0000000",
+                "custcol_ava_upccode": "195444297649",
+                "custcol_country_of_origin": "China",
+                "custcol_is_wo_machine": false,
+                "custcol_lt_calc_unit_price": 107.41,
+                "custcol_lt_preferred_location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "custcol_nst_wms_nestcoreid": "2062613",
+                "custcol_retail_price": 149.99,
+                "custcol_statistical_value_base_curr": 0.0,
+                "custcol_total_weight": 60,
+                "custcolweight": 30.0,
+                "department": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/department/3"
+                        }
+                    ],
+                    "id": "3",
+                    "refName": "Sales: Wholesale"
+                },
+                "description": "Adjustable Stand Fits REVO10",
+                "excludeFromPredictiveRisk": false,
+                "inventoryDetail": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/17/inventoryDetail"
+                        }
+                    ],
+                    "inventoryAssignment": {
+                        "links": [
+                            {
+                                "rel": "self",
+                                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/item/17/inventoryDetail/inventoryAssignment"
+                            }
+                        ],
+                        "items": [],
+                        "totalResults": 0
+                    }
+                },
+                "isClosed": false,
+                "isOpen": true,
+                "item": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/inventoryitem/28015"
+                        }
+                    ],
+                    "id": "28015",
+                    "refName": "Accessory : Lathe : 410001 ADJUSTABLE STAND FITS REVO 10"
+                },
+                "itemType": {
+                    "id": "InvtPart",
+                    "refName": "InvtPart"
+                },
+                "line": 17,
+                "linked": false,
+                "location": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+                        }
+                    ],
+                    "id": "1",
+                    "refName": "Laguna Texas"
+                },
+                "marginal": false,
+                "minQty": 1.0,
+                "price": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/pricelevel/10"
+                        }
+                    ],
+                    "id": "10",
+                    "refName": "23% Discount"
+                },
+                "printItems": false,
+                "quantity": 2.0,
+                "quantityAvailable": 138.0,
+                "quantityBilled": 0.0,
+                "quantityCommitted": 0.0,
+                "quantityFulfilled": 0.0,
+                "quantityOnHand": 141.0,
+                "rate": 115.49,
+                "rateSchedule":"0115.49",
+                "units": "18"
+            }
+        ],
+        "totalResults": 12
+    },
+    "lastModifiedDate": "2026-03-09T16:01:00Z",
+    "leadSource": {
+        "links": [],
+        "id": "1403",
+        "refName": "Dealer_Woodcraft_Active Dealer-Woodcraft Active"
+    },
+    "location": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/location/1"
+            }
+        ],
+        "id": "1",
+        "refName": "Laguna Texas"
+    },
+    "needsPick": true,
+    "nextBill": "2026-03-09",
+    "orderStatus": {
+        "id": "A",
+        "refName": "A"
+    },
+    "otherRefNum": "R511-004610",
+    "partners": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/partners"
+            }
+        ],
+        "items": [],
+        "totalResults": 0
+    },
+    "prevDate": "2026-03-09",
+    "salesEffectiveDate": "2026-03-09",
+    "salesRep": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/employee/178"
+            }
+        ],
+        "id": "178",
+        "refName": "Benjamin Helshoj"
+    },
+    "salesTeam": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/salesTeam"
+            }
+        ],
+        "items": [
+            {
+                "links": [
+                    {
+                        "rel": "self",
+                        "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/salesTeam/178"
+                    }
+                ],
+                "contribution": 100.0,
+                "employee": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/employee/178"
+                        }
+                    ],
+                    "id": "178",
+                    "refName": "Benjamin Helshoj"
+                },
+                "id": "766966_178",
+                "isPrimary": true,
+                "salesRole": {
+                    "links": [
+                        {
+                            "rel": "self",
+                            "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesrole/-2"
+                        }
+                    ],
+                    "id": "-2",
+                    "refName": "Sales Rep"
+                }
+            }
+        ],
+        "totalResults": 1
+    },
+    "shipAddress": "Woodcraft Birmingham 511\n2975 Pelham Parkway\nPelham AL 35124\nUnited States\n(205) 988-3600",
+    "shipAddressList": {
+        "links": [],
+        "id": "3984",
+        "refName": "Shipping"
+    },
+    "shipComplete": false,
+    "shipDate": "2026-03-10",
+    "shipIsResidential": false,
+    "shipMethod": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/shipitem/24691"
+            }
+        ],
+        "id": "24691",
+        "refName": "FedEx Freight"
+    },
+    "shipOverride": false,
+    "shippingAddress": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/salesorder/766966/shippingAddress"
+            }
+        ],
+        "addr1": "2975 Pelham Parkway",
+        "addressee": "Woodcraft Birmingham 511",
+        "addrPhone": "2059883600",
+        "addrText": "Woodcraft Birmingham 511\n2975 Pelham Parkway\nPelham AL 35124\nUnited States\n(205) 988-3600",
+        "city": "Pelham",
+        "country": {
+            "id": "US",
+            "refName": "United States"
+        },
+        "override": false,
+        "state": "AL",
+        "zip": "35124"
+    },
+    "shippingAddress_text": "Woodcraft Birmingham 511\n2975 Pelham Parkway\nPelham AL 35124\nUnited States\n(205) 988-3600",
+    "shippingCost": 0.0,
+    "shippingCostOverridden": false,
+    "status": {
+        "id": "A",
+        "refName": "Pending Approval"
+    },
+    "subsidiary": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/subsidiary/1"
+            }
+        ],
+        "id": "1",
+        "refName": "Laguna Tools, Inc"
+    },
+    "subtotal": 5636.28,
+    "syncPartnerTeams": false,
+    "syncSalesTeams": false,
+    "terms": {
+        "links": [
+            {
+                "rel": "self",
+                "href": "https://11134099.suitetalk.api.netsuite.com/services/rest/record/v1/term/14"
+            }
+        ],
+        "id": "14",
+        "refName": "Net 45"
+    },
+    "toBeEmailed": false,
+    "toBeFaxed": false,
+    "toBePrinted": false,
+    "total": 5636.28,
+    "totalCostEstimate": 3100.64,
+    "tranDate": "2026-03-09",
+    "tranId": "SO391127",
+    "transactionNumber": "SALESORD391099",
+    "webStore": "F"
+}

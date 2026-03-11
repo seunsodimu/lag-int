@@ -1,0 +1,74 @@
+paypal_field,netsuite_mapping
+detail.invoice_number,transactionNumber
+detail.reference,tranId
+detail.invoice_date,tranDate
+detail.currency_code,"""USD"""
+detail.note,custbody2
+detail.term,SELECT term FROM terms WHERE id = netsuite data {terms->id}
+detail.memo,memo
+detail.payment_term.term_type,"""DUE_ON_DATE_SPECIFIED"""
+detail.payment_term.due_date,"DATE_ADD(tranDate, INTERVAL (SELECT invoice_due_days FROM terms WHERE id = netsuite data {terms->id}) DAY)"
+invoicer.name.given_name,"""Laguna Tools"""
+invoicer.address.address_line_1,"""744 Refuge Way"""
+invoicer.address.address_line_2,"""Suite 200"""
+invoicer.address.admin_area_2,"""Grand Prairie"""
+invoicer.address.admin_area_1,"""TX"""
+invoicer.address.postal_code,"""75050"""
+invoicer.address.country_code,"""US"""
+invoicer.email_address,"""ar@lagunatools.com"""
+invoicer.phones[0].country_code,"""001"""
+invoicer.phones[0].national_number,"""8002341976"""
+invoicer.website,www.lagunatools.com
+invoicer.tax_id,"""1234567"""
+invoicer.logo_url,https://lagunatools.com/wp-content/uploads/2024/11/Laguna-LogoGrey.svg
+primary_recipients[0].billing_info.name.given_name,custbody_ava_customerentityid
+primary_recipients[0].billing_info.address.address_line_1,billingAddress.addr1
+primary_recipients[0].billing_info.address.address_line_2,billingAddress.addr2
+primary_recipients[0].billing_info.address.admin_area_1,billingAddress.state
+primary_recipients[0].billing_info.address.admin_area_2,billingAddress.city
+primary_recipients[0].billing_info.address.postal_code,billingAddress.zip
+primary_recipients[0].billing_info.address.country_code,billingAddress.country.id
+primary_recipients[0].billing_info.email_address,email
+primary_recipients[0].billing_info.phones[0].country_code,"""001"""
+primary_recipients[0].billing_info.phones[0].national_number,STRIP_LEADING_COUNTRY_CODE(billingAddress.addrPhone)
+primary_recipients[0].billing_info.additional_info_value,entity.id OR otherRefNum
+primary_recipients[0].shipping_info.name.given_name,shippingAddress.addressee
+primary_recipients[0].shipping_info.address.address_line_1,shippingAddress.addr1
+primary_recipients[0].shipping_info.address.address_line_2,shippingAddress.addr2
+primary_recipients[0].shipping_info.address.admin_area_1,shippingAddress.state
+primary_recipients[0].shipping_info.address.admin_area_2,shippingAddress.city
+primary_recipients[0].shipping_info.address.postal_code,shippingAddress.zip
+primary_recipients[0].shipping_info.address.country_code,shippingAddress.country.id
+primary_recipients[0].shipping_info.email_address,email
+primary_recipients[0].shipping_info.phones[0].country_code,"""001"""
+primary_recipients[0].shipping_info.phones[0].national_number,STRIP_LEADING_COUNTRY_CODE(shippingAddress.addrPhone)
+items[n].name,item.items[n].custcol26
+items[n].description,item.items[n].description
+items[n].quantity,item.items[n].quantity
+items[n].unit_amount.currency_code,CASE currency.refName WHEN 'US Dollar' THEN 'USD' WHEN 'Canadian Dollar' THEN 'CAD' ELSE currency.refName END
+items[n].unit_amount.value,item.items[n].amount
+items[n].tax.name,"""Sales Tax"" "
+items[n].tax.percent,"CASE WHEN custcol_ava_taxamount > 0 AND item.items[n].amount > 0 THEN ROUND((custcol_ava_taxamount / item.items[n].amount) * 100, 2) ELSE NULL END"
+items[n].discount.percent,PARSE_PERCENT(item.items[n].price.refName)
+items[n].discount.amount.value,"CASE WHEN item.items[n].rate IS NOT NULL AND item.items[n].quantity IS NOT NULL THEN ROUND((item.items[n].rate * item.items[n].quantity) - item.items[n].amount, 2) ELSE NULL END"
+items[n].discount.amount.currency_code,CASE currency.refName WHEN 'US Dollar' THEN 'USD' WHEN 'Canadian Dollar' THEN 'CAD' ELSE currency.refName END
+items[n].unit_of_measure,"""QUANTITY"""
+configuration.partial_payment.allow_partial_payment,""""""
+configuration.partial_payment.minimum_amount_due.currency_code,""""""
+configuration.partial_payment.minimum_amount_due.value,""""""
+configuration.allow_tip,FALSE
+configuration.tax_calculated_after_discount,TRUE
+configuration.tax_inclusive,custbody_ava_taxinclude
+configuration.template_id,""""""
+amount.breakdown.custom.label,""""""
+amount.breakdown.custom.amount.currency_code,CASE currency.refName WHEN 'US Dollar' THEN 'USD' WHEN 'Canadian Dollar' THEN 'CAD' ELSE currency.refName END
+amount.breakdown.custom.amount.value,handlingCost OR altHandlingCost
+amount.breakdown.shipping.amount.currency_code,CASE currency.refName WHEN 'US Dollar' THEN 'USD' WHEN 'Canadian Dollar' THEN 'CAD' ELSE currency.refName END
+amount.breakdown.shipping.amount.value,shippingCost
+amount.breakdown.shipping.tax.name,"""Shipping Tax"""
+amount.breakdown.shipping.tax.percent,
+amount.breakdown.discount.invoice_discount.percent,"CASE WHEN discountTotal > 0 AND subtotal > 0 THEN ROUND((discountTotal / subtotal) * 100, 2) ELSE NULL END"
+amount.breakdown.discount.invoice_discount.amount.currency_code,CASE currency.refName WHEN 'US Dollar' THEN 'USD' WHEN 'Canadian Dollar' THEN 'CAD' ELSE currency.refName END
+amount.breakdown.discount.invoice_discount.amount.value,discountTotal
+_fallback.items[n].unit_amount.value_if_paypal_requires_unit_price,"CASE WHEN item.items[n].quantity <> 0 THEN ROUND(item.items[n].amount / item.items[n].quantity, 2) ELSE item.items[n].amount END"
+_fallback.detail.memo_if_memo_missing,"CONCAT('Generated from NetSuite Sales Order ', transactionNumber)"
