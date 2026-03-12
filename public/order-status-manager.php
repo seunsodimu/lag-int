@@ -936,8 +936,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                         <strong>ID:</strong> ${customer.id} - ${customer.companyname || 'N/A'}
                                     </div>
                                     <div style="font-size: 0.9em; color: #666; margin-top: 4px;">
-                                        <strong>Email:</strong> ${customer.email || 'N/A'} | 
-                                        <strong>Phone:</strong> ${customer.phone || 'N/A'} | 
+                                        <strong>Email:</strong> ${customer.email || 'N/A'} <br> 
+                                        <strong>Phone:</strong> ${customer.phone || 'N/A'} <br> 
                                         <strong>Customer Type:</strong> ${customer.isperson=='F' ? 'Company': 'Individual'}
                                     </div>
                                 </div>

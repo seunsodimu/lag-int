@@ -125,6 +125,32 @@ class PayPalService {
                 }
             }
 
+            $billingInfo = [
+                'name' => [
+                    'given_name' => $nsData['custbody_ava_customerentityid'] ?? ($nsData['entity']['refName'] ?? 'Customer')
+                ],
+                'address' => [
+                    'address_line_1' => $nsData['billingAddress']['addr1'] ?? '',
+                    'address_line_2' => $nsData['billingAddress']['addr2'] ?? '',
+                    'admin_area_2' => $nsData['billingAddress']['city'] ?? '',
+                    'admin_area_1' => $nsData['billingAddress']['state'] ?? '',
+                    'postal_code' => $nsData['billingAddress']['zip'] ?? '',
+                    'country_code' => $nsData['billingAddress']['country']['id'] ?? 'US'
+                ],
+                'email_address' => $nsData['email'] ?? '',
+                'additional_info_value' => $nsData['entity']['id'] ?? ($nsData['otherRefNum'] ?? '')
+            ];
+
+            if (!empty($nsData['billingAddress']['addrPhone'])) {
+                $billingInfo['phones'] = [
+                    [
+                        'country_code' => '001',
+                        'national_number' => $this->stripLeadingCountryCode($nsData['billingAddress']['addrPhone']),
+                        'phone_type' => 'HOME'
+                    ]
+                ];
+            }
+
             $payload = [
                 'detail' => [
                     'invoice_number' => $nsData['transactionNumber'] ?? null,
@@ -164,28 +190,7 @@ class PayPalService {
                 ],
                 'primary_recipients' => [
                     [
-                        'billing_info' => [
-                            'name' => [
-                                'given_name' => $nsData['custbody_ava_customerentityid'] ?? ($nsData['entity']['refName'] ?? 'Customer')
-                            ],
-                            'address' => [
-                                'address_line_1' => $nsData['billingAddress']['addr1'] ?? '',
-                                'address_line_2' => $nsData['billingAddress']['addr2'] ?? '',
-                                'admin_area_2' => $nsData['billingAddress']['city'] ?? '',
-                                'admin_area_1' => $nsData['billingAddress']['state'] ?? '',
-                                'postal_code' => $nsData['billingAddress']['zip'] ?? '',
-                                'country_code' => $nsData['billingAddress']['country']['id'] ?? 'US'
-                            ],
-                            'email_address' => $nsData['email'] ?? '',
-                            'phones' => [
-                                [
-                                    'country_code' => '001',
-                                    'national_number' => $this->stripLeadingCountryCode($nsData['billingAddress']['addrPhone'] ?? ''),
-                                    'phone_type' => 'HOME'
-                                ]
-                            ],
-                            'additional_info_value' => $nsData['entity']['id'] ?? ($nsData['otherRefNum'] ?? '')
-                        ],
+                        'billing_info' => $billingInfo,
                         'shipping_info' => [
                             'name' => [
                                 'given_name' => $nsData['shippingAddress']['addressee'] ?? ($nsData['entity']['refName'] ?? 'Customer')
@@ -241,7 +246,8 @@ class PayPalService {
 
             $this->logger->info('Creating PayPal invoice', [
                 'order_id' => $nsData['tranId'] ?? 'N/A',
-                'amount' => $nsData['total'] ?? 0
+                'amount' => $nsData['total'] ?? 0,
+                'payload' => $payload
             ]);
 
             $response = $this->client->request('POST', '/v2/invoicing/invoices', [
@@ -278,7 +284,8 @@ class PayPalService {
             $this->logger->error('Failed to create PayPal invoice', [
                 'order_id' => $nsData['tranId'] ?? 'N/A',
                 'error' => $e->getMessage(),
-                'response' => $responseBody
+                'response' => $responseBody,
+                'payload' => $payload
             ]);
             return null;
         } catch (\Exception $e) {
@@ -304,8 +311,8 @@ class PayPalService {
 
             $this->logger->info('Sending PayPal invoice', [
                 'invoice_id' => $invoiceId,
-                'send_to_invoicer' => $sendToInvoicer,
-                'send_to_recipient' => $sendToRecipient
+                'send_to_invoicer' => 'false',
+                'send_to_recipient' => 'false'
             ]);
 
             $response = $this->client->request('POST', "/v2/invoicing/invoices/{$invoiceId}/send", [
@@ -313,8 +320,8 @@ class PayPalService {
                     'Authorization' => 'Bearer ' . $accessToken,
                 ],
                 'json' => [
-                    'send_to_invoicer' => $sendToInvoicer,
-                    'send_to_recipient' => $sendToRecipient
+                    'send_to_invoicer' => 'false',
+                    'send_to_recipient' => 'false'
                 ]
             ]);
 
@@ -325,7 +332,11 @@ class PayPalService {
             $this->logger->error('Failed to send PayPal invoice', [
                 'invoice_id' => $invoiceId,
                 'error' => $e->getMessage(),
-                'response' => $responseBody
+                'response' => $responseBody,
+                'payload' => [
+                    'send_to_invoicer' => 'false',
+                    'send_to_recipient' => 'false'
+                ]
             ]);
             return false;
         } catch (\Exception $e) {
