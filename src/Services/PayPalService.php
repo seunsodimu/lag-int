@@ -163,7 +163,7 @@ class PayPalService {
             $payload = [
                 'detail' => [
                     'invoice_number' => $nsData['tranid'] ?? null,
-                    'reference' => $nsData['tranId'] ?? null,
+                    'reference' => $nsData['transactionnumber'] ?? null,
                     'invoice_date' => $tranDate,
                     'currency_code' => 'USD',
                     'note' => $nsData['custbody2'] ?? 'Thank you for your business.',
