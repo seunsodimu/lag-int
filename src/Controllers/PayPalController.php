@@ -83,9 +83,8 @@ class PayPalController {
 
         // Send summary report email
         $this->sendReportEmail($results);
-        $newheadmessage = $results['invoice_status']." Check integration logs";
 
-        $this->sendResponse(true, $newheadmessage, $results);
+        $this->sendResponse(true, 'Processing complete', $results);
     }
 
     /**
