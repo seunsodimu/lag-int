@@ -83,8 +83,9 @@ class PayPalController {
 
         // Send summary report email
         $this->sendReportEmail($results);
+        $newheadmessage = $results['invoice_status']." Check integration logs";
 
-        $this->sendResponse(true, 'Processing complete', $results);
+        $this->sendResponse(true, $newheadmessage, $results);
     }
 
     /**
@@ -449,7 +450,6 @@ class PayPalController {
         echo json_encode([
             'success' => $success,
             'message' => $message,
-            'results' => $data,
             'timestamp' => date('c')
         ], JSON_PRETTY_PRINT);
     }
