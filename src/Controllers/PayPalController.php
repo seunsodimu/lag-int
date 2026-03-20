@@ -186,7 +186,7 @@ class PayPalController {
             }
 
             // 4. Update NetSuite Sales Order
-            $invoiceId = str_replace("INV", "", $invoiceId);
+            $invoiceId = str_replace("INV2", "", $invoiceId);
             $invoiceId = str_replace("-", "", $invoiceId);
             $invoiceUrl = "https://www.paypal.com/invoice/p/#" . $invoiceId;
             $result['invoice_url'] = $invoiceUrl;
