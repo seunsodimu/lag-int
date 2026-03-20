@@ -294,6 +294,40 @@ class NetSuiteService {
         }
     }
 
+    public function getEmployeeById($employeeId) {
+        try {
+            $this->logger->info('Retrieving full Enployee record by ID', ['employee_id' => $employeeId]);
+            
+            $response = $this->makeRequest('GET', "/employee/{$employeeId}", null, ['expandSubResources' => 'true']);
+            $statusCode = $response->getStatusCode();
+            $responseBody = $response->getBody()->getContents();
+            
+            if ($statusCode === 200) {
+                $employee = json_decode($responseBody, true);
+                
+                $this->logger->info('Retrieved full Employee record', [
+                    'employeeid' => $employeeId,
+                    'name' => $employee['firstName'].' '. $employee['lastName'] ?? 'N/A'
+                ]);
+                
+                return $employee;
+            } else {
+                $this->logger->warning('Failed to retrieve Employee by ID', [
+                    'employee_id' => $employeeId,
+                    'status_code' => $statusCode,
+                    'response' => $responseBody
+                ]);
+                return null;
+            }
+        } catch (\Exception $e) {
+            $this->logger->error('Error retrieving Employee by ID', [
+                'employee' => $employeeId,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
     /**
      * Get full customer record by ID including addresses
      */

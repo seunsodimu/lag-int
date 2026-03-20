@@ -43,12 +43,20 @@ class BrevoEmailService {
     /**
      * Send email using Brevo API
      */
-    public function sendEmail($subject, $htmlContent, $recipients, $isTest = false) {
+    public function sendEmail($subject, $htmlContent, $recipients, $isTest = false, $ccRecipients = []) {
         try {
             // Prepare recipients array
             $to = [];
             foreach ($recipients as $email) {
                 $to[] = ['email' => $email];
+            }
+
+            // Prepare CC recipients array
+            $cc = [];
+            if (!empty($ccRecipients)) {
+                foreach ($ccRecipients as $email) {
+                    $cc[] = ['email' => $email];
+                }
             }
             
             // Prepare email data
@@ -61,6 +69,10 @@ class BrevoEmailService {
                 'subject' => $subject,
                 'htmlContent' => $htmlContent
             ];
+
+            if (!empty($cc)) {
+                $emailData['cc'] = $cc;
+            }
             
             // Add tags for test emails
             if ($isTest) {
@@ -70,6 +82,7 @@ class BrevoEmailService {
             $this->logger->info('Sending email via Brevo', [
                 'subject' => $subject,
                 'recipients' => $recipients,
+                'cc_recipients' => $ccRecipients,
                 'is_test' => $isTest
             ]);
             

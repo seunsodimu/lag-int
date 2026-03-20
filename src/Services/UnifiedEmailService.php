@@ -28,8 +28,8 @@ class UnifiedEmailService {
     /**
      * Send email using the configured provider
      */
-    public function sendEmail($subject, $htmlContent, $recipients, $isTest = false) {
-        return $this->emailService->sendEmail($subject, $htmlContent, $recipients, $isTest);
+    public function sendEmail($subject, $htmlContent, $recipients, $isTest = false, $ccRecipients = []) {
+        return $this->emailService->sendEmail($subject, $htmlContent, $recipients, $isTest, $ccRecipients);
     }
     
     /**

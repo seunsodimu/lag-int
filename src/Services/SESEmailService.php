@@ -55,7 +55,7 @@ class SESEmailService {
     /**
      * Send email via AWS SES REST API
      */
-    public function sendEmail($subject, $htmlContent, $recipients, $isTest = false) {
+    public function sendEmail($subject, $htmlContent, $recipients, $isTest = false, $ccRecipients = []) {
         if (!$this->httpClient) {
             return [
                 'success' => false,
@@ -66,22 +66,36 @@ class SESEmailService {
         
         try {
             $toAddresses = array_map('trim', (array)$recipients);
+            $ccAddresses = array_map('trim', (array)$ccRecipients);
             
             $this->logger->info('Sending email via AWS SES REST API', [
                 'subject' => $subject,
                 'recipients' => $toAddresses,
+                'cc_recipients' => $ccAddresses,
                 'is_test' => $isTest
             ]);
-            
-            $response = $this->makeSignedRequest('SendEmail', [
+
+            $params = [
                 'Source' => $this->credentials['from_email'],
-                'Destination.ToAddresses.member.1' => $toAddresses[0],
-            ] + $this->buildMultiAddressParams($toAddresses) + [
                 'Message.Subject.Data' => $subject,
                 'Message.Subject.Charset' => 'UTF-8',
                 'Message.Body.Html.Data' => $htmlContent,
                 'Message.Body.Html.Charset' => 'UTF-8',
-            ]);
+            ];
+
+            // Add To addresses
+            foreach ($toAddresses as $index => $address) {
+                $params["Destination.ToAddresses.member." . ($index + 1)] = $address;
+            }
+
+            // Add CC addresses if any
+            if (!empty($ccAddresses)) {
+                foreach ($ccAddresses as $index => $address) {
+                    $params["Destination.CcAddresses.member." . ($index + 1)] = $address;
+                }
+            }
+            
+            $response = $this->makeSignedRequest('SendEmail', $params);
             
             $messageId = $this->extractXmlValue($response, 'MessageId');
             
@@ -251,17 +265,6 @@ class SESEmailService {
         
         return "AWS4-HMAC-SHA256 Credential={$this->credentials['access_key']}/{$credentialScope}, "
              . "SignedHeaders={$signedHeaders}, Signature={$signature}";
-    }
-    
-    /**
-     * Build multi-address parameters for email recipients
-     */
-    private function buildMultiAddressParams($addresses) {
-        $params = [];
-        foreach ($addresses as $index => $address) {
-            $params["Destination.ToAddresses.member." . ($index + 1)] = $address;
-        }
-        return $params;
     }
     
     /**

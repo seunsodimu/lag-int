@@ -4,6 +4,7 @@ namespace Laguna\Integration\Services;
 
 use SendGrid\Mail\Mail;
 use SendGrid\Mail\To;
+use SendGrid\Mail\Cc;
 use Laguna\Integration\Utils\Logger;
 
 /**
@@ -137,7 +138,7 @@ class EmailService {
     /**
      * Send generic email
      */
-    public function sendEmail($subject, $content, $recipients, $isTest = false) {
+    public function sendEmail($subject, $content, $recipients, $isTest = false, $ccRecipients = []) {
         try {
             $email = new Mail();
             
@@ -153,6 +154,13 @@ class EmailService {
             // Add recipients
             foreach ($recipients as $recipient) {
                 $email->addTo(new To(trim($recipient)));
+            }
+
+            // Add CC recipients
+            if (!empty($ccRecipients)) {
+                foreach ($ccRecipients as $ccRecipient) {
+                    $email->addCc(new Cc(trim($ccRecipient)));
+                }
             }
             
             // Set content
@@ -172,6 +180,7 @@ class EmailService {
                 $this->logger->info('Email sent successfully', [
                     'subject' => $subject,
                     'recipients' => $recipients,
+                    'cc_recipients' => $ccRecipients,
                     'status_code' => $statusCode,
                     'response_body' => $responseBody,
                     'is_test' => $isTest
@@ -194,6 +203,7 @@ class EmailService {
                 $logData = [
                     'subject' => $subject,
                     'recipients' => $recipients,
+                    'cc_recipients' => $ccRecipients,
                     'status_code' => $statusCode,
                     'error_message' => $errorMessage,
                     'response_body' => $responseBody,
