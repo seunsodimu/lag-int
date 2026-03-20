@@ -441,8 +441,11 @@ class PayPalController {
      * Send JSON response
      */
     private function sendResponse($success, $message, $data = [], $statusCode = 200) {
-        http_response_code($statusCode);
-        header('Content-Type: application/json');
+        if (!headers_sent()) {
+            http_response_code($statusCode);
+            header('Content-Type: application/json');
+        }
+        
         echo json_encode([
             'success' => $success,
             'message' => $message,

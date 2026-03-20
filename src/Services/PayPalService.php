@@ -23,8 +23,12 @@ class PayPalService {
 
     public function __construct($environment = null) {
         $credentials = require __DIR__ . '/../../config/credentials.php';
-        $this->credentials = $credentials['paypal'];
+        $this->credentials = $credentials['paypal'] ?? [];
         $this->logger = Logger::getInstance();
+        
+        if (empty($this->credentials)) {
+            $this->logger->error("PayPal credentials not found in config/credentials.php");
+        }
         
         // Allow switch between paypal sandbox and paypal live
         $env = $environment ?: ($this->credentials['environment'] ?? 'production');
@@ -32,15 +36,15 @@ class PayPalService {
         if ($env === 'sandbox') {
             $this->baseUrl = 'https://api-m.sandbox.paypal.com';
             // Use Sandbox credentials if available in .env, otherwise use defaults from config
-            $this->credentials['client_id'] = $_ENV['PAYPAL_SB_CLIENT_ID'] ?? $this->credentials['client_id'];
-            $this->credentials['client_secret'] = $_ENV['PAYPAL_SB_CLIENT_SECRET'] ?? $this->credentials['client_secret'];
-            $this->credentials['return_url'] = $_ENV['PAYPAL_SB_PAYMENT_RETURN_URL'] ?? $this->credentials['return_url'];
+            $this->credentials['client_id'] = $_ENV['PAYPAL_SB_CLIENT_ID'] ?? ($this->credentials['client_id'] ?? '');
+            $this->credentials['client_secret'] = $_ENV['PAYPAL_SB_CLIENT_SECRET'] ?? ($this->credentials['client_secret'] ?? '');
+            $this->credentials['return_url'] = $_ENV['PAYPAL_SB_PAYMENT_RETURN_URL'] ?? ($this->credentials['return_url'] ?? '');
         } else {
             $this->baseUrl = 'https://api-m.paypal.com';
             // Use Live credentials if available in .env
-            $this->credentials['client_id'] = $_ENV['PAYPAL_CLIENT_ID'] ?? $this->credentials['client_id'];
-            $this->credentials['client_secret'] = $_ENV['PAYPAL_CLIENT_SECRET'] ?? $this->credentials['client_secret'];
-            $this->credentials['return_url'] = $_ENV['PAYPAL_PAYMENT_RETURN_URL'] ?? $this->credentials['return_url'];
+            $this->credentials['client_id'] = $_ENV['PAYPAL_CLIENT_ID'] ?? ($this->credentials['client_id'] ?? '');
+            $this->credentials['client_secret'] = $_ENV['PAYPAL_CLIENT_SECRET'] ?? ($this->credentials['client_secret'] ?? '');
+            $this->credentials['return_url'] = $_ENV['PAYPAL_PAYMENT_RETURN_URL'] ?? ($this->credentials['return_url'] ?? '');
         }
 
         $this->client = new Client([
@@ -59,6 +63,11 @@ class PayPalService {
     private function getAccessToken() {
         if ($this->accessToken && time() < $this->tokenExpiresAt) {
             return $this->accessToken;
+        }
+
+        if (empty($this->credentials['client_id']) || empty($this->credentials['client_secret'])) {
+            $this->logger->error("PayPal credentials missing. Cannot get access token.");
+            return null;
         }
 
         try {
