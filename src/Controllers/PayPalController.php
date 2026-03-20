@@ -452,6 +452,6 @@ class PayPalController {
             'message' => $message,
             'results' => $data,
             'timestamp' => date('c')
-        ]);
+        ], JSON_PRETTY_PRINT);
     }
 }
