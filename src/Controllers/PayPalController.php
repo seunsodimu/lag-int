@@ -126,6 +126,7 @@ class PayPalController {
             $salesrep_email = $salesrep['email'] ?? 'web_dev@lagunatools.com';
             
             // Check if Sales Order already has a PayPal invoice URL
+            $order['custbody_paypal_invoice_url'] = ($order['custbody_paypal_invoice_url']=="N/A") ? "": $order['custbody_paypal_invoice_url'];
             $existingInvoiceUrl = $order['custbody_paypal_invoice_url'] ?? null;
             
             if ($existingInvoiceUrl) {
