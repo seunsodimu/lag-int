@@ -162,12 +162,12 @@ class PayPalService {
 
             $payload = [
                 'detail' => [
-                    'invoice_number' => $nsData['transactionNumber'] ?? null,
+                    'invoice_number' => $nsData['tranid'] ?? null,
                     'reference' => $nsData['tranId'] ?? null,
                     'invoice_date' => $tranDate,
                     'currency_code' => 'USD',
                     'note' => $nsData['custbody2'] ?? 'Thank you for your business.',
-                    'memo' => $nsData['memo'] ?? "Generated from NetSuite Sales Order " . ($nsData['transactionNumber'] ?? ''),
+                    'memo' => $nsData['memo'] ?? "Generated from NetSuite Sales Order " . ($nsData['tranid'] ?? ''),
                     'payment_term' => [
                         'term_type' => 'DUE_ON_DATE_SPECIFIED',
                         'due_date' => $dueDate
