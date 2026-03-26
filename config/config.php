@@ -185,4 +185,12 @@ return [
         'netsuite_requests_per_minute' => 10,
         'threedcart_requests_per_minute' => 60,
     ],
+
+    // RingCentral Configuration
+    'ringcentral' => [
+        'server_url' => $_ENV['RC_SERVER_URL'] ?? 'https://platform.ringcentral.com/restapi/oauth/token',
+        'client_id' => $_ENV['RC_APP_CLIENT_ID'] ?? '',
+        'client_secret' => $_ENV['RC_APP_CLIENT_SECRET'] ?? '',
+        'user_jwt' => $_ENV['RC_USER_JWT'] ?? '',
+    ],
 ];

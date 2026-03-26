@@ -276,7 +276,7 @@ class InventorySyncService {
             $newBackOrderMessage = $netSuiteItem['backOrderMessage'] ?? $netSuiteItem['custitem73'] ?? '';
             
             $currentStock = $product['SKUInfo']['Stock'] ?? 0;
-            $currentBackOrderMessage = $product['SKUInfo']['BackOrderMessage'] ?? '';
+            $currentBackOrderMessage = $product['BackOrderMessage'] ?? $product['SKUInfo']['BackOrderMessage'] ?? '';
             
             $this->logger->debug('Retrieved NetSuite item data', [
                 'sku' => $sku,
@@ -441,14 +441,17 @@ class InventorySyncService {
                     $skuInfo['Price'] = (float)$price;
                     $skuInfo['RetailPrice'] = (float)$price;
                 }
-                // Add BackOrderMessage if available from NetSuite
-                if (!empty($newBackOrderMessage)) {
-                    $skuInfo['BackOrderMessage'] = $newBackOrderMessage;
-                }
                 
-                $batchPayload[] = [
+                $payloadItem = [
                     'SKUInfo' => $skuInfo
                 ];
+                
+                // Add BackOrderMessage if available from NetSuite at product level
+                if (!empty($newBackOrderMessage)) {
+                    $payloadItem['BackOrderMessage'] = $newBackOrderMessage;
+                }
+                
+                $batchPayload[] = $payloadItem;
                 
                 $this->logger->debug('Added product to batch update', [
                     'catalog_id' => $catalogId,

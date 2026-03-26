@@ -1,0 +1,1894 @@
+{
+    "paging": {
+        "page": 1,
+        "perPage": 100,
+        "totalPages": 1,
+        "totalElements": 9
+    },
+    "data": {
+        "groupedBy": "Users",
+        "records": [
+            {
+                "key": "484864049",
+                "info": {
+                    "extensionNumber": "7817",
+                    "name": "Cali Ramirez"
+                },
+                "timers": {
+                    "allCalls": {
+                        "valueType": "Seconds",
+                        "values": 11622.181
+                    },
+                    "callsByDirection": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "inbound": 11306.051,
+                            "outbound": 316.13
+                        }
+                    },
+                    "callsByOrigin": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "internal": 0.772,
+                            "external": 11621.409
+                        }
+                    },
+                    "callsByResponse": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "answered": 11306.051,
+                            "notAnswered": 0.0,
+                            "connected": 243.01,
+                            "notConnected": 73.12
+                        }
+                    },
+                    "callsSegments": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "ringing": 1811.535,
+                            "liveTalk": 9017.693,
+                            "hold": 729.41,
+                            "park": 0.0,
+                            "transfer": 65.382,
+                            "ivrPrompt": 0.0,
+                            "voicemail": 0.0,
+                            "vmGreeting": 0.0,
+                            "setup": 1.485,
+                            "forwarding": 0.0
+                        }
+                    },
+                    "callsByResult": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "completed": 9122.267,
+                            "abandoned": 0.0,
+                            "voicemail": 0.0,
+                            "missed": 0.0,
+                            "accepted": 0.0,
+                            "unknown": 808.653,
+                            "transferred": 1691.261,
+                            "pickedUp": 0.0,
+                            "answeredElsewhere": 0.0,
+                            "forwarded": 0.0
+                        }
+                    },
+                    "callsByEndingParty": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "caller": 3027.076,
+                            "callee": 6924.587,
+                            "system": 1.094
+                        }
+                    },
+                    "callsByCompanyHours": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "businessHours": 10992.971,
+                            "afterHours": 629.21
+                        }
+                    },
+                    "callsByType": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "direct": 218.958,
+                            "fromQueue": 11064.484,
+                            "parkRetrieval": 0.0,
+                            "transferred": 0.0,
+                            "outbound": 316.13,
+                            "overflow": 0.0,
+                            "queueCallPickup": 0.0
+                        }
+                    },
+                    "callsByQueueHours": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "businessHours": 11087.093,
+                            "afterHours": 0.0
+                        }
+                    }
+                },
+                "counters": {
+                    "allCalls": {
+                        "valueType": "Instances",
+                        "values": 105.0
+                    },
+                    "callsByDirection": {
+                        "valueType": "Instances",
+                        "values": {
+                            "inbound": 94.0,
+                            "outbound": 11.0
+                        }
+                    },
+                    "callsByOrigin": {
+                        "valueType": "Instances",
+                        "values": {
+                            "internal": 1.0,
+                            "external": 104.0
+                        }
+                    },
+                    "callsByResponse": {
+                        "valueType": "Instances",
+                        "values": {
+                            "answered": 94.0,
+                            "notAnswered": 0.0,
+                            "connected": 7.0,
+                            "notConnected": 4.0
+                        }
+                    },
+                    "callsSegments": {
+                        "valueType": "Instances",
+                        "values": {
+                            "ringing": 105.0,
+                            "liveTalk": 104.0,
+                            "hold": 6.0,
+                            "park": 0.0,
+                            "transfer": 27.0,
+                            "ivrPrompt": 0.0,
+                            "voicemail": 0.0,
+                            "vmGreeting": 0.0,
+                            "setup": 13.0,
+                            "forwarding": 0.0
+                        }
+                    },
+                    "callsByResult": {
+                        "valueType": "Instances",
+                        "values": {
+                            "completed": 66.0,
+                            "abandoned": 0.0,
+                            "voicemail": 0.0,
+                            "missed": 0.0,
+                            "accepted": 0.0,
+                            "unknown": 13.0,
+                            "transferred": 26.0,
+                            "pickedUp": 0.0,
+                            "answeredElsewhere": 0.0,
+                            "forwarded": 0.0
+                        }
+                    },
+                    "callsByEndingParty": {
+                        "valueType": "Instances",
+                        "values": {
+                            "caller": 24.0,
+                            "callee": 54.0,
+                            "system": 1.0
+                        }
+                    },
+                    "callsActions": {
+                        "valueType": "Instances",
+                        "values": {
+                            "parkOn": 0.0,
+                            "parkOff": 0.0,
+                            "holdOn": 6.0,
+                            "holdOff": 3.0,
+                            "blindTransfer": 24.0,
+                            "warmTransfer": 1.0,
+                            "dtmfTransfer": 0.0
+                        }
+                    },
+                    "callsByCompanyHours": {
+                        "valueType": "Instances",
+                        "values": {
+                            "businessHours": 90.0,
+                            "afterHours": 15.0
+                        }
+                    },
+                    "callsByType": {
+                        "valueType": "Instances",
+                        "values": {
+                            "direct": 1.0,
+                            "fromQueue": 92.0,
+                            "parkRetrieval": 0.0,
+                            "transferred": 0.0,
+                            "outbound": 11.0,
+                            "overflow": 0.0,
+                            "queueCallPickup": 0.0
+                        }
+                    },
+                    "queueOpportunities": {
+                        "valueType": "Instances",
+                        "values": 94.0
+                    },
+                    "callsByQueueHours": {
+                        "valueType": "Instances",
+                        "values": {
+                            "businessHours": 93.0,
+                            "afterHours": 0.0
+                        }
+                    }
+                }
+            },
+            {
+                "key": "679385048",
+                "info": {
+                    "extensionNumber": "123",
+                    "name": "Asia Matthews"
+                },
+                "timers": {
+                    "allCalls": {
+                        "valueType": "Seconds",
+                        "values": 15586.016
+                    },
+                    "callsByDirection": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "inbound": 11469.336,
+                            "outbound": 4116.68
+                        }
+                    },
+                    "callsByOrigin": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "internal": 2701.057,
+                            "external": 12884.959
+                        }
+                    },
+                    "callsByResponse": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "answered": 11469.336,
+                            "notAnswered": 0.0,
+                            "connected": 4058.232,
+                            "notConnected": 58.448
+                        }
+                    },
+                    "callsSegments": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "ringing": 2544.31,
+                            "liveTalk": 10580.628,
+                            "hold": 2210.843,
+                            "park": 0.0,
+                            "transfer": 266.424,
+                            "ivrPrompt": 0.0,
+                            "voicemail": 157.0,
+                            "vmGreeting": 52.639,
+                            "setup": 62.374,
+                            "forwarding": 0.0
+                        }
+                    },
+                    "callsByResult": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "completed": 9401.523,
+                            "abandoned": 0.0,
+                            "voicemail": 0.0,
+                            "missed": 0.0,
+                            "accepted": 0.0,
+                            "unknown": 4116.68,
+                            "transferred": 2067.813,
+                            "pickedUp": 0.0,
+                            "answeredElsewhere": 0.0,
+                            "forwarded": 0.0
+                        }
+                    },
+                    "callsByEndingParty": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "caller": 1518.515,
+                            "callee": 12167.0,
+                            "system": 0.0
+                        }
+                    },
+                    "callsByCompanyHours": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "businessHours": 15586.016,
+                            "afterHours": 0.0
+                        }
+                    },
+                    "callsByType": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "direct": 0.0,
+                            "fromQueue": 11297.547,
+                            "parkRetrieval": 0.0,
+                            "transferred": 0.0,
+                            "outbound": 4116.68,
+                            "overflow": 0.0,
+                            "queueCallPickup": 0.0
+                        }
+                    },
+                    "callsByQueueHours": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "businessHours": 11469.336,
+                            "afterHours": 0.0
+                        }
+                    }
+                },
+                "counters": {
+                    "allCalls": {
+                        "valueType": "Instances",
+                        "values": 107.0
+                    },
+                    "callsByDirection": {
+                        "valueType": "Instances",
+                        "values": {
+                            "inbound": 70.0,
+                            "outbound": 37.0
+                        }
+                    },
+                    "callsByOrigin": {
+                        "valueType": "Instances",
+                        "values": {
+                            "internal": 20.0,
+                            "external": 87.0
+                        }
+                    },
+                    "callsByResponse": {
+                        "valueType": "Instances",
+                        "values": {
+                            "answered": 70.0,
+                            "notAnswered": 0.0,
+                            "connected": 26.0,
+                            "notConnected": 11.0
+                        }
+                    },
+                    "callsSegments": {
+                        "valueType": "Instances",
+                        "values": {
+                            "ringing": 119.0,
+                            "liveTalk": 118.0,
+                            "hold": 40.0,
+                            "park": 0.0,
+                            "transfer": 26.0,
+                            "ivrPrompt": 0.0,
+                            "voicemail": 3.0,
+                            "vmGreeting": 4.0,
+                            "setup": 38.0,
+                            "forwarding": 0.0
+                        }
+                    },
+                    "callsByResult": {
+                        "valueType": "Instances",
+                        "values": {
+                            "completed": 50.0,
+                            "abandoned": 0.0,
+                            "voicemail": 0.0,
+                            "missed": 0.0,
+                            "accepted": 0.0,
+                            "unknown": 37.0,
+                            "transferred": 20.0,
+                            "pickedUp": 0.0,
+                            "answeredElsewhere": 0.0,
+                            "forwarded": 0.0
+                        }
+                    },
+                    "callsByEndingParty": {
+                        "valueType": "Instances",
+                        "values": {
+                            "caller": 25.0,
+                            "callee": 62.0,
+                            "system": 0.0
+                        }
+                    },
+                    "callsActions": {
+                        "valueType": "Instances",
+                        "values": {
+                            "parkOn": 0.0,
+                            "parkOff": 0.0,
+                            "holdOn": 39.0,
+                            "holdOff": 19.0,
+                            "blindTransfer": 0.0,
+                            "warmTransfer": 19.0,
+                            "dtmfTransfer": 0.0
+                        }
+                    },
+                    "callsByCompanyHours": {
+                        "valueType": "Instances",
+                        "values": {
+                            "businessHours": 107.0,
+                            "afterHours": 0.0
+                        }
+                    },
+                    "callsByType": {
+                        "valueType": "Instances",
+                        "values": {
+                            "direct": 0.0,
+                            "fromQueue": 69.0,
+                            "parkRetrieval": 0.0,
+                            "transferred": 0.0,
+                            "outbound": 37.0,
+                            "overflow": 0.0,
+                            "queueCallPickup": 0.0
+                        }
+                    },
+                    "queueOpportunities": {
+                        "valueType": "Instances",
+                        "values": 71.0
+                    },
+                    "callsByQueueHours": {
+                        "valueType": "Instances",
+                        "values": {
+                            "businessHours": 70.0,
+                            "afterHours": 0.0
+                        }
+                    }
+                }
+            },
+            {
+                "key": "679455048",
+                "info": {
+                    "extensionNumber": "189",
+                    "name": "Kallesia Davis"
+                },
+                "timers": {
+                    "allCalls": {
+                        "valueType": "Seconds",
+                        "values": 17032.336
+                    },
+                    "callsByDirection": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "inbound": 14954.171,
+                            "outbound": 2078.165
+                        }
+                    },
+                    "callsByOrigin": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "internal": 1451.254,
+                            "external": 15581.082
+                        }
+                    },
+                    "callsByResponse": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "answered": 14941.405,
+                            "notAnswered": 12.766,
+                            "connected": 1874.102,
+                            "notConnected": 204.063
+                        }
+                    },
+                    "callsSegments": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "ringing": 2217.759,
+                            "liveTalk": 9130.972,
+                            "hold": 5861.763,
+                            "park": 0.0,
+                            "transfer": 95.736,
+                            "ivrPrompt": 0.0,
+                            "voicemail": 0.0,
+                            "vmGreeting": 27.923,
+                            "setup": 29.043,
+                            "forwarding": 0.0
+                        }
+                    },
+                    "callsByResult": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "completed": 12695.851,
+                            "abandoned": 12.766,
+                            "voicemail": 0.0,
+                            "missed": 0.0,
+                            "accepted": 0.0,
+                            "unknown": 2228.74,
+                            "transferred": 2094.979,
+                            "pickedUp": 0.0,
+                            "answeredElsewhere": 0.0,
+                            "forwarded": 0.0
+                        }
+                    },
+                    "callsByEndingParty": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "caller": 2806.578,
+                            "callee": 12208.444,
+                            "system": 1.56
+                        }
+                    },
+                    "callsByCompanyHours": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "businessHours": 15021.186,
+                            "afterHours": 2011.15
+                        }
+                    },
+                    "callsByType": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "direct": 1266.291,
+                            "fromQueue": 13608.302,
+                            "parkRetrieval": 0.0,
+                            "transferred": 0.0,
+                            "outbound": 2078.165,
+                            "overflow": 0.0,
+                            "queueCallPickup": 0.0
+                        }
+                    },
+                    "callsByQueueHours": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "businessHours": 13687.88,
+                            "afterHours": 0.0
+                        }
+                    }
+                },
+                "counters": {
+                    "allCalls": {
+                        "valueType": "Instances",
+                        "values": 115.0
+                    },
+                    "callsByDirection": {
+                        "valueType": "Instances",
+                        "values": {
+                            "inbound": 70.0,
+                            "outbound": 45.0
+                        }
+                    },
+                    "callsByOrigin": {
+                        "valueType": "Instances",
+                        "values": {
+                            "internal": 31.0,
+                            "external": 84.0
+                        }
+                    },
+                    "callsByResponse": {
+                        "valueType": "Instances",
+                        "values": {
+                            "answered": 69.0,
+                            "notAnswered": 1.0,
+                            "connected": 22.0,
+                            "notConnected": 23.0
+                        }
+                    },
+                    "callsSegments": {
+                        "valueType": "Instances",
+                        "values": {
+                            "ringing": 114.0,
+                            "liveTalk": 116.0,
+                            "hold": 43.0,
+                            "park": 0.0,
+                            "transfer": 20.0,
+                            "ivrPrompt": 0.0,
+                            "voicemail": 0.0,
+                            "vmGreeting": 6.0,
+                            "setup": 48.0,
+                            "forwarding": 0.0
+                        }
+                    },
+                    "callsByResult": {
+                        "valueType": "Instances",
+                        "values": {
+                            "completed": 49.0,
+                            "abandoned": 1.0,
+                            "voicemail": 0.0,
+                            "missed": 0.0,
+                            "accepted": 0.0,
+                            "unknown": 46.0,
+                            "transferred": 19.0,
+                            "pickedUp": 0.0,
+                            "answeredElsewhere": 0.0,
+                            "forwarded": 0.0
+                        }
+                    },
+                    "callsByEndingParty": {
+                        "valueType": "Instances",
+                        "values": {
+                            "caller": 40.0,
+                            "callee": 54.0,
+                            "system": 1.0
+                        }
+                    },
+                    "callsActions": {
+                        "valueType": "Instances",
+                        "values": {
+                            "parkOn": 0.0,
+                            "parkOff": 0.0,
+                            "holdOn": 43.0,
+                            "holdOff": 24.0,
+                            "blindTransfer": 0.0,
+                            "warmTransfer": 18.0,
+                            "dtmfTransfer": 0.0
+                        }
+                    },
+                    "callsByCompanyHours": {
+                        "valueType": "Instances",
+                        "values": {
+                            "businessHours": 99.0,
+                            "afterHours": 16.0
+                        }
+                    },
+                    "callsByType": {
+                        "valueType": "Instances",
+                        "values": {
+                            "direct": 2.0,
+                            "fromQueue": 67.0,
+                            "parkRetrieval": 0.0,
+                            "transferred": 0.0,
+                            "outbound": 45.0,
+                            "overflow": 0.0,
+                            "queueCallPickup": 0.0
+                        }
+                    },
+                    "queueOpportunities": {
+                        "valueType": "Instances",
+                        "values": 69.0
+                    },
+                    "callsByQueueHours": {
+                        "valueType": "Instances",
+                        "values": {
+                            "businessHours": 68.0,
+                            "afterHours": 0.0
+                        }
+                    }
+                }
+            },
+            {
+                "key": "791206048",
+                "info": {
+                    "extensionNumber": "7757",
+                    "name": "Robbie Jordan"
+                },
+                "timers": {
+                    "allCalls": {
+                        "valueType": "Seconds",
+                        "values": 1270.096
+                    },
+                    "callsByDirection": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "inbound": 437.978,
+                            "outbound": 832.118
+                        }
+                    },
+                    "callsByOrigin": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "internal": 5.553,
+                            "external": 1264.543
+                        }
+                    },
+                    "callsByResponse": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "answered": 181.833,
+                            "notAnswered": 256.145,
+                            "connected": 832.118,
+                            "notConnected": 0.0
+                        }
+                    },
+                    "callsSegments": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "ringing": 102.201,
+                            "liveTalk": 982.614,
+                            "hold": 0.0,
+                            "park": 0.0,
+                            "transfer": 0.0,
+                            "ivrPrompt": 0.0,
+                            "voicemail": 139.309,
+                            "vmGreeting": 44.829,
+                            "setup": 3.997,
+                            "forwarding": 0.0
+                        }
+                    },
+                    "callsByResult": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "completed": 181.833,
+                            "abandoned": 2.873,
+                            "voicemail": 250.592,
+                            "missed": 2.68,
+                            "accepted": 0.0,
+                            "unknown": 832.118,
+                            "transferred": 0.0,
+                            "pickedUp": 0.0,
+                            "answeredElsewhere": 0.0,
+                            "forwarded": 0.0
+                        }
+                    },
+                    "callsByEndingParty": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "caller": 435.298,
+                            "callee": 834.798,
+                            "system": 0.0
+                        }
+                    },
+                    "callsByCompanyHours": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "businessHours": 1181.762,
+                            "afterHours": 88.334
+                        }
+                    },
+                    "callsByType": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "direct": 150.848,
+                            "fromQueue": 0.0,
+                            "parkRetrieval": 0.0,
+                            "transferred": 287.13,
+                            "outbound": 832.118,
+                            "overflow": 0.0,
+                            "queueCallPickup": 0.0
+                        }
+                    },
+                    "callsByQueueHours": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "businessHours": 0.0,
+                            "afterHours": 0.0
+                        }
+                    }
+                },
+                "counters": {
+                    "allCalls": {
+                        "valueType": "Instances",
+                        "values": 10.0
+                    },
+                    "callsByDirection": {
+                        "valueType": "Instances",
+                        "values": {
+                            "inbound": 7.0,
+                            "outbound": 3.0
+                        }
+                    },
+                    "callsByOrigin": {
+                        "valueType": "Instances",
+                        "values": {
+                            "internal": 2.0,
+                            "external": 8.0
+                        }
+                    },
+                    "callsByResponse": {
+                        "valueType": "Instances",
+                        "values": {
+                            "answered": 2.0,
+                            "notAnswered": 5.0,
+                            "connected": 3.0,
+                            "notConnected": 0.0
+                        }
+                    },
+                    "callsSegments": {
+                        "valueType": "Instances",
+                        "values": {
+                            "ringing": 6.0,
+                            "liveTalk": 5.0,
+                            "hold": 0.0,
+                            "park": 0.0,
+                            "transfer": 0.0,
+                            "ivrPrompt": 0.0,
+                            "voicemail": 3.0,
+                            "vmGreeting": 4.0,
+                            "setup": 7.0,
+                            "forwarding": 0.0
+                        }
+                    },
+                    "callsByResult": {
+                        "valueType": "Instances",
+                        "values": {
+                            "completed": 2.0,
+                            "abandoned": 1.0,
+                            "voicemail": 3.0,
+                            "missed": 1.0,
+                            "accepted": 0.0,
+                            "unknown": 3.0,
+                            "transferred": 0.0,
+                            "pickedUp": 0.0,
+                            "answeredElsewhere": 0.0,
+                            "forwarded": 0.0
+                        }
+                    },
+                    "callsByEndingParty": {
+                        "valueType": "Instances",
+                        "values": {
+                            "caller": 6.0,
+                            "callee": 4.0,
+                            "system": 0.0
+                        }
+                    },
+                    "callsActions": {
+                        "valueType": "Instances",
+                        "values": {
+                            "parkOn": 0.0,
+                            "parkOff": 0.0,
+                            "holdOn": 0.0,
+                            "holdOff": 0.0,
+                            "blindTransfer": 0.0,
+                            "warmTransfer": 0.0,
+                            "dtmfTransfer": 0.0
+                        }
+                    },
+                    "callsByCompanyHours": {
+                        "valueType": "Instances",
+                        "values": {
+                            "businessHours": 7.0,
+                            "afterHours": 3.0
+                        }
+                    },
+                    "callsByType": {
+                        "valueType": "Instances",
+                        "values": {
+                            "direct": 4.0,
+                            "fromQueue": 0.0,
+                            "parkRetrieval": 0.0,
+                            "transferred": 3.0,
+                            "outbound": 3.0,
+                            "overflow": 0.0,
+                            "queueCallPickup": 0.0
+                        }
+                    },
+                    "queueOpportunities": {
+                        "valueType": "Instances",
+                        "values": 0.0
+                    },
+                    "callsByQueueHours": {
+                        "valueType": "Instances",
+                        "values": {
+                            "businessHours": 0.0,
+                            "afterHours": 0.0
+                        }
+                    }
+                }
+            },
+            {
+                "key": "791214048",
+                "info": {
+                    "extensionNumber": "7768",
+                    "name": "Jacob Doyle"
+                },
+                "timers": {
+                    "allCalls": {
+                        "valueType": "Seconds",
+                        "values": 9560.417
+                    },
+                    "callsByDirection": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "inbound": 1198.846,
+                            "outbound": 8361.571
+                        }
+                    },
+                    "callsByOrigin": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "internal": 6.822,
+                            "external": 9553.595
+                        }
+                    },
+                    "callsByResponse": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "answered": 1067.511,
+                            "notAnswered": 131.335,
+                            "connected": 8361.571,
+                            "notConnected": 0.0
+                        }
+                    },
+                    "callsSegments": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "ringing": 347.416,
+                            "liveTalk": 9085.457,
+                            "hold": 0.0,
+                            "park": 0.0,
+                            "transfer": 0.0,
+                            "ivrPrompt": 0.0,
+                            "voicemail": 56.064,
+                            "vmGreeting": 68.171,
+                            "setup": 8.381,
+                            "forwarding": 0.0
+                        }
+                    },
+                    "callsByResult": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "completed": 1067.511,
+                            "abandoned": 5.112,
+                            "voicemail": 98.752,
+                            "missed": 27.471,
+                            "accepted": 0.0,
+                            "unknown": 8361.571,
+                            "transferred": 0.0,
+                            "pickedUp": 0.0,
+                            "answeredElsewhere": 0.0,
+                            "forwarded": 0.0
+                        }
+                    },
+                    "callsByEndingParty": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "caller": 2133.106,
+                            "callee": 7427.311,
+                            "system": 0.0
+                        }
+                    },
+                    "callsByCompanyHours": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "businessHours": 9560.417,
+                            "afterHours": 0.0
+                        }
+                    },
+                    "callsByType": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "direct": 131.335,
+                            "fromQueue": 0.0,
+                            "parkRetrieval": 0.0,
+                            "transferred": 1067.511,
+                            "outbound": 8361.571,
+                            "overflow": 0.0,
+                            "queueCallPickup": 0.0
+                        }
+                    },
+                    "callsByQueueHours": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "businessHours": 0.0,
+                            "afterHours": 0.0
+                        }
+                    }
+                },
+                "counters": {
+                    "allCalls": {
+                        "valueType": "Instances",
+                        "values": 40.0
+                    },
+                    "callsByDirection": {
+                        "valueType": "Instances",
+                        "values": {
+                            "inbound": 14.0,
+                            "outbound": 26.0
+                        }
+                    },
+                    "callsByOrigin": {
+                        "valueType": "Instances",
+                        "values": {
+                            "internal": 3.0,
+                            "external": 37.0
+                        }
+                    },
+                    "callsByResponse": {
+                        "valueType": "Instances",
+                        "values": {
+                            "answered": 3.0,
+                            "notAnswered": 11.0,
+                            "connected": 26.0,
+                            "notConnected": 0.0
+                        }
+                    },
+                    "callsSegments": {
+                        "valueType": "Instances",
+                        "values": {
+                            "ringing": 28.0,
+                            "liveTalk": 29.0,
+                            "hold": 0.0,
+                            "park": 0.0,
+                            "transfer": 0.0,
+                            "ivrPrompt": 0.0,
+                            "voicemail": 3.0,
+                            "vmGreeting": 9.0,
+                            "setup": 37.0,
+                            "forwarding": 0.0
+                        }
+                    },
+                    "callsByResult": {
+                        "valueType": "Instances",
+                        "values": {
+                            "completed": 3.0,
+                            "abandoned": 2.0,
+                            "voicemail": 3.0,
+                            "missed": 6.0,
+                            "accepted": 0.0,
+                            "unknown": 26.0,
+                            "transferred": 0.0,
+                            "pickedUp": 0.0,
+                            "answeredElsewhere": 0.0,
+                            "forwarded": 0.0
+                        }
+                    },
+                    "callsByEndingParty": {
+                        "valueType": "Instances",
+                        "values": {
+                            "caller": 18.0,
+                            "callee": 22.0,
+                            "system": 0.0
+                        }
+                    },
+                    "callsActions": {
+                        "valueType": "Instances",
+                        "values": {
+                            "parkOn": 0.0,
+                            "parkOff": 0.0,
+                            "holdOn": 0.0,
+                            "holdOff": 0.0,
+                            "blindTransfer": 0.0,
+                            "warmTransfer": 0.0,
+                            "dtmfTransfer": 0.0
+                        }
+                    },
+                    "callsByCompanyHours": {
+                        "valueType": "Instances",
+                        "values": {
+                            "businessHours": 40.0,
+                            "afterHours": 0.0
+                        }
+                    },
+                    "callsByType": {
+                        "valueType": "Instances",
+                        "values": {
+                            "direct": 11.0,
+                            "fromQueue": 0.0,
+                            "parkRetrieval": 0.0,
+                            "transferred": 3.0,
+                            "outbound": 26.0,
+                            "overflow": 0.0,
+                            "queueCallPickup": 0.0
+                        }
+                    },
+                    "queueOpportunities": {
+                        "valueType": "Instances",
+                        "values": 0.0
+                    },
+                    "callsByQueueHours": {
+                        "valueType": "Instances",
+                        "values": {
+                            "businessHours": 0.0,
+                            "afterHours": 0.0
+                        }
+                    }
+                }
+            },
+            {
+                "key": "1406709048",
+                "info": {
+                    "extensionNumber": "7799",
+                    "name": "Meah Anderson"
+                },
+                "timers": {
+                    "allCalls": {
+                        "valueType": "Seconds",
+                        "values": 18252.371
+                    },
+                    "callsByDirection": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "inbound": 15243.248,
+                            "outbound": 3009.123
+                        }
+                    },
+                    "callsByOrigin": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "internal": 2309.952,
+                            "external": 15942.419
+                        }
+                    },
+                    "callsByResponse": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "answered": 14522.533,
+                            "notAnswered": 720.715,
+                            "connected": 2962.361,
+                            "notConnected": 46.762
+                        }
+                    },
+                    "callsSegments": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "ringing": 4905.517,
+                            "liveTalk": 10771.889,
+                            "hold": 2182.674,
+                            "park": 0.0,
+                            "transfer": 615.174,
+                            "ivrPrompt": 0.0,
+                            "voicemail": 58.846,
+                            "vmGreeting": 41.88,
+                            "setup": 78.401,
+                            "forwarding": 0.0
+                        }
+                    },
+                    "callsByResult": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "completed": 10470.952,
+                            "abandoned": 13.262,
+                            "voicemail": 70.675,
+                            "missed": 636.778,
+                            "accepted": 0.0,
+                            "unknown": 3009.123,
+                            "transferred": 4051.581,
+                            "pickedUp": 0.0,
+                            "answeredElsewhere": 0.0,
+                            "forwarded": 0.0
+                        }
+                    },
+                    "callsByEndingParty": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "caller": 2898.738,
+                            "callee": 10871.469,
+                            "system": 0.0
+                        }
+                    },
+                    "callsByCompanyHours": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "businessHours": 18252.371,
+                            "afterHours": 0.0
+                        }
+                    },
+                    "callsByType": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "direct": 0.0,
+                            "fromQueue": 14393.055,
+                            "parkRetrieval": 0.0,
+                            "transferred": 565.035,
+                            "outbound": 3009.123,
+                            "overflow": 0.0,
+                            "queueCallPickup": 0.0
+                        }
+                    },
+                    "callsByQueueHours": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "businessHours": 14678.213,
+                            "afterHours": 0.0
+                        }
+                    }
+                },
+                "counters": {
+                    "allCalls": {
+                        "valueType": "Instances",
+                        "values": 129.0
+                    },
+                    "callsByDirection": {
+                        "valueType": "Instances",
+                        "values": {
+                            "inbound": 96.0,
+                            "outbound": 33.0
+                        }
+                    },
+                    "callsByOrigin": {
+                        "valueType": "Instances",
+                        "values": {
+                            "internal": 32.0,
+                            "external": 97.0
+                        }
+                    },
+                    "callsByResponse": {
+                        "valueType": "Instances",
+                        "values": {
+                            "answered": 89.0,
+                            "notAnswered": 7.0,
+                            "connected": 14.0,
+                            "notConnected": 19.0
+                        }
+                    },
+                    "callsSegments": {
+                        "valueType": "Instances",
+                        "values": {
+                            "ringing": 139.0,
+                            "liveTalk": 122.0,
+                            "hold": 44.0,
+                            "park": 0.0,
+                            "transfer": 37.0,
+                            "ivrPrompt": 0.0,
+                            "voicemail": 3.0,
+                            "vmGreeting": 3.0,
+                            "setup": 35.0,
+                            "forwarding": 0.0
+                        }
+                    },
+                    "callsByResult": {
+                        "valueType": "Instances",
+                        "values": {
+                            "completed": 60.0,
+                            "abandoned": 1.0,
+                            "voicemail": 2.0,
+                            "missed": 4.0,
+                            "accepted": 0.0,
+                            "unknown": 33.0,
+                            "transferred": 29.0,
+                            "pickedUp": 0.0,
+                            "answeredElsewhere": 0.0,
+                            "forwarded": 0.0
+                        }
+                    },
+                    "callsByEndingParty": {
+                        "valueType": "Instances",
+                        "values": {
+                            "caller": 29.0,
+                            "callee": 62.0,
+                            "system": 0.0
+                        }
+                    },
+                    "callsActions": {
+                        "valueType": "Instances",
+                        "values": {
+                            "parkOn": 0.0,
+                            "parkOff": 0.0,
+                            "holdOn": 44.0,
+                            "holdOff": 15.0,
+                            "blindTransfer": 0.0,
+                            "warmTransfer": 29.0,
+                            "dtmfTransfer": 0.0
+                        }
+                    },
+                    "callsByCompanyHours": {
+                        "valueType": "Instances",
+                        "values": {
+                            "businessHours": 129.0,
+                            "afterHours": 0.0
+                        }
+                    },
+                    "callsByType": {
+                        "valueType": "Instances",
+                        "values": {
+                            "direct": 0.0,
+                            "fromQueue": 89.0,
+                            "parkRetrieval": 0.0,
+                            "transferred": 5.0,
+                            "outbound": 33.0,
+                            "overflow": 0.0,
+                            "queueCallPickup": 0.0
+                        }
+                    },
+                    "queueOpportunities": {
+                        "valueType": "Instances",
+                        "values": 92.0
+                    },
+                    "callsByQueueHours": {
+                        "valueType": "Instances",
+                        "values": {
+                            "businessHours": 91.0,
+                            "afterHours": 0.0
+                        }
+                    }
+                }
+            },
+            {
+                "key": "1411725048",
+                "info": {
+                    "extensionNumber": "7801",
+                    "name": "Robert Kramer"
+                },
+                "timers": {
+                    "allCalls": {
+                        "valueType": "Seconds",
+                        "values": 10368.637
+                    },
+                    "callsByDirection": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "inbound": 2372.129,
+                            "outbound": 7996.508
+                        }
+                    },
+                    "callsByOrigin": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "internal": 0.0,
+                            "external": 10368.637
+                        }
+                    },
+                    "callsByResponse": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "answered": 2022.167,
+                            "notAnswered": 349.962,
+                            "connected": 7996.508,
+                            "notConnected": 0.0
+                        }
+                    },
+                    "callsSegments": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "ringing": 532.539,
+                            "liveTalk": 9646.868,
+                            "hold": 9.635,
+                            "park": 0.0,
+                            "transfer": 0.0,
+                            "ivrPrompt": 0.0,
+                            "voicemail": 100.153,
+                            "vmGreeting": 75.087,
+                            "setup": 4.355,
+                            "forwarding": 0.0
+                        }
+                    },
+                    "callsByResult": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "completed": 2022.167,
+                            "abandoned": 2.17,
+                            "voicemail": 261.131,
+                            "missed": 86.661,
+                            "accepted": 0.0,
+                            "unknown": 7996.508,
+                            "transferred": 0.0,
+                            "pickedUp": 0.0,
+                            "answeredElsewhere": 0.0,
+                            "forwarded": 0.0
+                        }
+                    },
+                    "callsByEndingParty": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "caller": 7837.382,
+                            "callee": 2531.255,
+                            "system": 0.0
+                        }
+                    },
+                    "callsByCompanyHours": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "businessHours": 10314.995,
+                            "afterHours": 53.642
+                        }
+                    },
+                    "callsByType": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "direct": 2372.129,
+                            "fromQueue": 0.0,
+                            "parkRetrieval": 0.0,
+                            "transferred": 0.0,
+                            "outbound": 7996.508,
+                            "overflow": 0.0,
+                            "queueCallPickup": 0.0
+                        }
+                    },
+                    "callsByQueueHours": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "businessHours": 0.0,
+                            "afterHours": 0.0
+                        }
+                    }
+                },
+                "counters": {
+                    "allCalls": {
+                        "valueType": "Instances",
+                        "values": 37.0
+                    },
+                    "callsByDirection": {
+                        "valueType": "Instances",
+                        "values": {
+                            "inbound": 10.0,
+                            "outbound": 27.0
+                        }
+                    },
+                    "callsByOrigin": {
+                        "valueType": "Instances",
+                        "values": {
+                            "internal": 0.0,
+                            "external": 37.0
+                        }
+                    },
+                    "callsByResponse": {
+                        "valueType": "Instances",
+                        "values": {
+                            "answered": 3.0,
+                            "notAnswered": 7.0,
+                            "connected": 27.0,
+                            "notConnected": 0.0
+                        }
+                    },
+                    "callsSegments": {
+                        "valueType": "Instances",
+                        "values": {
+                            "ringing": 35.0,
+                            "liveTalk": 33.0,
+                            "hold": 3.0,
+                            "park": 0.0,
+                            "transfer": 0.0,
+                            "ivrPrompt": 0.0,
+                            "voicemail": 4.0,
+                            "vmGreeting": 6.0,
+                            "setup": 37.0,
+                            "forwarding": 0.0
+                        }
+                    },
+                    "callsByResult": {
+                        "valueType": "Instances",
+                        "values": {
+                            "completed": 3.0,
+                            "abandoned": 1.0,
+                            "voicemail": 4.0,
+                            "missed": 2.0,
+                            "accepted": 0.0,
+                            "unknown": 27.0,
+                            "transferred": 0.0,
+                            "pickedUp": 0.0,
+                            "answeredElsewhere": 0.0,
+                            "forwarded": 0.0
+                        }
+                    },
+                    "callsByEndingParty": {
+                        "valueType": "Instances",
+                        "values": {
+                            "caller": 33.0,
+                            "callee": 4.0,
+                            "system": 0.0
+                        }
+                    },
+                    "callsActions": {
+                        "valueType": "Instances",
+                        "values": {
+                            "parkOn": 0.0,
+                            "parkOff": 0.0,
+                            "holdOn": 3.0,
+                            "holdOff": 3.0,
+                            "blindTransfer": 0.0,
+                            "warmTransfer": 0.0,
+                            "dtmfTransfer": 0.0
+                        }
+                    },
+                    "callsByCompanyHours": {
+                        "valueType": "Instances",
+                        "values": {
+                            "businessHours": 36.0,
+                            "afterHours": 1.0
+                        }
+                    },
+                    "callsByType": {
+                        "valueType": "Instances",
+                        "values": {
+                            "direct": 10.0,
+                            "fromQueue": 0.0,
+                            "parkRetrieval": 0.0,
+                            "transferred": 0.0,
+                            "outbound": 27.0,
+                            "overflow": 0.0,
+                            "queueCallPickup": 0.0
+                        }
+                    },
+                    "queueOpportunities": {
+                        "valueType": "Instances",
+                        "values": 0.0
+                    },
+                    "callsByQueueHours": {
+                        "valueType": "Instances",
+                        "values": {
+                            "businessHours": 0.0,
+                            "afterHours": 0.0
+                        }
+                    }
+                }
+            },
+            {
+                "key": "1420642048",
+                "info": {
+                    "extensionNumber": "7803",
+                    "name": "Alexia Luna"
+                },
+                "timers": {
+                    "allCalls": {
+                        "valueType": "Seconds",
+                        "values": 15629.332
+                    },
+                    "callsByDirection": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "inbound": 12705.948,
+                            "outbound": 2923.384
+                        }
+                    },
+                    "callsByOrigin": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "internal": 2649.166,
+                            "external": 12980.166
+                        }
+                    },
+                    "callsByResponse": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "answered": 12692.428,
+                            "notAnswered": 13.52,
+                            "connected": 2876.555,
+                            "notConnected": 46.829
+                        }
+                    },
+                    "callsSegments": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "ringing": 1510.18,
+                            "liveTalk": 10546.647,
+                            "hold": 4261.925,
+                            "park": 0.0,
+                            "transfer": 60.703,
+                            "ivrPrompt": 0.0,
+                            "voicemail": 40.0,
+                            "vmGreeting": 23.027,
+                            "setup": 83.167,
+                            "forwarding": 0.0
+                        }
+                    },
+                    "callsByResult": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "completed": 9254.94,
+                            "abandoned": 4.551,
+                            "voicemail": 0.0,
+                            "missed": 8.969,
+                            "accepted": 0.0,
+                            "unknown": 2923.384,
+                            "transferred": 3437.488,
+                            "pickedUp": 0.0,
+                            "answeredElsewhere": 0.0,
+                            "forwarded": 0.0
+                        }
+                    },
+                    "callsByEndingParty": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "caller": 1551.22,
+                            "callee": 10636.286,
+                            "system": 0.0
+                        }
+                    },
+                    "callsByCompanyHours": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "businessHours": 13729.251,
+                            "afterHours": 1900.081
+                        }
+                    },
+                    "callsByType": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "direct": 13.52,
+                            "fromQueue": 11274.828,
+                            "parkRetrieval": 0.0,
+                            "transferred": 681.364,
+                            "outbound": 2923.384,
+                            "overflow": 0.0,
+                            "queueCallPickup": 126.686
+                        }
+                    },
+                    "callsByQueueHours": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "businessHours": 12011.064,
+                            "afterHours": 0.0
+                        }
+                    }
+                },
+                "counters": {
+                    "allCalls": {
+                        "valueType": "Instances",
+                        "values": 122.0
+                    },
+                    "callsByDirection": {
+                        "valueType": "Instances",
+                        "values": {
+                            "inbound": 85.0,
+                            "outbound": 37.0
+                        }
+                    },
+                    "callsByOrigin": {
+                        "valueType": "Instances",
+                        "values": {
+                            "internal": 31.0,
+                            "external": 91.0
+                        }
+                    },
+                    "callsByResponse": {
+                        "valueType": "Instances",
+                        "values": {
+                            "answered": 82.0,
+                            "notAnswered": 3.0,
+                            "connected": 17.0,
+                            "notConnected": 20.0
+                        }
+                    },
+                    "callsSegments": {
+                        "valueType": "Instances",
+                        "values": {
+                            "ringing": 118.0,
+                            "liveTalk": 141.0,
+                            "hold": 58.0,
+                            "park": 0.0,
+                            "transfer": 30.0,
+                            "ivrPrompt": 0.0,
+                            "voicemail": 1.0,
+                            "vmGreeting": 2.0,
+                            "setup": 40.0,
+                            "forwarding": 0.0
+                        }
+                    },
+                    "callsByResult": {
+                        "valueType": "Instances",
+                        "values": {
+                            "completed": 54.0,
+                            "abandoned": 2.0,
+                            "voicemail": 0.0,
+                            "missed": 1.0,
+                            "accepted": 0.0,
+                            "unknown": 37.0,
+                            "transferred": 28.0,
+                            "pickedUp": 0.0,
+                            "answeredElsewhere": 0.0,
+                            "forwarded": 0.0
+                        }
+                    },
+                    "callsByEndingParty": {
+                        "valueType": "Instances",
+                        "values": {
+                            "caller": 25.0,
+                            "callee": 63.0,
+                            "system": 0.0
+                        }
+                    },
+                    "callsActions": {
+                        "valueType": "Instances",
+                        "values": {
+                            "parkOn": 0.0,
+                            "parkOff": 0.0,
+                            "holdOn": 61.0,
+                            "holdOff": 29.0,
+                            "blindTransfer": 0.0,
+                            "warmTransfer": 28.0,
+                            "dtmfTransfer": 0.0
+                        }
+                    },
+                    "callsByCompanyHours": {
+                        "valueType": "Instances",
+                        "values": {
+                            "businessHours": 91.0,
+                            "afterHours": 31.0
+                        }
+                    },
+                    "callsByType": {
+                        "valueType": "Instances",
+                        "values": {
+                            "direct": 3.0,
+                            "fromQueue": 74.0,
+                            "parkRetrieval": 0.0,
+                            "transferred": 2.0,
+                            "outbound": 37.0,
+                            "overflow": 0.0,
+                            "queueCallPickup": 5.0
+                        }
+                    },
+                    "queueOpportunities": {
+                        "valueType": "Instances",
+                        "values": 74.0
+                    },
+                    "callsByQueueHours": {
+                        "valueType": "Instances",
+                        "values": {
+                            "businessHours": 80.0,
+                            "afterHours": 0.0
+                        }
+                    }
+                }
+            },
+            {
+                "key": "1429356048",
+                "info": {
+                    "extensionNumber": "7819",
+                    "name": "LaQuita Sims"
+                },
+                "timers": {
+                    "allCalls": {
+                        "valueType": "Seconds",
+                        "values": 14581.48
+                    },
+                    "callsByDirection": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "inbound": 11879.955,
+                            "outbound": 2701.525
+                        }
+                    },
+                    "callsByOrigin": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "internal": 2098.926,
+                            "external": 12482.554
+                        }
+                    },
+                    "callsByResponse": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "answered": 11872.395,
+                            "notAnswered": 7.56,
+                            "connected": 2658.601,
+                            "notConnected": 42.924
+                        }
+                    },
+                    "callsSegments": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "ringing": 1235.518,
+                            "liveTalk": 9004.763,
+                            "hold": 4275.555,
+                            "park": 0.0,
+                            "transfer": 172.86,
+                            "ivrPrompt": 0.0,
+                            "voicemail": 43.0,
+                            "vmGreeting": 27.492,
+                            "setup": 64.315,
+                            "forwarding": 0.0
+                        }
+                    },
+                    "callsByResult": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "completed": 10078.149,
+                            "abandoned": 7.56,
+                            "voicemail": 0.0,
+                            "missed": 0.0,
+                            "accepted": 0.0,
+                            "unknown": 2701.525,
+                            "transferred": 1794.246,
+                            "pickedUp": 0.0,
+                            "answeredElsewhere": 0.0,
+                            "forwarded": 0.0
+                        }
+                    },
+                    "callsByEndingParty": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "caller": 2727.835,
+                            "callee": 9957.273,
+                            "system": 88.59
+                        }
+                    },
+                    "callsByCompanyHours": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "businessHours": 13970.722,
+                            "afterHours": 610.758
+                        }
+                    },
+                    "callsByType": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "direct": 0.0,
+                            "fromQueue": 11879.955,
+                            "parkRetrieval": 0.0,
+                            "transferred": 0.0,
+                            "outbound": 2701.525,
+                            "overflow": 0.0,
+                            "queueCallPickup": 0.0
+                        }
+                    },
+                    "callsByQueueHours": {
+                        "valueType": "Seconds",
+                        "values": {
+                            "businessHours": 11879.955,
+                            "afterHours": 0.0
+                        }
+                    }
+                },
+                "counters": {
+                    "allCalls": {
+                        "valueType": "Instances",
+                        "values": 96.0
+                    },
+                    "callsByDirection": {
+                        "valueType": "Instances",
+                        "values": {
+                            "inbound": 65.0,
+                            "outbound": 31.0
+                        }
+                    },
+                    "callsByOrigin": {
+                        "valueType": "Instances",
+                        "values": {
+                            "internal": 23.0,
+                            "external": 73.0
+                        }
+                    },
+                    "callsByResponse": {
+                        "valueType": "Instances",
+                        "values": {
+                            "answered": 64.0,
+                            "notAnswered": 1.0,
+                            "connected": 16.0,
+                            "notConnected": 15.0
+                        }
+                    },
+                    "callsSegments": {
+                        "valueType": "Instances",
+                        "values": {
+                            "ringing": 102.0,
+                            "liveTalk": 101.0,
+                            "hold": 39.0,
+                            "park": 0.0,
+                            "transfer": 23.0,
+                            "ivrPrompt": 0.0,
+                            "voicemail": 1.0,
+                            "vmGreeting": 2.0,
+                            "setup": 31.0,
+                            "forwarding": 0.0
+                        }
+                    },
+                    "callsByResult": {
+                        "valueType": "Instances",
+                        "values": {
+                            "completed": 44.0,
+                            "abandoned": 1.0,
+                            "voicemail": 0.0,
+                            "missed": 0.0,
+                            "accepted": 0.0,
+                            "unknown": 31.0,
+                            "transferred": 20.0,
+                            "pickedUp": 0.0,
+                            "answeredElsewhere": 0.0,
+                            "forwarded": 0.0
+                        }
+                    },
+                    "callsByEndingParty": {
+                        "valueType": "Instances",
+                        "values": {
+                            "caller": 25.0,
+                            "callee": 46.0,
+                            "system": 2.0
+                        }
+                    },
+                    "callsActions": {
+                        "valueType": "Instances",
+                        "values": {
+                            "parkOn": 0.0,
+                            "parkOff": 0.0,
+                            "holdOn": 38.0,
+                            "holdOff": 18.0,
+                            "blindTransfer": 0.0,
+                            "warmTransfer": 20.0,
+                            "dtmfTransfer": 0.0
+                        }
+                    },
+                    "callsByCompanyHours": {
+                        "valueType": "Instances",
+                        "values": {
+                            "businessHours": 90.0,
+                            "afterHours": 6.0
+                        }
+                    },
+                    "callsByType": {
+                        "valueType": "Instances",
+                        "values": {
+                            "direct": 0.0,
+                            "fromQueue": 65.0,
+                            "parkRetrieval": 0.0,
+                            "transferred": 0.0,
+                            "outbound": 31.0,
+                            "overflow": 0.0,
+                            "queueCallPickup": 0.0
+                        }
+                    },
+                    "queueOpportunities": {
+                        "valueType": "Instances",
+                        "values": 65.0
+                    },
+                    "callsByQueueHours": {
+                        "valueType": "Instances",
+                        "values": {
+                            "businessHours": 65.0,
+                            "afterHours": 0.0
+                        }
+                    }
+                }
+            }
+        ]
+    }
+}

@@ -307,6 +307,81 @@ class PayPalService {
     }
 
     /**
+     * Get a PayPal Invoice by ID
+     * 
+     * @param string $invoiceId
+     * @return array|null
+     */
+    public function getInvoice($invoiceId) {
+        try {
+            $accessToken = $this->getAccessToken();
+
+            $response = $this->client->request('GET', "/v2/invoicing/invoices/{$invoiceId}", [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                ]
+            ]);
+
+            return json_decode($response->getBody(), true);
+        } catch (RequestException $e) {
+            $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
+            $this->logger->error('Failed to get PayPal invoice', [
+                'invoice_id' => $invoiceId,
+                'error' => $e->getMessage(),
+                'response' => $responseBody
+            ]);
+            return null;
+        } catch (\Exception $e) {
+            $this->logger->error('Unexpected error getting PayPal invoice', [
+                'invoice_id' => $invoiceId,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
+     * Update a PayPal Invoice
+     * 
+     * @param string $invoiceId
+     * @param array $payload
+     * @return array|null
+     */
+    public function updateInvoice($invoiceId, $payload) {
+        try {
+            $accessToken = $this->getAccessToken();
+
+            $this->logger->info('Updating PayPal invoice', [
+                'invoice_id' => $invoiceId,
+                'payload' => $payload
+            ]);
+
+            $response = $this->client->request('PUT', "/v2/invoicing/invoices/{$invoiceId}", [
+                'headers' => [
+                    'Authorization' => 'Bearer ' . $accessToken,
+                ],
+                'json' => $payload
+            ]);
+
+            return json_decode($response->getBody(), true);
+        } catch (RequestException $e) {
+            $responseBody = $e->getResponse() ? $e->getResponse()->getBody()->getContents() : 'No response body';
+            $this->logger->error('Failed to update PayPal invoice', [
+                'invoice_id' => $invoiceId,
+                'error' => $e->getMessage(),
+                'response' => $responseBody
+            ]);
+            return null;
+        } catch (\Exception $e) {
+            $this->logger->error('Unexpected error updating PayPal invoice', [
+                'invoice_id' => $invoiceId,
+                'error' => $e->getMessage()
+            ]);
+            return null;
+        }
+    }
+
+    /**
      * Send a PayPal Invoice
      * 
      * @param string $invoiceId

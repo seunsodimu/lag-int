@@ -9,74 +9,142 @@ require_once __DIR__ . '/../../vendor/autoload.php';
 
 use Laguna\Integration\Middleware\AuthMiddleware;
 use Laguna\Integration\Utils\UrlHelper;
-use PhpOffice\PhpSpreadsheet\IOFactory;
+use Laguna\Integration\Services\RingCentralService;
 
-date_default_timezone_set('America/New_York');
+date_default_timezone_set('America/Chicago');
 
 $config = require __DIR__ . '/../../config/config.php';
-
 
 $kpiData = [];
 $userData = [];
 $error = null;
-$fileModifiedTime = null;
 
-$excelFile = __DIR__ . '/../../uploads/ringcentral_kpi/RingCentral_Customer_Service_KPI.xlsx';
+try {
+    $rcService = new RingCentralService();
+    
+    // Calculate date range
+    // Monday of the previous full week at 7:00am
+    $timeFromDate = new DateTime('Monday last week', new DateTimeZone('America/Chicago'));
+    $timeFromDate->setTime(7, 0, 0);
+    $timeFrom = $timeFromDate->format('Y-m-d\TH:i:s.v\Z');
+    
+    // Yesterday at 7:00pm
+    $timeToDate = new DateTime('yesterday', new DateTimeZone('America/Chicago'));
+    $timeToDate->setTime(19, 0, 0);
+    $timeTo = $timeToDate->format('Y-m-d\TH:i:s.v\Z');
 
-if (!file_exists($excelFile)) {
-    $error = 'Excel file not found: ' . $excelFile;
-} else {
-    $fileModifiedTime = filemtime($excelFile);
-    try {
-        $reader = IOFactory::createReader('Xlsx');
-        $spreadsheet = $reader->load($excelFile);
-        
-        $kpiSheet = $spreadsheet->getSheetByName('KPIs');
-        if ($kpiSheet) {
-            $kpiData = [
-                'total_calls' => $kpiSheet->getCell('A2')->getValue(),
-                'avg_calls_day' => $kpiSheet->getCell('B2')->getValue(),
-                'inbound' => $kpiSheet->getCell('C2')->getValue(),
-                'outbound' => $kpiSheet->getCell('D2')->getValue(),
-                'missed' => $kpiSheet->getCell('E2')->getValue(),
-                'avg_handle_time' => $kpiSheet->getCell('F2')->getValue(),
-            ];
+    // Calculate number of weekdays in range for average calculation
+    $interval = $timeFromDate->diff($timeToDate);
+    $daysCount = $interval->days + 1;
+    $weekDaysCount = 0;
+    $tempDate = clone $timeFromDate;
+    for ($i = 0; $i < $daysCount; $i++) {
+        $dayOfWeek = $tempDate->format('N'); // 1 (Mon) to 7 (Sun)
+        if ($dayOfWeek <= 5) {
+            $weekDaysCount++;
         }
-        
-        $usersSheet = $spreadsheet->getSheetByName('Users');
-        if ($usersSheet) {
-            $rows = $usersSheet->toArray();
-            $headers = array_shift($rows);
-            
-            foreach ($rows as $row) {
-                if (!empty(array_filter($row))) {
-                    $userData[] = [
-                        'name' => $row[0] ?? '',
-                        'status' => $row[1] ?? '',
-                        'ext' => $row[2] ?? '',
-                        'total_calls' => $row[3] ?? '',
-                        'avg_calls_day' => $row[4] ?? '',
-                        'inbound' => $row[5] ?? '',
-                        'outbound' => $row[6] ?? '',
-                        'missed' => $row[7] ?? '',
-                        'avg_handle_time' => $row[8] ?? '',
-                    ];
-                }
-            }
-        }
-        
-        $spreadsheet->disconnectWorksheets();
-        
-    } catch (Exception $e) {
-        $error = 'Error reading Excel file: ' . $e->getMessage();
+        $tempDate->modify('+1 day');
     }
+
+    $params = [
+        "grouping" => [
+            "groupByMembers" => "UserGroup",
+            "keys" => ["20210048"]
+        ],
+        "timeSettings" => [
+            "timeRange" => [
+                "timeFrom" => $timeFrom,
+                "timeTo" => $timeTo
+            ],
+            "advancedTimeSettings" => [
+                "includeDays" => ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"]
+            ],
+            "timeZone" => "America/Chicago"
+        ],
+        "responseOptions" => [
+            "counters" => [
+                "allCalls" => ["aggregationType" => "Sum"],
+                "callsByDirection" => ["aggregationType" => "Sum"],
+                "callsByOrigin" => ["aggregationType" => "Sum"],
+                "callsByResponse" => ["aggregationType" => "Sum"],
+                "callsSegments" => ["aggregationType" => "Sum"],
+                "callsByResult" => ["aggregationType" => "Sum"],
+                "callsByCompanyHours" => ["aggregationType" => "Sum"],
+                "callsByActions" => ["aggregationType" => "Sum"],
+                "callsByType" => ["aggregationType" => "Sum"],
+                "callsByEndingParty" => ["aggregationType" => "Sum"],
+                "queueOpportunities" => ["aggregationType" => "Sum"],
+                "callsByQueueHours" => ["aggregationType" => "Sum"]
+            ],
+            "timers" => [
+                "allCallsDuration" => ["aggregationType" => "Sum"],
+                "callsDurationByDirection" => ["aggregationType" => "Sum"],
+                "callsDurationByOrigin" => ["aggregationType" => "Sum"],
+                "callsDurationByResponse" => ["aggregationType" => "Sum"],
+                "callsSegmentsDuration" => ["aggregationType" => "Sum"],
+                "callsDurationByResult" => ["aggregationType" => "Sum"],
+                "callsDurationByCompanyHours" => ["aggregationType" => "Sum"],
+                "callsDurationByType" => ["aggregationType" => "Sum"],
+                "callsDurationByEndingParty" => ["aggregationType" => "Sum"],
+                "callsDurationByQueueHours" => ["aggregationType" => "Sum"]
+            ]
+        ]
+    ];
+
+    $useCache = !isset($_GET['refresh']);
+    $response = $rcService->fetchAnalyticsAggregation($params, $useCache);
+    $records = $response['data']['records'] ?? [];
+
+    $totalCalls = 0;
+    $totalInbound = 0;
+    $totalOutbound = 0;
+    $totalMissed = 0;
+    $totalDuration = 0;
+
+    foreach ($records as $record) {
+        $recordCalls = $record['counters']['allCalls']['values'] ?? 0;
+        $recordInbound = $record['counters']['callsByDirection']['values']['inbound'] ?? 0;
+        $recordOutbound = $record['counters']['callsByDirection']['values']['outbound'] ?? 0;
+        $recordMissed = $record['counters']['callsByResult']['values']['missed'] ?? 0;
+        $recordDuration = $record['timers']['allCalls']['values'] ?? 0;
+
+        $totalCalls += $recordCalls;
+        $totalInbound += $recordInbound;
+        $totalOutbound += $recordOutbound;
+        $totalMissed += $recordMissed;
+        $totalDuration += $recordDuration;
+
+        $userData[] = [
+            'name' => $record['info']['name'] ?? 'Unknown',
+            'status' => 'active', // RingCentral doesn't provide status here, assuming active
+            'ext' => $record['info']['extensionNumber'] ?? '',
+            'total_calls' => $recordCalls,
+            'avg_calls_day' => $weekDaysCount > 0 ? $recordCalls / $weekDaysCount : 0,
+            'inbound' => $recordInbound,
+            'outbound' => $recordOutbound,
+            'missed' => $recordCalls > 0 ? ($recordMissed / $recordCalls) * 100 : 0,
+            'avg_handle_time' => $recordCalls > 0 ? $recordDuration / $recordCalls : 0,
+        ];
+    }
+
+    $kpiData = [
+        'total_calls' => $totalCalls,
+        'avg_calls_day' => $weekDaysCount > 0 ? $totalCalls / $weekDaysCount : 0,
+        'inbound' => $totalInbound,
+        'outbound' => $totalOutbound,
+        'missed' => $totalCalls > 0 ? ($totalMissed / $totalCalls) * 100 : 0,
+        'avg_handle_time' => $totalCalls > 0 ? $totalDuration / $totalCalls : 0,
+    ];
+
+} catch (Exception $e) {
+    $error = 'RingCentral API Error: ' . $e->getMessage();
 }
 
 $refreshTime = $_GET['refresh_time'] ?? '08:00';
 
 function formatExcelTime($value) {
     if (is_numeric($value)) {
-        $seconds = (int)round($value * 86400);
+        $seconds = (int)round($value);
         $hours = floor($seconds / 3600);
         $minutes = floor(($seconds % 3600) / 60);
         $secs = floor($seconds % 60);
@@ -439,7 +507,7 @@ function formatExcelTime($value) {
                         </table>
                     </div>
                     <div class="last-updated">
-                        Last data refresh: <?php echo date('F j, Y \a\t g:i A', $fileModifiedTime); ?>
+                        Data range: <?php echo $timeFromDate->format('F j, Y g:i A'); ?> to <?php echo $timeToDate->format('F j, Y g:i A'); ?>
                     </div>
                 <?php endif; ?>
             <?php endif; ?>

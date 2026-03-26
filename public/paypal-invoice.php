@@ -34,8 +34,16 @@ $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 if ($method === 'POST') {
     try {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $action = $input['action'] ?? 'create';
+        
         $controller = new PayPalController();
-        $controller->createInvoicesForSalesOrders();
+        
+        if ($action === 'update_tax') {
+            $controller->updateTaxesForInvoices();
+        } else {
+            $controller->createInvoicesForSalesOrders();
+        }
     } catch (\Exception $e) {
         $logger->error('PayPal Invoice API endpoint error', [
             'error' => $e->getMessage(),
@@ -62,6 +70,7 @@ if ($method === 'POST') {
             'endpoint' => '/paypal-invoice.php',
             'body' => [
                 'order_ids' => ['string or array of NetSuite internal IDs'],
+                'action' => 'create or update_tax (default: create)',
                 'environment' => 'sandbox or production',
                 'send_to_invoicer' => 'bool',
                 'send_to_recipient' => 'bool'

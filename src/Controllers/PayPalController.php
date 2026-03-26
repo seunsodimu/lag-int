@@ -88,6 +88,35 @@ class PayPalController {
     }
 
     /**
+     * Handle the request to update taxes on PayPal Invoices
+     */
+    public function updateTaxesForInvoices() {
+        $input = json_decode(file_get_contents('php://input'), true);
+        $orderIds = $input['order_ids'] ?? null;
+        $environment = $input['environment'] ?? null;
+
+        if (!$orderIds) {
+            $this->sendResponse(false, 'Missing order_ids in request body', [], 400);
+            return;
+        }
+
+        if (!is_array($orderIds)) {
+            $orderIds = [$orderIds];
+        }
+
+        if ($environment) {
+            $this->paypalService = new PayPalService($environment);
+        }
+
+        $results = [];
+        foreach ($orderIds as $orderId) {
+            $results[] = $this->processTaxUpdate($orderId);
+        }
+
+        $this->sendResponse(true, 'Tax update processing complete', $results);
+    }
+
+    /**
      * Process a single Sales Order for Invoice creation
      */
     private function processInvoice($orderId, $sendToInvoicer = false, $sendToRecipient = true) {
@@ -453,5 +482,194 @@ class PayPalController {
             'results' => $data,
             'timestamp' => date('c')
         ]);
+    }
+
+    /**
+     * Process tax update for a single Sales Order
+     */
+    private function processTaxUpdate($orderId) {
+        $this->logger->info("Processing tax update for Sales Order: $orderId");
+
+        $result = [
+            'order_id' => $orderId,
+            'success' => false,
+            'error' => null,
+            'invoice_id' => 'N/A',
+            'old_tax' => 'N/A',
+            'new_tax' => 'N/A'
+        ];
+
+        try {
+            // 1. Get Sales Order from NetSuite
+            $order = $this->netsuiteService->getSalesOrderById($orderId);
+            if (!$order) {
+                $result['error'] = 'Sales Order not found in NetSuite';
+                return $result;
+            }
+
+            // 2. Get Invoice ID from custbody_paypal_invoice_url
+            $invoiceUrl = $order['custbody_paypal_invoice_url'] ?? '';
+            if (empty($invoiceUrl) || $invoiceUrl === 'N/A') {
+                $result['error'] = 'No PayPal invoice URL found on Sales Order';
+                return $result;
+            }
+
+            $urlParts = explode('#', $invoiceUrl);
+            if (count($urlParts) < 2) {
+                $result['error'] = 'Invalid PayPal invoice URL format';
+                return $result;
+            }
+
+            $strippedId = $urlParts[1];
+            $invoiceId = $this->reconstructPayPalId($strippedId);
+            $result['invoice_id'] = $invoiceId;
+
+            // 3. Get tax total from NetSuite
+            $taxTotal = $order['taxtotal'] ?? $order['taxTotal'] ?? 0;
+            $result['new_tax'] = $taxTotal;
+            
+            $this->logger->info("Updating tax for invoice $invoiceId. New tax total: $taxTotal");
+
+            // 4. Get current invoice from PayPal
+            $invoice = $this->paypalService->getInvoice($invoiceId);
+            if (!$invoice) {
+                $result['error'] = 'Failed to retrieve invoice from PayPal';
+                return $result;
+            }
+
+            // 5. Update tax in invoice payload
+            $oldTax = $invoice['amount']['breakdown']['tax_total']['value'] ?? 0;
+            $result['old_tax'] = $oldTax;
+
+            // Prepare update payload (Full invoice is required for PUT)
+            $updatePayload = $invoice;
+            
+            // Remove read-only fields and metadata that cause issues on update
+            unset($updatePayload['id']);
+            unset($updatePayload['status']);
+            unset($updatePayload['links']);
+            unset($updatePayload['meta']);
+            
+            if (isset($updatePayload['detail']['metadata'])) {
+                unset($updatePayload['detail']['metadata']);
+            }
+            
+            // Set tax_inclusive to false since we are adding a tax_total
+            if (!isset($updatePayload['configuration'])) {
+                $updatePayload['configuration'] = [];
+            }
+            $updatePayload['configuration']['tax_inclusive'] = false;
+            
+            // Remove read-only arrays and schema-violating fields
+            unset($updatePayload['payments']);
+            unset($updatePayload['refunds']);
+            unset($updatePayload['settings']);
+            unset($updatePayload['unilateral']);
+            
+            // Add tax as a separate item to avoid calculation_error with summary tax_total
+            // PayPal V2 requires summary tax_total to match the sum of item taxes (which use percentages)
+            // Using a separate item is more reliable for absolute amounts from NetSuite
+            $taxItemExists = false;
+            if (isset($updatePayload['items'])) {
+                foreach ($updatePayload['items'] as $key => $item) {
+                    if (($item['name'] ?? '') === 'Sales Tax') {
+                        $updatePayload['items'][$key]['unit_amount']['value'] = number_format((float)$taxTotal, 2, '.', '');
+                        $taxItemExists = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (!$taxItemExists && $taxTotal > 0) {
+                if (!isset($updatePayload['items'])) {
+                    $updatePayload['items'] = [];
+                }
+                $updatePayload['items'][] = [
+                    'name' => 'Sales Tax',
+                    'quantity' => '1',
+                    'unit_amount' => [
+                        'currency_code' => $invoice['amount']['currency_code'] ?? 'USD',
+                        'value' => number_format((float)$taxTotal, 2, '.', '')
+                    ],
+                    'unit_of_measure' => 'QUANTITY'
+                ];
+            }
+            
+            // Remove summary tax_total if we are adding it as an item
+            if (isset($updatePayload['amount']['breakdown']['tax_total'])) {
+                unset($updatePayload['amount']['breakdown']['tax_total']);
+            }
+
+            // Recalculate item_total in the breakdown
+            $newItemTotal = 0;
+            if (isset($updatePayload['items'])) {
+                foreach ($updatePayload['items'] as $item) {
+                    $quantity = (float)($item['quantity'] ?? 1);
+                    $unitAmount = (float)($item['unit_amount']['value'] ?? 0);
+                    $newItemTotal += $quantity * $unitAmount;
+                }
+            }
+            
+            if (!isset($updatePayload['amount']['breakdown'])) {
+                $updatePayload['amount']['breakdown'] = [];
+            }
+            
+            $updatePayload['amount']['breakdown']['item_total'] = [
+                'currency_code' => $invoice['amount']['currency_code'] ?? 'USD',
+                'value' => number_format($newItemTotal, 2, '.', '')
+            ];
+
+            // Also update the total amount to match NetSuite
+            $totalAmount = $order['total'] ?? 0;
+            if ($totalAmount > 0) {
+                $updatePayload['amount']['value'] = number_format((float)$totalAmount, 2, '.', '');
+            } else {
+                // If NetSuite total is 0 or missing, calculate from breakdown
+                $shipping = (float)($updatePayload['amount']['breakdown']['shipping']['amount']['value'] ?? 0);
+                $custom = (float)($updatePayload['amount']['breakdown']['custom']['amount']['value'] ?? 0);
+                $discount = (float)($updatePayload['amount']['breakdown']['discount']['invoice_discount']['amount']['value'] ?? 0);
+                
+                $calculatedTotal = $newItemTotal + $shipping + $custom - $discount;
+                $updatePayload['amount']['value'] = number_format($calculatedTotal, 2, '.', '');
+            }
+
+            // Remove calculated amount fields that might cause issues
+            unset($updatePayload['due_amount']);
+
+            // 6. Send update to PayPal
+            $updateResult = $this->paypalService->updateInvoice($invoiceId, $updatePayload);
+            if ($updateResult) {
+                $result['success'] = true;
+                $this->logger->info("Successfully updated tax for invoice $invoiceId to $taxTotal");
+            } else {
+                $result['error'] = 'Failed to update invoice on PayPal';
+            }
+
+            return $result;
+
+        } catch (\Exception $e) {
+            $this->logger->error("Error updating tax for Order $orderId", [
+                'error' => $e->getMessage()
+            ]);
+            $result['error'] = $e->getMessage();
+            return $result;
+        }
+    }
+
+    /**
+     * Reconstruct full PayPal Invoice ID from stripped ID
+     */
+    private function reconstructPayPalId($strippedId) {
+        if (strpos($strippedId, 'INV2-') === 0) {
+            return $strippedId;
+        }
+        
+        // If it's 16 chars, it's likely the stripped ID (4 blocks of 4)
+        if (strlen($strippedId) === 16) {
+            $parts = str_split($strippedId, 4);
+            return 'INV2-' . implode('-', $parts);
+        }
+        
+        return $strippedId;
     }
 }
