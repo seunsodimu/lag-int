@@ -188,9 +188,9 @@ return [
 
     // RingCentral Configuration
     'ringcentral' => [
-        'server_url' => $_ENV['RC_SERVER_URL'] ?? 'https://platform.ringcentral.com/restapi/oauth/token',
-        'client_id' => $_ENV['RC_APP_CLIENT_ID'] ?? '',
-        'client_secret' => $_ENV['RC_APP_CLIENT_SECRET'] ?? '',
-        'user_jwt' => $_ENV['RC_USER_JWT'] ?? '',
+        'server_url' => isset($_ENV['RC_SERVER_URL']) ? trim($_ENV['RC_SERVER_URL']) : 'https://platform.ringcentral.com/restapi/oauth/token',
+        'client_id' => isset($_ENV['RC_APP_CLIENT_ID']) ? trim($_ENV['RC_APP_CLIENT_ID']) : '',
+        'client_secret' => isset($_ENV['RC_APP_CLIENT_SECRET']) ? trim($_ENV['RC_APP_CLIENT_SECRET']) : '',
+        'user_jwt' => isset($_ENV['RC_USER_JWT']) ? trim($_ENV['RC_USER_JWT']) : '',
     ],
 ];

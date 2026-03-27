@@ -48,6 +48,11 @@ class RingCentralService {
             throw new Exception('RingCentral configuration is incomplete');
         }
 
+        // Ensure serverUrl ends with the correct token endpoint path
+        if (strpos($serverUrl, '/restapi/oauth/token') === false) {
+            $serverUrl = rtrim($serverUrl, '/') . '/restapi/oauth/token';
+        }
+
         $authHeader = base64_encode($clientId . ":" . $clientSecret);
 
         $ch = curl_init();
@@ -82,7 +87,8 @@ class RingCentralService {
         if ($httpCode !== 200 || !isset($result['access_token'])) {
             $this->logger->error('RingCentral auth failed', [
                 'http_code' => $httpCode,
-                'response' => $result
+                'response' => $result,
+                'url' => $serverUrl
             ]);
             throw new Exception('RingCentral authentication failed: ' . ($result['error_description'] ?? 'Unknown error'));
         }
